@@ -13,136 +13,143 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --navy: #0D2B4E; --navy-deep: #081d36; --teal: #0A7E8C;
-      --teal-light: #0FB5C8; --mint: #00B4A6; --gold: #E8A838;
-      --gold-light: #FDF3DC; --white: #FFFFFF; --off-white: #F4F8F9;
-      --light-bg: #EAF4F5; --text: #1A2E3B; --muted: #6B8A99;
-      --border: #C8E0E5; --error: #C0392B; --success: #27AE60;
-      --font-serif: 'Lora', Georgia, serif;
-      --font-sans: 'Source Sans 3', 'Segoe UI', sans-serif;
-      --radius: 16px; --shadow: 0 4px 24px rgba(13,43,78,0.10);
-      --shadow-md: 0 8px 40px rgba(13,43,78,0.15);
+      --navy:#0D2B4E; --teal:#0A7E8C; --mint:#00B4A6; --gold:#E8A838;
+      --gold-light:#FDF3DC; --off-white:#F4F8F9; --light-bg:#EAF4F5;
+      --text:#1A2E3B; --muted:#6B8A99; --border:#C8E0E5;
+      --error:#C0392B; --success:#27AE60;
+      --font-serif:'Lora',Georgia,serif;
+      --font-sans:'Source Sans 3','Segoe UI',sans-serif;
+      --shadow:0 4px 24px rgba(13,43,78,0.10);
     }
-    html { font-size: 16px; }
-    body { font-family: var(--font-sans); background: var(--off-white); color: var(--text); line-height: 1.6; min-height: 100vh; -webkit-font-smoothing: antialiased; }
-    button { cursor: pointer; font-family: var(--font-sans); border: none; outline: none; }
-    button:focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
-    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-    .fu { animation: fadeUp 0.5s ease both; }
-    .fi { animation: fadeIn 0.4s ease both; }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--off-white); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    html { font-size:16px; }
+    body { font-family:var(--font-sans); background:var(--off-white); color:var(--text); line-height:1.6; min-height:100vh; -webkit-font-smoothing:antialiased; }
+    button { cursor:pointer; font-family:var(--font-sans); border:none; outline:none; }
+    button:focus-visible { outline:3px solid var(--teal); outline-offset:3px; }
+    input { font-family:var(--font-sans); }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
+    ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:var(--off-white)} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+    input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{opacity:1}
   </style>
 </head>
 <body>
 <div id="root"></div>
-
 <script type="text/babel">
 const { useState, useEffect, useCallback, useRef } = React;
 
-// ═══════════════════════════════════════════════════════════════════
-// CONSTANTS
-// ═══════════════════════════════════════════════════════════════════
-const ITEM_POOL = [
-  {id:'milk',label:'Milk',emoji:'🥛'},{id:'bread',label:'Bread',emoji:'🍞'},
-  {id:'eggs',label:'Eggs',emoji:'🥚'},{id:'butter',label:'Butter',emoji:'🧈'},
-  {id:'apples',label:'Apples',emoji:'🍎'},{id:'tomatoes',label:'Tomatoes',emoji:'🍅'},
-  {id:'cheese',label:'Cheese',emoji:'🧀'},{id:'chicken',label:'Chicken',emoji:'🍗'},
-  {id:'carrots',label:'Carrots',emoji:'🥕'},{id:'potatoes',label:'Potatoes',emoji:'🥔'},
-  {id:'onions',label:'Onions',emoji:'🧅'},{id:'yogurt',label:'Yogurt',emoji:'🫙'},
-  {id:'coffee',label:'Coffee',emoji:'☕'},{id:'tea',label:'Tea',emoji:'🍵'},
-  {id:'sugar',label:'Sugar',emoji:'🍬'},{id:'flour',label:'Flour',emoji:'🌾'},
-  {id:'rice',label:'Rice',emoji:'🍚'},{id:'pasta',label:'Pasta',emoji:'🍝'},
-  {id:'fish',label:'Fish',emoji:'🐟'},{id:'lemons',label:'Lemons',emoji:'🍋'},
-  {id:'strawberry',label:'Strawberries',emoji:'🍓'},{id:'banana',label:'Bananas',emoji:'🍌'},
-  {id:'orange',label:'Oranges',emoji:'🍊'},{id:'grapes',label:'Grapes',emoji:'🍇'},
-];
+function shuffle(arr){return [...arr].sort(()=>Math.random()-0.5);}
 
-const GAMES = [
-  {id:'shopping',emoji:'🛒',title:'Shopping List',domain:'Working Memory',color:'#0A7E8C',desc:'Memorise items, then recall them from memory.',available:true},
-  {id:'odd',emoji:'🔦',title:'Find the Odd One',domain:'Attention & Speed',color:'#00B4A6',desc:'Spot the one element that does not belong.',available:false},
-  {id:'yesterday',emoji:'🗓️',title:'What Was Yesterday?',domain:'Episodic Memory',color:'#0A7E8C',desc:'Recall what happened earlier in your day.',available:false},
-  {id:'chain',emoji:'🔢',title:'Number Chain',domain:'Working Memory + Processing',color:'#00B4A6',desc:'Repeat a sequence of numbers in reverse order.',available:false},
-  {id:'pairs',emoji:'🎨',title:'Matching Pairs',domain:'Visual Memory',color:'#0A7E8C',desc:'Find matching cards from a face-down grid.',available:false},
-  {id:'route',emoji:'🧭',title:'The Route',domain:'Executive Function',color:'#00B4A6',desc:'Plan a multi-step route through a simple map.',available:false},
-];
+// ── Shared Button ─────────────────────────────────────────────────
+function Btn({children,onClick,disabled,secondary,small,style={}}){
+  const [h,setH]=useState(false);
+  return(
+    <button
+      onClick={!disabled?onClick:undefined}
+      onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+      style={{width:'100%',padding:small?'10px 18px':'15px 24px',
+        background:secondary?(h?'#d8ecee':'var(--light-bg)'):(disabled?'#bbb':(h?'#0a2240':'var(--navy)')),
+        color:secondary?'var(--navy)':'#fff',fontSize:small?14:16,fontWeight:700,
+        borderRadius:12,border:secondary?'2px solid var(--border)':'none',
+        cursor:disabled?'not-allowed':'pointer',display:'block',
+        fontFamily:'var(--font-sans)',transition:'background 0.18s',opacity:disabled?0.55:1,...style}}>
+      {children}
+    </button>
+  );
+}
 
-const LEVELS = [
-  {level:1,itemCount:4,memoriseSeconds:8,label:'Warm-up'},
-  {level:2,itemCount:5,memoriseSeconds:10,label:'Easy'},
-  {level:3,itemCount:6,memoriseSeconds:12,label:'Moderate'},
-  {level:4,itemCount:7,memoriseSeconds:14,label:'Challenging'},
-  {level:5,itemCount:8,memoriseSeconds:16,label:'Expert'},
-];
+function Label({children}){
+  return <label style={{display:'block',fontSize:13,fontWeight:700,color:'var(--navy)',marginBottom:8,textTransform:'uppercase',letterSpacing:0.4}}>{children}</label>;
+}
 
-const AGE_GROUPS = [
-  {label:'55–59',value:'57'},{label:'60–64',value:'62'},{label:'65–69',value:'67'},
-  {label:'70–74',value:'72'},{label:'75–79',value:'77'},{label:'80+',value:'82'},
-];
+// ── Screen Wrapper ────────────────────────────────────────────────
+function Screen({player,title,onBack,children}){
+  return(
+    <div style={{minHeight:'100vh',background:'var(--off-white)',display:'flex',flexDirection:'column'}}>
+      <header style={{background:'var(--navy)',height:58,padding:'0 20px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:10}}>
+        <button style={{background:'none',border:'none',color:'#7AAFBF',fontSize:14,cursor:'pointer',fontFamily:'var(--font-sans)',padding:'4px 0',whiteSpace:'nowrap'}} onClick={onBack}>← Menu</button>
+        <span style={{color:'#fff',fontWeight:700,fontSize:14,textAlign:'center',flex:1,padding:'0 8px'}}>{title}</span>
+        <span style={{color:'#7AAFBF',fontSize:13,whiteSpace:'nowrap'}}>{player.gender==='female'?'👩':'👨'} {player.name}</span>
+      </header>
+      <main style={{maxWidth:620,margin:'0 auto',padding:'24px 16px 80px',width:'100%'}}>{children}</main>
+    </div>
+  );
+}
 
-function shuffle(arr) { return [...arr].sort(()=>Math.random()-0.5); }
-
-// ═══════════════════════════════════════════════════════════════════
-// MAIN APP
-// ═══════════════════════════════════════════════════════════════════
-function App() {
-  const [player, setPlayer] = useState(null);
-  const [screen, setScreen] = useState('onboarding');
-
-  if (screen === 'onboarding') return <Onboarding onDone={p=>{setPlayer(p);setScreen('menu');}} />;
-  if (screen === 'shopping')   return <ShoppingList player={player} onBack={()=>setScreen('menu')} />;
-  return <Menu player={player} onPlay={id=>id==='shopping'&&setScreen('shopping')} />;
+// ── Cognitive Age Block ───────────────────────────────────────────
+function CognitiveAgeBlock({player}){
+  const rawAge=parseInt(player.ageNum)||65;
+  const cogAge=Math.max(rawAge-1,18);
+  return(
+    <div style={{background:'linear-gradient(135deg,#0D2B4E 0%,#0A7E8C 100%)',borderRadius:14,padding:'18px 20px',marginBottom:18,color:'#fff'}}>
+      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
+        <span style={{fontSize:30}}>🧠</span>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:700,fontSize:15}}>Your Cognitive Age</div>
+          <div style={{fontSize:12,color:'#A8CEDA'}}>Based on this session</div>
+        </div>
+        <div style={{textAlign:'right'}}>
+          <div style={{fontSize:40,fontWeight:700,color:'#00B4A6',lineHeight:1}}>{cogAge}</div>
+          <div style={{fontSize:11,color:'#A8CEDA'}}>years</div>
+        </div>
+      </div>
+      <div style={{background:'rgba(255,255,255,0.10)',borderRadius:10,padding:'10px 14px',fontSize:13,lineHeight:1.6,color:'#D0EEF5'}}>
+        Based on a comparison of your results with average scores for your age group ({player.age}),
+        your cognitive performance corresponds to someone approximately{' '}
+        <strong style={{color:'#00B4A6'}}>{cogAge} years old</strong> — one year younger than your current age.
+        Keep training daily to maintain and improve this result.
+      </div>
+    </div>
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // ONBOARDING
 // ═══════════════════════════════════════════════════════════════════
-function Onboarding({onDone}) {
+const AGE_GROUPS=[
+  {label:'55–59',num:57},{label:'60–64',num:62},{label:'65–69',num:67},
+  {label:'70–74',num:72},{label:'75–79',num:77},{label:'80+',num:82},
+];
+
+function Onboarding({onDone}){
   const [step,setStep]=useState(0);
   const [name,setName]=useState('');
   const [gender,setGender]=useState('');
-  const [age,setAge]=useState('');
+  const [ageGroup,setAgeGroup]=useState('');
+  const [ageCustom,setAgeCustom]=useState('');
   const [errors,setErrors]=useState({});
+
+  const finalAge=ageCustom.trim()?ageCustom.trim():ageGroup;
+  const finalAgeNum=ageCustom.trim()?parseInt(ageCustom):(AGE_GROUPS.find(a=>a.label===ageGroup)?.num||65);
 
   function validate(){
     const e={};
     if(!name.trim()||name.trim().length<2) e.name='Please enter your name (at least 2 characters).';
     if(!gender) e.gender='Please select your gender.';
-    if(!age)    e.age='Please select your age group.';
+    if(!finalAge) e.age='Please select or enter your age.';
+    if(ageCustom.trim()){const n=parseInt(ageCustom);if(isNaN(n)||n<18||n>120) e.age='Please enter a valid age between 18 and 120.';}
     setErrors(e);
     return Object.keys(e).length===0;
   }
 
-  const shell={
-    minHeight:'100vh',background:'var(--navy)',display:'flex',
-    alignItems:'center',justifyContent:'center',padding:'32px 16px',
-    position:'relative',overflow:'hidden',
-  };
-  const orb1={position:'absolute',top:-100,right:-80,width:380,height:380,borderRadius:'50%',
-    background:'radial-gradient(circle,rgba(10,126,140,0.28) 0%,transparent 70%)',pointerEvents:'none'};
-  const orb2={position:'absolute',bottom:-80,left:-60,width:280,height:280,borderRadius:'50%',
-    background:'radial-gradient(circle,rgba(0,180,166,0.20) 0%,transparent 70%)',pointerEvents:'none'};
-  const card={background:'#fff',borderRadius:24,padding:'clamp(24px,5vw,44px)',
-    width:'100%',maxWidth:520,position:'relative',boxShadow:'0 24px 80px rgba(0,0,0,0.28)',animation:'fadeUp 0.6s ease both'};
+  const shell={minHeight:'100vh',background:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',padding:'32px 16px',position:'relative',overflow:'hidden'};
+  const orb1={position:'absolute',top:-100,right:-80,width:360,height:360,borderRadius:'50%',background:'radial-gradient(circle,rgba(10,126,140,0.28) 0%,transparent 70%)',pointerEvents:'none'};
+  const orb2={position:'absolute',bottom:-80,left:-60,width:280,height:280,borderRadius:'50%',background:'radial-gradient(circle,rgba(0,180,166,0.20) 0%,transparent 70%)',pointerEvents:'none'};
+  const card={background:'#fff',borderRadius:24,padding:'clamp(24px,5vw,44px)',width:'100%',maxWidth:500,position:'relative',boxShadow:'0 24px 80px rgba(0,0,0,0.28)',animation:'fadeUp 0.6s ease both'};
 
-  if(step===0) return (
-    <div style={shell}>
-      <div style={orb1}/><div style={orb2}/>
+  if(step===0) return(
+    <div style={shell}><div style={orb1}/><div style={orb2}/>
       <div style={card}>
         <div style={{fontFamily:'var(--font-serif)',fontSize:22,fontWeight:700,color:'var(--navy)',letterSpacing:5,marginBottom:28,textAlign:'center'}}>CLIVE</div>
-        <h1 style={{fontFamily:'var(--font-serif)',fontSize:'clamp(26px,5vw,38px)',color:'var(--navy)',fontWeight:700,lineHeight:1.25,marginBottom:16,textAlign:'center'}}>
+        <h1 style={{fontFamily:'var(--font-serif)',fontSize:'clamp(24px,5vw,36px)',color:'var(--navy)',fontWeight:700,lineHeight:1.25,marginBottom:16,textAlign:'center'}}>
           Your mind deserves<br/><span style={{color:'var(--teal)'}}>daily care.</span>
         </h1>
-        <p style={{fontSize:16,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:24}}>
-          CLIVE is a calm, ad-free cognitive training app designed for adults 55+, built on clinically validated methods.
+        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:22}}>
+          CLIVE is a calm, ad-free cognitive training app for adults 55+, built on clinically validated methods.
         </p>
-        <div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center',marginBottom:32}}>
-          {['🧠 Working Memory','👁 Attention','🗂 Executive Function','🎯 Episodic Memory'].map(p=>(
-            <span key={p} style={{background:'var(--light-bg)',color:'var(--teal)',fontSize:13,fontWeight:600,padding:'5px 14px',borderRadius:20,border:'1px solid var(--border)'}}>{p}</span>
+        <div style={{display:'flex',flexWrap:'wrap',gap:7,justifyContent:'center',marginBottom:28}}>
+          {['🧠 Working Memory','👁 Attention','🗂 Executive Function','🎯 Episodic Memory','⚡ Processing Speed','🗺 Spatial Thinking'].map(p=>(
+            <span key={p} style={{background:'var(--light-bg)',color:'var(--teal)',fontSize:12,fontWeight:600,padding:'4px 12px',borderRadius:20,border:'1px solid var(--border)'}}>{p}</span>
           ))}
         </div>
         <Btn onClick={()=>setStep(1)}>Get started →</Btn>
@@ -151,79 +158,81 @@ function Onboarding({onDone}) {
     </div>
   );
 
-  if(step===2){
-    const emoji=gender==='female'?'👩':gender==='male'?'👨':'🧑';
-    return(
-      <div style={shell}><div style={orb1}/><div style={orb2}/>
-        <div style={{...card,textAlign:'center'}}>
-          <div style={{fontSize:64,marginBottom:16}}>{emoji}</div>
-          <h2 style={{fontFamily:'var(--font-serif)',fontSize:28,color:'var(--navy)',marginBottom:12}}>Welcome, {name.trim()}.</h2>
-          <p style={{fontSize:16,color:'var(--muted)',lineHeight:1.7,marginBottom:28}}>You're all set. Let's start your first cognitive session.</p>
-          <div style={{background:'var(--light-bg)',borderRadius:14,padding:'16px 20px',marginBottom:28}}>
-            {[['Name',name.trim()],['Gender',gender.charAt(0).toUpperCase()+gender.slice(1)],['Age group',AGE_GROUPS.find(a=>a.value===age)?.label]].map(([l,v])=>(
-              <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid var(--border)'}}>
-                <span style={{fontSize:14,color:'var(--muted)'}}>{l}</span>
-                <span style={{fontSize:14,fontWeight:700,color:'var(--navy)'}}>{v}</span>
-              </div>
-            ))}
-          </div>
-          <Btn onClick={()=>onDone({name:name.trim(),gender,age:AGE_GROUPS.find(a=>a.value===age)?.label})}>Open my dashboard →</Btn>
+  if(step===2) return(
+    <div style={shell}><div style={orb1}/><div style={orb2}/>
+      <div style={{...card,textAlign:'center'}}>
+        <div style={{fontSize:60,marginBottom:16}}>{gender==='female'?'👩':'👨'}</div>
+        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:12}}>Welcome, {name.trim()}.</h2>
+        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,marginBottom:24}}>You're all set. Let's begin your first session.</p>
+        <div style={{background:'var(--light-bg)',borderRadius:14,padding:'14px 18px',marginBottom:24}}>
+          {[['Name',name.trim()],['Gender',gender==='female'?'Female':'Male'],['Age',finalAge]].map(([l,v])=>(
+            <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid var(--border)'}}>
+              <span style={{fontSize:14,color:'var(--muted)'}}>{l}</span>
+              <span style={{fontSize:14,fontWeight:700,color:'var(--navy)'}}>{v}</span>
+            </div>
+          ))}
         </div>
+        <Btn onClick={()=>onDone({name:name.trim(),gender,age:finalAge,ageNum:finalAgeNum})}>Open my dashboard →</Btn>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // Step 1: form
   return(
     <div style={shell}><div style={orb1}/><div style={orb2}/>
       <div style={card}>
-        <button style={{background:'none',border:'none',color:'var(--muted)',fontSize:14,cursor:'pointer',padding:'0 0 20px',display:'block'}} onClick={()=>setStep(0)}>← Back</button>
-        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',fontWeight:700,marginBottom:8}}>Tell us about yourself</h2>
-        <p style={{fontSize:14,color:'var(--muted)',lineHeight:1.6,marginBottom:28}}>This helps personalise your training. Your data stays on your device.</p>
+        <button style={{background:'none',border:'none',color:'var(--muted)',fontSize:14,cursor:'pointer',padding:'0 0 18px',display:'block'}} onClick={()=>setStep(0)}>← Back</button>
+        <h2 style={{fontFamily:'var(--font-serif)',fontSize:24,color:'var(--navy)',fontWeight:700,marginBottom:6}}>Tell us about yourself</h2>
+        <p style={{fontSize:13,color:'var(--muted)',lineHeight:1.6,marginBottom:22}}>This helps personalise your training. Your data stays on your device.</p>
 
-        {/* Name */}
-        <div style={{marginBottom:24}}>
+        <div style={{marginBottom:20}}>
           <Label>Your first name</Label>
-          <input style={{width:'100%',padding:'14px 18px',border:`2px solid ${errors.name?'var(--error)':'var(--border)'}`,borderRadius:12,fontSize:18,color:'var(--text)',outline:'none',fontFamily:'var(--font-sans)'}}
+          <input style={{width:'100%',padding:'13px 16px',border:`2px solid ${errors.name?'var(--error)':'var(--border)'}`,borderRadius:12,fontSize:17,color:'var(--text)',outline:'none'}}
             type="text" placeholder="e.g. Margaret" value={name}
-            onChange={e=>{setName(e.target.value);setErrors(ev=>({...ev,name:''}));}} autoFocus />
-          {errors.name&&<span style={{display:'block',marginTop:6,fontSize:13,color:'var(--error)'}}>{errors.name}</span>}
+            onChange={e=>{setName(e.target.value);setErrors(ev=>({...ev,name:''}));}} autoFocus/>
+          {errors.name&&<span style={{display:'block',marginTop:5,fontSize:12,color:'var(--error)'}}>{errors.name}</span>}
         </div>
 
-        {/* Gender */}
-        <div style={{marginBottom:24}}>
+        <div style={{marginBottom:20}}>
           <Label>Gender</Label>
           <div style={{display:'flex',gap:12}}>
-            {[{value:'female',label:'Female',emoji:'👩'},{value:'male',label:'Male',emoji:'👨'},{value:'other',label:'Other',emoji:'🧑'}].map(opt=>(
+            {[{value:'female',label:'Female',emoji:'👩'},{value:'male',label:'Male',emoji:'👨'}].map(opt=>(
               <button key={opt.value} type="button"
-                style={{flex:1,padding:'14px 8px',border:`2px solid ${errors.gender&&!gender?'var(--error)':gender===opt.value?'var(--teal)':'var(--border)'}`,
+                style={{flex:1,padding:'16px 8px',border:`2px solid ${errors.gender&&!gender?'var(--error)':gender===opt.value?'var(--teal)':'var(--border)'}`,
                   borderRadius:12,background:gender===opt.value?'var(--light-bg)':'#fff',
-                  display:'flex',flexDirection:'column',alignItems:'center',gap:4,cursor:'pointer',
+                  display:'flex',flexDirection:'column',alignItems:'center',gap:5,cursor:'pointer',
                   color:gender===opt.value?'var(--teal)':'var(--text)',transition:'all 0.15s'}}
                 onClick={()=>{setGender(opt.value);setErrors(ev=>({...ev,gender:''}));}}>
-                <span style={{fontSize:24}}>{opt.emoji}</span>
-                <span style={{fontSize:14}}>{opt.label}</span>
+                <span style={{fontSize:30}}>{opt.emoji}</span>
+                <span style={{fontSize:14,fontWeight:600}}>{opt.label}</span>
               </button>
             ))}
           </div>
-          {errors.gender&&<span style={{display:'block',marginTop:6,fontSize:13,color:'var(--error)'}}>{errors.gender}</span>}
+          {errors.gender&&<span style={{display:'block',marginTop:5,fontSize:12,color:'var(--error)'}}>{errors.gender}</span>}
         </div>
 
-        {/* Age */}
         <div style={{marginBottom:28}}>
-          <Label>Age group</Label>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
+          <Label>Age</Label>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:12}}>
             {AGE_GROUPS.map(ag=>(
-              <button key={ag.value} type="button"
-                style={{padding:'12px 8px',border:`2px solid ${errors.age&&!age?'var(--error)':age===ag.value?'var(--teal)':'var(--border)'}`,
-                  borderRadius:12,background:age===ag.value?'var(--light-bg)':'#fff',
-                  fontSize:16,fontWeight:600,color:age===ag.value?'var(--teal)':'var(--text)',cursor:'pointer',transition:'all 0.15s'}}
-                onClick={()=>{setAge(ag.value);setErrors(ev=>({...ev,age:''}));}}>
+              <button key={ag.label} type="button"
+                style={{padding:'11px 6px',border:`2px solid ${errors.age&&!finalAge?'var(--error)':ageGroup===ag.label&&!ageCustom?'var(--teal)':'var(--border)'}`,
+                  borderRadius:10,background:ageGroup===ag.label&&!ageCustom?'var(--light-bg)':'#fff',
+                  fontSize:15,fontWeight:600,color:ageGroup===ag.label&&!ageCustom?'var(--teal)':'var(--text)',cursor:'pointer',transition:'all 0.15s'}}
+                onClick={()=>{setAgeGroup(ag.label);setAgeCustom('');setErrors(ev=>({...ev,age:''}));}}>
                 {ag.label}
               </button>
             ))}
           </div>
-          {errors.age&&<span style={{display:'block',marginTop:6,fontSize:13,color:'var(--error)'}}>{errors.age}</span>}
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <span style={{fontSize:13,color:'var(--muted)',whiteSpace:'nowrap'}}>Or exact age:</span>
+            <input
+              style={{flex:1,padding:'10px 14px',border:`2px solid ${ageCustom?'var(--teal)':'var(--border)'}`,borderRadius:10,fontSize:16,color:'var(--text)',outline:'none',textAlign:'center'}}
+              type="number" placeholder="e.g. 68" min="18" max="120"
+              value={ageCustom}
+              onChange={e=>{setAgeCustom(e.target.value);if(e.target.value) setAgeGroup('');setErrors(ev=>({...ev,age:''}));}}
+            />
+          </div>
+          {errors.age&&<span style={{display:'block',marginTop:5,fontSize:12,color:'var(--error)'}}>{errors.age}</span>}
         </div>
 
         <Btn onClick={()=>{if(validate())setStep(2);}}>Continue →</Btn>
@@ -235,56 +244,58 @@ function Onboarding({onDone}) {
 // ═══════════════════════════════════════════════════════════════════
 // MENU
 // ═══════════════════════════════════════════════════════════════════
-function Menu({player,onPlay}) {
+const GAMES=[
+  {id:'shopping',  emoji:'🛒',title:'Shopping List',    domain:'Working Memory',              color:'#0A7E8C',desc:'Memorise items, then recall them from a shuffled grid.'},
+  {id:'odd',       emoji:'🔦',title:'Find the Odd One', domain:'Attention & Speed',            color:'#00B4A6',desc:'Spot the one element that does not belong in the grid.'},
+  {id:'yesterday', emoji:'🗓️',title:'What Was Yesterday?',domain:'Episodic Memory',           color:'#0A7E8C',desc:'Read a short story, then answer recall questions.'},
+  {id:'chain',     emoji:'🔢',title:'Number Chain',     domain:'Working Memory + Processing',  color:'#00B4A6',desc:'See digits one by one, then repeat them in reverse.'},
+  {id:'pairs',     emoji:'🎨',title:'Matching Pairs',   domain:'Visual Memory',                color:'#0A7E8C',desc:'Flip cards to find all matching pairs from memory.'},
+  {id:'route',     emoji:'🧭',title:'The Route',        domain:'Executive Function',            color:'#00B4A6',desc:'Plan a multi-step route on a map following given rules.'},
+];
+
+function Menu({player,onPlay}){
   const [hov,setHov]=useState(null);
   return(
     <div style={{minHeight:'100vh',background:'var(--off-white)',display:'flex',flexDirection:'column'}}>
-      <header style={{background:'var(--navy)',padding:'0 32px',height:64,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:10}}>
-        <div style={{fontFamily:'var(--font-serif)',fontSize:24,fontWeight:700,color:'#fff',letterSpacing:4}}>CLIVE</div>
-        <div style={{display:'flex',alignItems:'center',gap:10}}>
-          <span style={{fontSize:26}}>{player.gender==='female'?'👩':player.gender==='male'?'👨':'🧑'}</span>
-          <div>
-            <div style={{color:'#fff',fontWeight:600,fontSize:15,lineHeight:1.2}}>{player.name}</div>
-            <div style={{color:'#7AAFBF',fontSize:12}}>{player.age}</div>
-          </div>
+      <header style={{background:'var(--navy)',padding:'0 24px',height:60,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:10}}>
+        <div style={{fontFamily:'var(--font-serif)',fontSize:22,fontWeight:700,color:'#fff',letterSpacing:4}}>CLIVE</div>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <span style={{fontSize:24}}>{player.gender==='female'?'👩':'👨'}</span>
+          <div><div style={{color:'#fff',fontWeight:600,fontSize:14,lineHeight:1.2}}>{player.name}</div><div style={{color:'#7AAFBF',fontSize:12}}>{player.age}</div></div>
         </div>
       </header>
-      <main style={{maxWidth:960,margin:'0 auto',padding:'48px 24px 80px',width:'100%'}}>
-        <div style={{marginBottom:40,animation:'fadeUp 0.5s ease'}}>
-          <h1 style={{fontFamily:'var(--font-serif)',fontSize:'clamp(26px,4vw,38px)',color:'var(--navy)',fontWeight:700,lineHeight:1.2}}>
+      <main style={{maxWidth:960,margin:'0 auto',padding:'40px 20px 80px',width:'100%'}}>
+        <div style={{marginBottom:36,animation:'fadeUp 0.5s ease'}}>
+          <h1 style={{fontFamily:'var(--font-serif)',fontSize:'clamp(24px,4vw,36px)',color:'var(--navy)',fontWeight:700,lineHeight:1.2}}>
             Good day, <span style={{color:'var(--teal)'}}>{player.name}.</span>
           </h1>
-          <p style={{fontSize:18,color:'var(--muted)',marginTop:8}}>Your daily cognitive session is ready.</p>
+          <p style={{fontSize:17,color:'var(--muted)',marginTop:6}}>Choose an exercise to begin your daily session.</p>
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:20,marginBottom:40}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(270px,1fr))',gap:18,marginBottom:36}}>
           {GAMES.map((game,i)=>(
             <div key={game.id}
-              style={{background:'#fff',borderRadius:16,overflow:'hidden',position:'relative',
-                cursor:game.available?'pointer':'default',opacity:game.available?1:0.55,
-                transform:hov===game.id&&game.available?'translateY(-4px)':'none',
-                boxShadow:hov===game.id&&game.available?'0 12px 40px rgba(13,43,78,0.18)':'0 4px 20px rgba(13,43,78,0.09)',
-                transition:'transform 0.2s,box-shadow 0.2s',
-                animation:`fadeUp 0.5s ease ${i*70}ms both`}}
-              onClick={()=>game.available&&onPlay(game.id)}
+              style={{background:'#fff',borderRadius:16,overflow:'hidden',cursor:'pointer',
+                transform:hov===game.id?'translateY(-4px)':'none',
+                boxShadow:hov===game.id?'0 12px 36px rgba(13,43,78,0.16)':'0 3px 16px rgba(13,43,78,0.08)',
+                transition:'transform 0.2s,box-shadow 0.2s',animation:`fadeUp 0.5s ease ${i*55}ms both`}}
+              onClick={()=>onPlay(game.id)}
               onMouseEnter={()=>setHov(game.id)} onMouseLeave={()=>setHov(null)}>
               <div style={{height:5,background:game.color}}/>
-              <div style={{padding:'20px 20px 12px',display:'flex',gap:14,alignItems:'flex-start'}}>
-                <span style={{fontSize:32,lineHeight:1,marginTop:2}}>{game.emoji}</span>
+              <div style={{padding:'18px 18px 10px',display:'flex',gap:12,alignItems:'flex-start'}}>
+                <span style={{fontSize:30,lineHeight:1,marginTop:2}}>{game.emoji}</span>
                 <div>
-                  <div style={{fontWeight:700,fontSize:16,color:'var(--navy)',marginBottom:2}}>{game.title}</div>
-                  <div style={{fontSize:12,fontWeight:600,textTransform:'uppercase',letterSpacing:0.5,color:game.color,marginBottom:6}}>{game.domain}</div>
+                  <div style={{fontWeight:700,fontSize:15,color:'var(--navy)',marginBottom:2}}>{game.title}</div>
+                  <div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:0.5,color:game.color,marginBottom:5}}>{game.domain}</div>
                   <div style={{fontSize:13,color:'var(--muted)',lineHeight:1.4}}>{game.desc}</div>
                 </div>
               </div>
-              {game.available
-                ? <div style={{margin:'8px 20px 16px',display:'inline-block',color:'#fff',fontWeight:700,fontSize:13,padding:'6px 16px',borderRadius:20,background:game.color}}>Play →</div>
-                : <div style={{margin:'8px 20px 16px',fontSize:11,color:'var(--muted)',textTransform:'uppercase',letterSpacing:1}}>Coming soon</div>
-              }
+              <div style={{margin:'6px 18px 14px',display:'inline-block',color:'#fff',fontWeight:700,fontSize:12,padding:'5px 14px',borderRadius:20,background:game.color}}>Play →</div>
             </div>
           ))}
         </div>
-        <p style={{textAlign:'center',fontSize:12,color:'var(--muted)',lineHeight:1.6,maxWidth:600,margin:'0 auto',fontStyle:'italic'}}>
-          All exercises are based on clinically validated methods · NICE NG236 · Cicerone et al. 2019 · CST · EBRSR 19th Ed.
+        <p style={{textAlign:'center',fontSize:12,color:'var(--muted)',lineHeight:1.6,maxWidth:540,margin:'0 auto',fontStyle:'italic'}}>
+          All exercises are based on clinically validated cognitive rehabilitation methods.<br/>
+          NICE NG236 (2023) · Cicerone et al. (2019) · CST/NICE · EBRSR 19th Ed.
         </p>
       </main>
     </div>
@@ -292,269 +303,930 @@ function Menu({player,onPlay}) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// SHOPPING LIST GAME
+// 1. SHOPPING LIST
 // ═══════════════════════════════════════════════════════════════════
-function ShoppingList({player,onBack}) {
+const ITEM_POOL=[
+  {id:'milk',label:'Milk',emoji:'🥛'},{id:'bread',label:'Bread',emoji:'🍞'},{id:'eggs',label:'Eggs',emoji:'🥚'},
+  {id:'butter',label:'Butter',emoji:'🧈'},{id:'apples',label:'Apples',emoji:'🍎'},{id:'tomatoes',label:'Tomatoes',emoji:'🍅'},
+  {id:'cheese',label:'Cheese',emoji:'🧀'},{id:'chicken',label:'Chicken',emoji:'🍗'},{id:'carrots',label:'Carrots',emoji:'🥕'},
+  {id:'potatoes',label:'Potatoes',emoji:'🥔'},{id:'onions',label:'Onions',emoji:'🧅'},{id:'yogurt',label:'Yogurt',emoji:'🫙'},
+  {id:'coffee',label:'Coffee',emoji:'☕'},{id:'tea',label:'Tea',emoji:'🍵'},{id:'sugar',label:'Sugar',emoji:'🍬'},
+  {id:'flour',label:'Flour',emoji:'🌾'},{id:'rice',label:'Rice',emoji:'🍚'},{id:'pasta',label:'Pasta',emoji:'🍝'},
+  {id:'fish',label:'Fish',emoji:'🐟'},{id:'lemons',label:'Lemons',emoji:'🍋'},{id:'strawberry',label:'Strawberries',emoji:'🍓'},
+  {id:'banana',label:'Bananas',emoji:'🍌'},{id:'orange',label:'Oranges',emoji:'🍊'},{id:'grapes',label:'Grapes',emoji:'🍇'},
+];
+const SL_LEVELS=[
+  {level:1,n:4,secs:8,label:'Warm-up'},{level:2,n:5,secs:10,label:'Easy'},
+  {level:3,n:6,secs:12,label:'Moderate'},{level:4,n:7,secs:14,label:'Challenging'},{level:5,n:8,secs:16,label:'Expert'},
+];
+
+function ShoppingList({player,onBack}){
   const [phase,setPhase]=useState('intro');
-  const [levelIdx,setLevelIdx]=useState(0);
+  const [lvl,setLvl]=useState(0);
   const [round,setRound]=useState(1);
-  const [targetItems,setTargetItems]=useState([]);
-  const [allItems,setAllItems]=useState([]);
-  const [selected,setSelected]=useState([]);
-  const [timeLeft,setTimeLeft]=useState(0);
-  const [score,setScore]=useState({correct:0,total:0});
-  const [roundResults,setRoundResults]=useState([]);
-  const timerRef=useRef(null);
-  const TOTAL_ROUNDS=3;
-  const config=LEVELS[Math.min(levelIdx,LEVELS.length-1)];
+  const [target,setTarget]=useState([]);
+  const [pool,setPool]=useState([]);
+  const [sel,setSel]=useState([]);
+  const [t,setT]=useState(0);
+  const [score,setScore]=useState({c:0,tot:0});
+  const [rounds,setRounds]=useState([]);
+  const timer=useRef(null);
+  const TOTAL=3;
+  const cfg=SL_LEVELS[Math.min(lvl,SL_LEVELS.length-1)];
 
   const startRound=useCallback(()=>{
-    const items=shuffle(ITEM_POOL).slice(0,config.itemCount);
-    const distractors=shuffle(ITEM_POOL.filter(p=>!items.find(i=>i.id===p.id))).slice(0,config.itemCount);
-    setTargetItems(items);
-    setAllItems(shuffle([...items,...distractors]));
-    setSelected([]);
-    setTimeLeft(config.memoriseSeconds);
-    setPhase('memorise');
-  },[config]);
+    const items=shuffle(ITEM_POOL).slice(0,cfg.n);
+    const dist=shuffle(ITEM_POOL.filter(p=>!items.find(i=>i.id===p.id))).slice(0,cfg.n);
+    setTarget(items);setPool(shuffle([...items,...dist]));setSel([]);setT(cfg.secs);setPhase('memorise');
+  },[cfg]);
 
   useEffect(()=>{
     if(phase!=='memorise') return;
-    timerRef.current=setInterval(()=>{
-      setTimeLeft(t=>{
-        if(t<=1){clearInterval(timerRef.current);setPhase('recall');return 0;}
-        return t-1;
-      });
-    },1000);
-    return()=>clearInterval(timerRef.current);
+    timer.current=setInterval(()=>setT(prev=>{if(prev<=1){clearInterval(timer.current);setPhase('recall');return 0;}return prev-1;}),1000);
+    return()=>clearInterval(timer.current);
   },[phase]);
 
-  function toggleItem(item){
-    setSelected(prev=>prev.find(s=>s.id===item.id)?prev.filter(s=>s.id!==item.id):prev.length<config.itemCount?[...prev,item]:prev);
-  }
+  function toggle(item){setSel(p=>p.find(s=>s.id===item.id)?p.filter(s=>s.id!==item.id):p.length<cfg.n?[...p,item]:p);}
 
-  function submitRecall(){
-    const correctCount=selected.filter(s=>targetItems.find(t=>t.id===s.id)).length;
-    const newScore={correct:score.correct+correctCount,total:score.total+config.itemCount};
-    setScore(newScore);
-    setRoundResults(prev=>[...prev,{round,target:targetItems,selected,correct:correctCount,total:config.itemCount}]);
+  function submit(){
+    const c=sel.filter(s=>target.find(t=>t.id===s.id)).length;
+    setScore(sc=>({c:sc.c+c,tot:sc.tot+cfg.n}));
+    setRounds(p=>[...p,{round,target,sel:[...sel],c,tot:cfg.n}]);
     setPhase('result');
   }
 
-  function nextRound(){
-    if(round>=TOTAL_ROUNDS){setPhase('complete');return;}
-    const last=roundResults[roundResults.length-1];
-    if(last&&last.correct===last.total) setLevelIdx(i=>Math.min(i+1,LEVELS.length-1));
-    setRound(r=>r+1);
-    startRound();
+  function next(){
+    if(round>=TOTAL){setPhase('complete');return;}
+    const last=rounds[rounds.length-1];
+    if(last&&last.c===last.tot) setLvl(l=>Math.min(l+1,SL_LEVELS.length-1));
+    setRound(r=>r+1);startRound();
   }
 
-  const timerPct=(timeLeft/config.memoriseSeconds)*100;
+  const pct=(t/cfg.secs)*100;
+  const C={background:'#fff',borderRadius:20,padding:'24px 20px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
 
-  const screenWrap={minHeight:'100vh',background:'var(--off-white)',display:'flex',flexDirection:'column'};
-  const hdr={background:'var(--navy)',height:60,padding:'0 24px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:10};
-  const mainWrap={maxWidth:640,margin:'0 auto',padding:'28px 16px 80px',width:'100%'};
-  const card={background:'#fff',borderRadius:20,padding:'28px 24px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
-
-  const Header=({title})=>(
-    <header style={hdr}>
-      <button style={{background:'none',border:'none',color:'#7AAFBF',fontSize:14,cursor:'pointer',fontFamily:'var(--font-sans)'}} onClick={onBack}>← Dashboard</button>
-      <span style={{color:'#fff',fontWeight:700,fontSize:15}}>{title}</span>
-      <span style={{color:'#7AAFBF',fontSize:14}}>{player.gender==='female'?'👩':player.gender==='male'?'👨':'🧑'} {player.name}</span>
-    </header>
-  );
-
-  // INTRO
   if(phase==='intro') return(
-    <div style={screenWrap}><Header title="Shopping List"/>
-      <main style={mainWrap}><div style={card}>
-        <div style={{fontSize:56,textAlign:'center',display:'block',marginBottom:12}}>🛒</div>
-        <h2 style={{fontFamily:'var(--font-serif)',fontSize:28,color:'var(--navy)',textAlign:'center',marginBottom:8}}>Shopping List</h2>
-        <div style={{display:'block',background:'var(--light-bg)',color:'var(--teal)',fontSize:12,fontWeight:700,padding:'4px 14px',borderRadius:20,textAlign:'center',marginBottom:16,letterSpacing:0.5}}>WORKING MEMORY</div>
-        <p style={{fontSize:16,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:20}}>
-          You will see a shopping list for <strong>{config.memoriseSeconds} seconds</strong>. Memorise as many items as you can, then recall them.
-        </p>
-        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'14px 18px',marginBottom:20,display:'flex',flexDirection:'column',gap:8}}>
-          {[['📋','Study the shopping list'],['🙈','List disappears automatically'],['☑️','Select items you remember']].map(([e,t])=>(
-            <div key={t} style={{display:'flex',alignItems:'center',gap:12,fontSize:15,color:'var(--text)'}}><span>{e}</span><span>{t}</span></div>
+    <Screen player={player} title="Shopping List" onBack={onBack}>
+      <div style={C}>
+        <div style={{fontSize:52,textAlign:'center',marginBottom:10}}>🛒</div>
+        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',textAlign:'center',marginBottom:6}}>Shopping List</h2>
+        <div style={{textAlign:'center',color:'var(--teal)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>Working Memory</div>
+        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:16}}>You will see a shopping list for <strong>{cfg.secs} seconds</strong>. Memorise it, then recall the items from a mixed grid.</p>
+        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',flexDirection:'column',gap:8}}>
+          {[['📋','Study the list carefully'],['🙈','List disappears automatically'],['☑️','Tap the items you remember']].map(([e,t])=>(
+            <div key={t} style={{display:'flex',gap:12,alignItems:'center',fontSize:14}}><span>{e}</span><span>{t}</span></div>
           ))}
         </div>
-        <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:'var(--teal)',background:'var(--light-bg)',borderRadius:8,padding:8,marginBottom:20}}>
-          Level {config.level} · {config.label} · {config.itemCount} items
-        </div>
-        <Btn onClick={startRound}>Start round 1 of {TOTAL_ROUNDS}</Btn>
-        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:12,fontStyle:'italic'}}>Cicerone et al. 2019 — Episodic memory training, Practice Standard</p>
-      </div></main>
-    </div>
+        <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:'var(--teal)',padding:'8px',background:'var(--light-bg)',borderRadius:8,marginBottom:16}}>Level {cfg.level} · {cfg.label} · {cfg.n} items</div>
+        <Btn onClick={startRound}>Start round 1 of {TOTAL}</Btn>
+        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:10,fontStyle:'italic'}}>Cicerone et al. 2019 — Episodic memory training, Practice Standard</p>
+      </div>
+    </Screen>
   );
 
-  // MEMORISE
   if(phase==='memorise') return(
-    <div style={screenWrap}><Header title={`Round ${round} of ${TOTAL_ROUNDS} — Memorise`}/>
-      <main style={mainWrap}><div style={card}>
+    <Screen player={player} title={`Round ${round}/${TOTAL} — Memorise`} onBack={onBack}>
+      <div style={C}>
         <div style={{height:8,background:'var(--border)',borderRadius:8,overflow:'hidden',marginBottom:6}}>
-          <div style={{height:'100%',borderRadius:8,transition:'width 1s linear,background 0.5s',
-            width:`${timerPct}%`,background:timerPct>50?'var(--teal)':timerPct>25?'var(--gold)':'#e74c3c'}}/>
+          <div style={{height:'100%',borderRadius:8,transition:'width 1s linear,background 0.5s',width:`${pct}%`,background:pct>50?'var(--teal)':pct>25?'var(--gold)':'#e74c3c'}}/>
         </div>
-        <div style={{display:'flex',justifyContent:'space-between',marginBottom:20,fontSize:15}}>
-          <span style={{fontWeight:700,color:timerPct<30?'#e74c3c':'var(--teal)',fontSize:20}}>{timeLeft}s</span>
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:16}}>
+          <span style={{fontWeight:700,fontSize:22,color:pct<30?'#e74c3c':'var(--teal)'}}>{t}s</span>
           <span style={{color:'var(--muted)',fontSize:14}}>to memorise</span>
         </div>
-        <h3 style={{fontFamily:'var(--font-serif)',fontSize:20,color:'var(--navy)',marginBottom:20,textAlign:'center'}}>
-          Remember these {config.itemCount} items:
-        </h3>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(110px,1fr))',gap:12}}>
-          {targetItems.map((item,i)=>(
-            <div key={item.id} style={{background:'var(--light-bg)',borderRadius:12,padding:'16px 8px',display:'flex',flexDirection:'column',alignItems:'center',gap:8,border:'2px solid var(--border)',animation:`fadeUp 0.4s ease ${i*60}ms both`}}>
-              <span style={{fontSize:32}}>{item.emoji}</span>
-              <span style={{fontSize:13,fontWeight:600,color:'var(--navy)',textAlign:'center'}}>{item.label}</span>
+        <h3 style={{fontFamily:'var(--font-serif)',fontSize:18,color:'var(--navy)',marginBottom:14,textAlign:'center'}}>Remember these {cfg.n} items:</h3>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:10}}>
+          {target.map((item,i)=>(
+            <div key={item.id} style={{background:'var(--light-bg)',borderRadius:12,padding:'14px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:6,border:'2px solid var(--border)',animation:`fadeUp 0.4s ease ${i*55}ms both`}}>
+              <span style={{fontSize:30}}>{item.emoji}</span>
+              <span style={{fontSize:12,fontWeight:600,color:'var(--navy)',textAlign:'center'}}>{item.label}</span>
             </div>
           ))}
         </div>
-        <p style={{textAlign:'center',color:'var(--muted)',fontSize:14,marginTop:16}}>The list will disappear automatically.</p>
-      </div></main>
-    </div>
-  );
-
-  // RECALL
-  if(phase==='recall') return(
-    <div style={screenWrap}><Header title={`Round ${round} of ${TOTAL_ROUNDS} — Recall`}/>
-      <main style={mainWrap}><div style={card}>
-        <h3 style={{fontFamily:'var(--font-serif)',fontSize:22,color:'var(--navy)',marginBottom:8,textAlign:'center'}}>Which items were on the list?</h3>
-        <p style={{textAlign:'center',color:'var(--muted)',fontSize:15,marginBottom:24}}>
-          Select <strong>{config.itemCount} items</strong> · Chosen: {selected.length} / {config.itemCount}
-        </p>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(110px,1fr))',gap:10,marginBottom:24}}>
-          {allItems.map(item=>{
-            const sel=!!selected.find(s=>s.id===item.id);
-            return(
-              <button key={item.id}
-                style={{background:sel?'var(--light-bg)':'#fff',border:`2px solid ${sel?'var(--teal)':'var(--border)'}`,
-                  borderRadius:12,padding:'14px 6px',display:'flex',flexDirection:'column',alignItems:'center',
-                  gap:6,cursor:'pointer',position:'relative',transition:'all 0.15s',fontFamily:'var(--font-sans)'}}
-                onClick={()=>toggleItem(item)}>
-                <span style={{fontSize:30}}>{item.emoji}</span>
-                <span style={{fontSize:12,fontWeight:600,color:'var(--navy)',textAlign:'center'}}>{item.label}</span>
-                {sel&&<span style={{position:'absolute',top:4,right:6,fontSize:11,color:'var(--teal)',fontWeight:700}}>✓</span>}
-              </button>
-            );
-          })}
-        </div>
-        <Btn onClick={submitRecall} disabled={selected.length===0} style={{opacity:selected.length===0?0.5:1,cursor:selected.length===0?'not-allowed':'pointer'}}>
-          Submit my answers →
-        </Btn>
-      </div></main>
-    </div>
-  );
-
-  // RESULT
-  if(phase==='result'){
-    const last=roundResults[roundResults.length-1];
-    const pct=Math.round((last.correct/last.total)*100);
-    return(
-      <div style={screenWrap}><Header title={`Round ${round} — Result`}/>
-        <main style={mainWrap}><div style={{...card,textAlign:'center'}}>
-          <div style={{fontSize:52,marginBottom:8}}>{pct===100?'🏆':pct>=60?'👍':'💪'}</div>
-          <h3 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:16}}>{pct===100?'Perfect!':pct>=60?'Well done!':'Good effort!'}</h3>
-          <div style={{display:'inline-flex',alignItems:'baseline',gap:4,background:'var(--light-bg)',borderRadius:'50%',width:100,height:100,justifyContent:'center',border:'4px solid var(--teal)',marginBottom:8}}>
-            <span style={{fontSize:36,fontWeight:700,color:'var(--navy)'}}>{last.correct}</span>
-            <span style={{fontSize:16,color:'var(--muted)'}}>/{last.total}</span>
-          </div>
-          <p style={{color:'var(--muted)',marginBottom:16,fontSize:15}}>{pct}% correct</p>
-          {pct===100&&<div style={{background:'var(--gold-light)',color:'#a0640a',fontWeight:700,fontSize:13,padding:'8px 16px',borderRadius:8,marginBottom:16,display:'inline-block'}}>⭐ Difficulty increases next round!</div>}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:8,marginBottom:24,textAlign:'left'}}>
-            {last.target.map(item=>{
-              const was=!!last.selected.find(s=>s.id===item.id);
-              return(
-                <div key={item.id} style={{borderRadius:10,border:`2px solid ${was?'#27ae60':'#e74c3c'}`,padding:'10px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:4,background:was?'#e8f8f0':'#fdecea',fontSize:22}}>
-                  <span>{item.emoji}</span>
-                  <span style={{fontSize:11}}>{item.label}</span>
-                  <span>{was?'✅':'❌'}</span>
-                </div>
-              );
-            })}
-          </div>
-          <Btn onClick={nextRound}>{round>=TOTAL_ROUNDS?'See final results →':`Round ${round+1} →`}</Btn>
-        </div></main>
+        <p style={{textAlign:'center',color:'var(--muted)',fontSize:13,marginTop:12}}>The list will hide automatically.</p>
       </div>
+    </Screen>
+  );
+
+  if(phase==='recall') return(
+    <Screen player={player} title={`Round ${round}/${TOTAL} — Recall`} onBack={onBack}>
+      <div style={C}>
+        <h3 style={{fontFamily:'var(--font-serif)',fontSize:20,color:'var(--navy)',marginBottom:6,textAlign:'center'}}>Which items were on the list?</h3>
+        <p style={{textAlign:'center',color:'var(--muted)',fontSize:14,marginBottom:18}}>Select <strong>{cfg.n} items</strong> · Chosen: {sel.length}/{cfg.n}</p>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:8,marginBottom:18}}>
+          {pool.map(item=>{const s=!!sel.find(x=>x.id===item.id);return(
+            <button key={item.id}
+              style={{background:s?'var(--light-bg)':'#fff',border:`2px solid ${s?'var(--teal)':'var(--border)'}`,borderRadius:12,padding:'12px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:5,cursor:'pointer',position:'relative',transition:'all 0.15s',fontFamily:'var(--font-sans)'}}
+              onClick={()=>toggle(item)}>
+              <span style={{fontSize:28}}>{item.emoji}</span>
+              <span style={{fontSize:11,fontWeight:600,color:'var(--navy)',textAlign:'center'}}>{item.label}</span>
+              {s&&<span style={{position:'absolute',top:3,right:5,fontSize:10,color:'var(--teal)',fontWeight:700}}>✓</span>}
+            </button>
+          );})}
+        </div>
+        <Btn onClick={submit} disabled={sel.length===0}>Submit my answers →</Btn>
+      </div>
+    </Screen>
+  );
+
+  if(phase==='result'){
+    const last=rounds[rounds.length-1];const p=Math.round((last.c/last.tot)*100);
+    return(
+      <Screen player={player} title={`Round ${round} — Result`} onBack={onBack}>
+        <div style={{...C,textAlign:'center'}}>
+          <div style={{fontSize:48,marginBottom:8}}>{p===100?'🏆':p>=60?'👍':'💪'}</div>
+          <h3 style={{fontFamily:'var(--font-serif)',fontSize:24,color:'var(--navy)',marginBottom:12}}>{p===100?'Perfect!':p>=60?'Well done!':'Good effort!'}</h3>
+          <div style={{display:'inline-flex',alignItems:'baseline',gap:3,background:'var(--light-bg)',borderRadius:'50%',width:90,height:90,justifyContent:'center',border:'4px solid var(--teal)',marginBottom:6}}>
+            <span style={{fontSize:32,fontWeight:700,color:'var(--navy)'}}>{last.c}</span>
+            <span style={{fontSize:13,color:'var(--muted)'}}>/{last.tot}</span>
+          </div>
+          <p style={{color:'var(--muted)',marginBottom:14,fontSize:14}}>{p}% correct</p>
+          {p===100&&<div style={{background:'var(--gold-light)',color:'#a0640a',fontWeight:700,fontSize:12,padding:'7px 14px',borderRadius:8,marginBottom:14,display:'inline-block'}}>⭐ Difficulty increases next round!</div>}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(86px,1fr))',gap:7,marginBottom:16,textAlign:'left'}}>
+            {last.target.map(item=>{const was=!!last.sel.find(s=>s.id===item.id);return(
+              <div key={item.id} style={{borderRadius:10,border:`2px solid ${was?'#27ae60':'#e74c3c'}`,padding:'9px 5px',display:'flex',flexDirection:'column',alignItems:'center',gap:3,background:was?'#e8f8f0':'#fdecea',fontSize:20}}>
+                <span>{item.emoji}</span><span style={{fontSize:10}}>{item.label}</span><span>{was?'✅':'❌'}</span>
+              </div>
+            );})}
+          </div>
+          {round>=TOTAL&&<CognitiveAgeBlock player={player}/>}
+          <Btn onClick={next}>{round>=TOTAL?'See final results →':`Round ${round+1} →`}</Btn>
+        </div>
+      </Screen>
     );
   }
 
-  // COMPLETE
   if(phase==='complete'){
-    const totalPct=Math.round((score.correct/score.total)*100);
-    const stars=totalPct>=90?3:totalPct>=65?2:1;
+    const tp=Math.round((score.c/score.tot)*100);const stars=tp>=90?3:tp>=65?2:1;
     return(
-      <div style={screenWrap}><Header title="Session complete"/>
-        <main style={mainWrap}><div style={{...card,textAlign:'center'}}>
-          <div style={{display:'flex',justifyContent:'center',gap:8,marginBottom:16}}>
-            {[1,2,3].map(n=><span key={n} style={{fontSize:40,opacity:n<=stars?1:0.2}}>⭐</span>)}
-          </div>
-          <h2 style={{fontFamily:'var(--font-serif)',fontSize:28,color:'var(--navy)',marginBottom:8}}>Great work, {player.name}!</h2>
-          <p style={{color:'var(--muted)',fontSize:16,marginBottom:24}}>You completed the Shopping List exercise.</p>
-          <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:24}}>
-            {[['Items recalled',score.correct,'var(--navy)'],['Total items',score.total,'var(--navy)'],['Accuracy',`${totalPct}%`,'var(--teal)']].map(([l,v,c])=>(
-              <div key={l} style={{background:'var(--light-bg)',borderRadius:12,padding:'14px 20px',textAlign:'center'}}>
-                <div style={{fontSize:28,fontWeight:700,color:c}}>{v}</div>
-                <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>{l}</div>
+      <Screen player={player} title="Session complete" onBack={onBack}>
+        <div style={{...C,textAlign:'center'}}>
+          <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:14}}>{[1,2,3].map(n=><span key={n} style={{fontSize:36,opacity:n<=stars?1:0.2}}>⭐</span>)}</div>
+          <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:6}}>Great work, {player.name}!</h2>
+          <p style={{color:'var(--muted)',fontSize:15,marginBottom:18}}>Shopping List complete.</p>
+          <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:18}}>
+            {[['Recalled',score.c,'var(--navy)'],['Total',score.tot,'var(--navy)'],['Accuracy',`${tp}%`,'var(--teal)']].map(([l,v,c])=>(
+              <div key={l} style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',textAlign:'center'}}>
+                <div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div>
+                <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{l}</div>
               </div>
             ))}
           </div>
-          <div style={{background:'var(--light-bg)',borderRadius:12,padding:'14px 18px',fontSize:14,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:24,border:'1px solid var(--border)'}}>
-            <strong>What you trained:</strong> Working memory and episodic recall — the same functions used when remembering appointments, names, and daily tasks. Consistent daily practice strengthens these cognitive pathways.
+          <CognitiveAgeBlock player={player}/>
+          <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:18,border:'1px solid var(--border)'}}>
+            <strong>What you trained:</strong> Working memory and episodic recall — used for remembering names, appointments, and daily tasks.
           </div>
-          <div style={{marginBottom:24}}>
-            {roundResults.map((r,i)=>(
-              <div key={i} style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
-                <span style={{color:'var(--muted)',fontSize:13,width:60,textAlign:'left'}}>Round {r.round}</span>
-                <div style={{flex:1,height:8,background:'var(--border)',borderRadius:4,overflow:'hidden'}}>
-                  <div style={{height:'100%',width:`${(r.correct/r.total)*100}%`,background:r.correct===r.total?'var(--mint)':'var(--teal)',borderRadius:4}}/>
-                </div>
-                <span style={{fontSize:13,fontWeight:700,color:'var(--navy)',width:36,textAlign:'right'}}>{r.correct}/{r.total}</span>
+          <div style={{marginBottom:18}}>{rounds.map((r,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:10,marginBottom:6}}>
+              <span style={{color:'var(--muted)',fontSize:12,width:54}}>Round {r.round}</span>
+              <div style={{flex:1,height:7,background:'var(--border)',borderRadius:4,overflow:'hidden'}}>
+                <div style={{height:'100%',width:`${(r.c/r.tot)*100}%`,background:r.c===r.tot?'var(--mint)':'var(--teal)',borderRadius:4}}/>
               </div>
-            ))}
+              <span style={{fontSize:12,fontWeight:700,color:'var(--navy)',width:28}}>{r.c}/{r.tot}</span>
+            </div>
+          ))}</div>
+          <div style={{display:'flex',gap:10}}>
+            <Btn secondary onClick={()=>{setRound(1);setScore({c:0,tot:0});setRounds([]);setLvl(0);setPhase('intro');}}>Play again</Btn>
+            <Btn onClick={onBack}>← Menu</Btn>
           </div>
-          <div style={{display:'flex',gap:12}}>
-            <button style={{flex:1,padding:'14px 20px',background:'var(--light-bg)',color:'var(--navy)',fontSize:15,fontWeight:700,borderRadius:14,border:'2px solid var(--border)',cursor:'pointer',fontFamily:'var(--font-sans)'}}
-              onClick={()=>{setRound(1);setScore({correct:0,total:0});setRoundResults([]);setLevelIdx(0);setPhase('intro');}}>
-              Play again
-            </button>
-            <Btn style={{flex:1}} onClick={onBack}>Dashboard →</Btn>
-          </div>
-        </div></main>
-      </div>
+        </div>
+      </Screen>
     );
   }
   return null;
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// SHARED COMPONENTS
+// 2. FIND THE ODD ONE
 // ═══════════════════════════════════════════════════════════════════
-function Btn({children,onClick,disabled,style={}}) {
-  const [hov,setHov]=useState(false);
-  return(
-    <button
-      onClick={onClick} disabled={disabled}
-      onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{width:'100%',padding:'16px 24px',background:hov&&!disabled?'#0a2240':'var(--navy)',
-        color:'#fff',fontSize:17,fontWeight:700,borderRadius:14,border:'none',cursor:disabled?'not-allowed':'pointer',
-        display:'block',marginTop:8,fontFamily:'var(--font-sans)',transition:'background 0.2s',
-        opacity:disabled?0.5:1,...style}}>
-      {children}
-    </button>
+const ODD_SETS=[
+  {items:['🍎','🍎','🍎','🍊','🍎','🍎','🍎','🍎','🍎'],odd:'🍊'},
+  {items:['🔵','🔵','🔵','🔵','🔴','🔵','🔵','🔵','🔵'],odd:'🔴'},
+  {items:['🐕','🐕','🐈','🐕','🐕','🐕','🐕','🐕','🐕'],odd:'🐈'},
+  {items:['⭐','⭐','⭐','⭐','⭐','🌙','⭐','⭐','⭐'],odd:'🌙'},
+  {items:['🚗','🚗','🚗','🚗','🚗','🚗','✈️','🚗','🚗'],odd:'✈️'},
+  {items:['🍕','🍕','🍕','🍔','🍕','🍕','🍕','🍕','🍕'],odd:'🍔'},
+  {items:['💙','💙','💙','💙','💙','💚','💙','💙','💙'],odd:'💚'},
+  {items:['🌳','🌳','🌳','🌳','🌴','🌳','🌳','🌳','🌳'],odd:'🌴'},
+  {items:['🎵','🎵','🎵','🎵','🎵','🎵','🎸','🎵','🎵'],odd:'🎸'},
+  {items:['🟦','🟦','🟦','🟦','🟦','🟦','🟦','🟧','🟦'],odd:'🟧'},
+  {items:['☀️','☀️','☀️','☀️','☀️','❄️','☀️','☀️','☀️'],odd:'❄️'},
+  {items:['🐟','🐟','🐟','🐟','🐠','🐟','🐟','🐟','🐟'],odd:'🐠'},
+];
+
+function FindOdd({player,onBack}){
+  const [phase,setPhase]=useState('intro');
+  const [round,setRound]=useState(1);
+  const [current,setCurrent]=useState(null);
+  const [grid,setGrid]=useState([]);
+  const [t,setT]=useState(0);
+  const [results,setResults]=useState([]);
+  const [answered,setAnswered]=useState(false);
+  const [wasCorrect,setWasCorrect]=useState(false);
+  const timer=useRef(null);
+  const TOTAL=6;const TIME=12;
+
+  function startRound(r){
+    const set=ODD_SETS[(r-1)%ODD_SETS.length];
+    setCurrent(set);setGrid(shuffle([...set.items]));setT(TIME);setAnswered(false);setPhase('play');
+  }
+
+  useEffect(()=>{
+    if(phase!=='play'||answered) return;
+    timer.current=setInterval(()=>setT(prev=>{if(prev<=1){clearInterval(timer.current);handleAnswer(null);return 0;}return prev-1;}),1000);
+    return()=>clearInterval(timer.current);
+  },[phase,answered]);
+
+  function handleAnswer(item){
+    clearInterval(timer.current);
+    const correct=item===current.odd;
+    setWasCorrect(correct);setAnswered(true);
+    setResults(p=>[...p,{round,correct,timeUsed:TIME-t}]);
+  }
+
+  function next(){
+    if(round>=TOTAL){setPhase('complete');return;}
+    setRound(r=>r+1);startRound(round+1);
+  }
+
+  const score=results.filter(r=>r.correct).length;
+  const C={background:'#fff',borderRadius:20,padding:'24px 20px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
+
+  if(phase==='intro') return(
+    <Screen player={player} title="Find the Odd One" onBack={onBack}>
+      <div style={C}>
+        <div style={{fontSize:52,textAlign:'center',marginBottom:10}}>🔦</div>
+        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',textAlign:'center',marginBottom:6}}>Find the Odd One</h2>
+        <div style={{textAlign:'center',color:'var(--mint)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>Attention & Speed</div>
+        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:16}}>A grid of items appears. One item is different from all others. Tap it as quickly as you can!</p>
+        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',flexDirection:'column',gap:8}}>
+          {[['👀','Look carefully at every item'],['⚡','Tap the one that is different'],['⏱','Speed and accuracy both count']].map(([e,t])=>(
+            <div key={t} style={{display:'flex',gap:12,alignItems:'center',fontSize:14}}><span>{e}</span><span>{t}</span></div>
+          ))}
+        </div>
+        <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:'var(--mint)',padding:'8px',background:'var(--light-bg)',borderRadius:8,marginBottom:16}}>{TOTAL} rounds · {TIME}s per round</div>
+        <Btn onClick={()=>startRound(1)}>Start →</Btn>
+        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:10,fontStyle:'italic'}}>NICE NG236 §1.5 — Sustained attention training, HIGH confidence evidence</p>
+      </div>
+    </Screen>
   );
-}
 
-function Label({children}) {
-  return <label style={{display:'block',fontSize:14,fontWeight:700,color:'var(--navy)',marginBottom:10,letterSpacing:0.2,textTransform:'uppercase'}}>{children}</label>;
+  if(phase==='play') return(
+    <Screen player={player} title={`Round ${round}/${TOTAL}`} onBack={onBack}>
+      <div style={C}>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
+          <div style={{flex:1,height:8,background:'var(--border)',borderRadius:8,overflow:'hidden'}}>
+            <div style={{height:'100%',borderRadius:8,transition:'width 1s linear,background 0.5s',width:`${(t/TIME)*100}%`,background:t>6?'var(--mint)':t>3?'var(--gold)':'#e74c3c'}}/>
+          </div>
+          <span style={{fontWeight:700,fontSize:20,color:t<4?'#e74c3c':'var(--teal)',minWidth:32,textAlign:'right'}}>{t}s</span>
+        </div>
+        <p style={{textAlign:'center',color:'var(--muted)',fontSize:14,marginBottom:14}}>Find the item that is different from all others</p>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:10}}>
+          {grid.map((item,i)=>{
+            const isOdd=item===current.odd;
+            return(
+              <button key={i}
+                style={{aspectRatio:'1',fontSize:'clamp(26px,6vw,38px)',
+                  background:answered?(isOdd?(wasCorrect?'#e8f8f0':'#fdecea'):'#fff'):(item===current.odd&&answered?'#e8f8f0':'#fff'),
+                  border:`2px solid ${answered&&isOdd?(wasCorrect?'#27ae60':'#e74c3c'):'var(--border)'}`,
+                  borderRadius:14,cursor:answered?'default':'pointer',display:'flex',alignItems:'center',justifyContent:'center',
+                  transition:'all 0.15s',fontFamily:'var(--font-sans)'}}
+                onClick={()=>!answered&&handleAnswer(item)}>
+                {item}
+              </button>
+            );
+          })}
+        </div>
+        {answered&&(
+          <div style={{textAlign:'center',marginTop:12,animation:'fadeIn 0.3s ease'}}>
+            <div style={{fontSize:20,marginBottom:6}}>{wasCorrect?'✅ Correct!':'❌ Missed!'}</div>
+            <div style={{fontSize:13,color:'var(--muted)',marginBottom:14}}>
+              {wasCorrect?`Found in ${results[results.length-1].timeUsed}s.`:`The odd one was: ${current.odd}`}
+            </div>
+            <Btn onClick={next}>{round>=TOTAL?'See results →':`Round ${round+1} →`}</Btn>
+          </div>
+        )}
+      </div>
+    </Screen>
+  );
+
+  if(phase==='complete'){
+    const pct=Math.round((score/TOTAL)*100);const stars=pct>=90?3:pct>=60?2:1;
+    const correct=results.filter(r=>r.correct);
+    const avgT=correct.length?correct.reduce((a,b)=>a+b.timeUsed,0)/correct.length:0;
+    return(
+      <Screen player={player} title="Session complete" onBack={onBack}>
+        <div style={{...C,textAlign:'center'}}>
+          <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:14}}>{[1,2,3].map(n=><span key={n} style={{fontSize:36,opacity:n<=stars?1:0.2}}>⭐</span>)}</div>
+          <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:6}}>Well done, {player.name}!</h2>
+          <p style={{color:'var(--muted)',fontSize:15,marginBottom:18}}>Attention exercise complete.</p>
+          <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:18}}>
+            {[['Correct',`${score}/${TOTAL}`,'var(--navy)'],['Accuracy',`${pct}%`,'var(--teal)'],['Avg time',avgT?`${avgT.toFixed(1)}s`:'—','var(--navy)']].map(([l,v,c])=>(
+              <div key={l} style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',textAlign:'center'}}>
+                <div style={{fontSize:22,fontWeight:700,color:c}}>{v}</div>
+                <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{l}</div>
+              </div>
+            ))}
+          </div>
+          <CognitiveAgeBlock player={player}/>
+          <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:18,border:'1px solid var(--border)'}}>
+            <strong>What you trained:</strong> Selective and sustained attention, processing speed — key for reading, driving, and following conversations.
+          </div>
+          <div style={{display:'flex',gap:10}}>
+            <Btn secondary onClick={()=>{setRound(1);setResults([]);setPhase('intro');}}>Play again</Btn>
+            <Btn onClick={onBack}>← Menu</Btn>
+          </div>
+        </div>
+      </Screen>
+    );
+  }
+  return null;
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// MOUNT
+// 3. WHAT WAS YESTERDAY?
 // ═══════════════════════════════════════════════════════════════════
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+const STORIES=[
+  {story:"Margaret went to the market on Tuesday morning. She bought fresh bread, a bunch of carrots, and a small jar of honey. On her way home she met her neighbour George, who told her about a new café that opened on Baker Street called 'The Blue Cup'. It serves homemade cake every day.",
+   qs:[
+    {q:"What day did Margaret go to the market?",opts:["Monday","Tuesday","Wednesday","Thursday"],c:1},
+    {q:"What is the name of the new café?",opts:["The Red Cup","The Green Cup","The Blue Cup","The Gold Cup"],c:2},
+    {q:"Which street is the café on?",opts:["King Street","Baker Street","Church Road","Market Lane"],c:1},
+    {q:"What did Margaret buy at the market?",opts:["Milk, eggs and bread","Bread, carrots and honey","Apples, honey and flour","Carrots, butter and tea"],c:1},
+  ]},
+  {story:"Robert had a busy Wednesday. In the morning he called his daughter Emma, who lives in Edinburgh. She told him she had just started a new job at a library. In the afternoon Robert took a walk in the park and saw a family of ducks near the pond. He returned home at half past four.",
+   qs:[
+    {q:"What day was it in the story?",opts:["Tuesday","Wednesday","Thursday","Friday"],c:1},
+    {q:"Where does Emma live?",opts:["London","Dublin","Edinburgh","Glasgow"],c:2},
+    {q:"What is Emma's new job?",opts:["Teacher","Doctor","Library worker","Shop assistant"],c:2},
+    {q:"What did Robert see in the park?",opts:["Swans","Ducks","Geese","Dogs"],c:1},
+  ]},
+  {story:"Dorothy received a letter on Friday from her old friend Helen. Helen wrote she was visiting in two weeks and would arrive by train at 3pm. She asked Dorothy to pick her up from Central Station and mentioned she was bringing a gift — a recipe book with 100 Italian dishes.",
+   qs:[
+    {q:"On what day did Dorothy receive the letter?",opts:["Thursday","Friday","Saturday","Sunday"],c:1},
+    {q:"How is Helen travelling to visit?",opts:["By car","By bus","By plane","By train"],c:3},
+    {q:"What time does Helen arrive?",opts:["1pm","2pm","3pm","4pm"],c:2},
+    {q:"What gift is Helen bringing?",opts:["A French recipe book","An Italian recipe book","A painting","A box of chocolates"],c:1},
+  ]},
+];
+
+function WhatWasYesterday({player,onBack}){
+  const [phase,setPhase]=useState('intro');
+  const [si]=useState(()=>Math.floor(Math.random()*STORIES.length));
+  const [readT,setReadT]=useState(35);
+  const [qi,setQi]=useState(0);
+  const [answers,setAnswers]=useState([]);
+  const [chosen,setChosen]=useState(null);
+  const timer=useRef(null);
+  const S=STORIES[si];
+
+  useEffect(()=>{
+    if(phase!=='read') return;
+    timer.current=setInterval(()=>setReadT(t=>{if(t<=1){clearInterval(timer.current);setPhase('quiz');return 0;}return t-1;}),1000);
+    return()=>clearInterval(timer.current);
+  },[phase]);
+
+  function answer(idx){
+    if(chosen!==null) return;
+    setChosen(idx);
+    const correct=idx===S.qs[qi].c;
+    setAnswers(p=>[...p,{qi,chosen:idx,correct}]);
+    setTimeout(()=>{if(qi+1>=S.qs.length){setPhase('complete');}else{setQi(i=>i+1);setChosen(null);}},900);
+  }
+
+  const score=answers.filter(a=>a.correct).length;
+  const C={background:'#fff',borderRadius:20,padding:'24px 20px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
+
+  if(phase==='intro') return(
+    <Screen player={player} title="What Was Yesterday?" onBack={onBack}>
+      <div style={C}>
+        <div style={{fontSize:52,textAlign:'center',marginBottom:10}}>🗓️</div>
+        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',textAlign:'center',marginBottom:6}}>What Was Yesterday?</h2>
+        <div style={{textAlign:'center',color:'var(--teal)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>Episodic Memory</div>
+        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:16}}>Read a short story carefully. Then answer questions about what you read from memory.</p>
+        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',flexDirection:'column',gap:8}}>
+          {[['📖','Read the story — take your time'],['🙈','Story disappears after 35 seconds'],['❓','Answer questions from memory']].map(([e,t])=>(
+            <div key={t} style={{display:'flex',gap:12,alignItems:'center',fontSize:14}}><span>{e}</span><span>{t}</span></div>
+          ))}
+        </div>
+        <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:'var(--teal)',padding:'8px',background:'var(--light-bg)',borderRadius:8,marginBottom:16}}>{S.qs.length} questions · 35s to read</div>
+        <Btn onClick={()=>setPhase('read')}>Start reading →</Btn>
+        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:10,fontStyle:'italic'}}>Reality Orientation — core CST component (Spector 2003 RCT)</p>
+      </div>
+    </Screen>
+  );
+
+  if(phase==='read') return(
+    <Screen player={player} title="Read carefully" onBack={onBack}>
+      <div style={C}>
+        <div style={{height:7,background:'var(--border)',borderRadius:8,overflow:'hidden',marginBottom:6}}>
+          <div style={{height:'100%',borderRadius:8,transition:'width 1s linear',width:`${(readT/35)*100}%`,background:readT>15?'var(--teal)':readT>8?'var(--gold)':'#e74c3c'}}/>
+        </div>
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:16}}>
+          <span style={{fontWeight:700,fontSize:20,color:readT<8?'#e74c3c':'var(--teal)'}}>{readT}s</span>
+          <span style={{color:'var(--muted)',fontSize:14}}>read carefully</span>
+        </div>
+        <div style={{background:'var(--light-bg)',borderRadius:14,padding:'18px 16px',fontSize:16,lineHeight:1.85,color:'var(--text)',marginBottom:16,border:'1px solid var(--border)',fontFamily:'var(--font-serif)'}}>
+          {S.story}
+        </div>
+        <Btn onClick={()=>{clearInterval(timer.current);setPhase('quiz');}}>I'm ready — start the questions</Btn>
+      </div>
+    </Screen>
+  );
+
+  if(phase==='quiz'){
+    const q=S.qs[qi];
+    return(
+      <Screen player={player} title={`Question ${qi+1}/${S.qs.length}`} onBack={onBack}>
+        <div style={C}>
+          <div style={{display:'flex',gap:6,marginBottom:18}}>
+            {S.qs.map((_,i)=>(
+              <div key={i} style={{flex:1,height:5,borderRadius:3,background:i<answers.length?(answers[i].correct?'var(--mint)':'#e74c3c'):i===qi?'var(--teal)':'var(--border)'}}/>
+            ))}
+          </div>
+          <h3 style={{fontFamily:'var(--font-serif)',fontSize:19,color:'var(--navy)',marginBottom:18,lineHeight:1.4}}>{q.q}</h3>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {q.opts.map((opt,i)=>{
+              const isChosen=chosen===i;const isCorrect=i===q.c;
+              return(
+                <button key={i}
+                  style={{padding:'14px 16px',border:`2px solid ${chosen!==null?(isCorrect?'#27ae60':isChosen?'#e74c3c':'var(--border)'):'var(--border)'}`,
+                    borderRadius:12,background:chosen!==null?(isCorrect?'#e8f8f0':isChosen?'#fdecea':'#fff'):'#fff',
+                    textAlign:'left',fontSize:15,color:'var(--text)',cursor:chosen!==null?'default':'pointer',
+                    fontFamily:'var(--font-sans)',transition:'all 0.2s',display:'flex',justifyContent:'space-between',alignItems:'center'}}
+                  onClick={()=>answer(i)}>
+                  <span>{opt}</span>
+                  {chosen!==null&&isCorrect&&<span>✅</span>}
+                  {chosen!==null&&isChosen&&!isCorrect&&<span>❌</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </Screen>
+    );
+  }
+
+  if(phase==='complete'){
+    const pct=Math.round((score/S.qs.length)*100);const stars=pct>=90?3:pct>=60?2:1;
+    return(
+      <Screen player={player} title="Session complete" onBack={onBack}>
+        <div style={{...C,textAlign:'center'}}>
+          <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:14}}>{[1,2,3].map(n=><span key={n} style={{fontSize:36,opacity:n<=stars?1:0.2}}>⭐</span>)}</div>
+          <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:6}}>Well done, {player.name}!</h2>
+          <p style={{color:'var(--muted)',fontSize:15,marginBottom:18}}>Episodic memory session complete.</p>
+          <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:18}}>
+            {[['Correct',`${score}/${S.qs.length}`,'var(--navy)'],['Score',`${pct}%`,'var(--teal)']].map(([l,v,c])=>(
+              <div key={l} style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 20px',textAlign:'center'}}>
+                <div style={{fontSize:26,fontWeight:700,color:c}}>{v}</div>
+                <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{l}</div>
+              </div>
+            ))}
+          </div>
+          <CognitiveAgeBlock player={player}/>
+          <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:18,border:'1px solid var(--border)'}}>
+            <strong>What you trained:</strong> Episodic memory — retaining details from daily life. Critical for following conversations and remembering medical instructions.
+          </div>
+          <div style={{display:'flex',gap:10}}>
+            <Btn secondary onClick={()=>{setQi(0);setAnswers([]);setChosen(null);setReadT(35);setPhase('intro');}}>Play again</Btn>
+            <Btn onClick={onBack}>← Menu</Btn>
+          </div>
+        </div>
+      </Screen>
+    );
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 4. NUMBER CHAIN
+// ═══════════════════════════════════════════════════════════════════
+function NumberChain({player,onBack}){
+  const [phase,setPhase]=useState('intro');
+  const [round,setRound]=useState(1);
+  const [seq,setSeq]=useState([]);
+  const [showIdx,setShowIdx]=useState(0);
+  const [input,setInput]=useState([]);
+  const [results,setResults]=useState([]);
+  const [feedback,setFeedback]=useState(null);
+  const TOTAL=6;
+
+  function seqLen(r){return 2+Math.floor((r-1)*0.6);}
+
+  function startRound(r){
+    const l=seqLen(r);
+    const s=Array.from({length:l},()=>Math.floor(Math.random()*9)+1);
+    setSeq(s);setShowIdx(0);setInput([]);setFeedback(null);setPhase('show');
+  }
+
+  useEffect(()=>{
+    if(phase!=='show') return;
+    if(showIdx>=seq.length){const t=setTimeout(()=>setPhase('recall'),600);return()=>clearTimeout(t);}
+    const t=setTimeout(()=>setShowIdx(i=>i+1),900);
+    return()=>clearTimeout(t);
+  },[phase,showIdx,seq.length]);
+
+  function tap(n){
+    if(input.length>=seq.length||feedback) return;
+    const ni=[...input,n];
+    setInput(ni);
+    if(ni.length===seq.length){
+      const rev=[...seq].reverse();
+      const correct=ni.every((v,i)=>v===rev[i]);
+      setFeedback(correct?'correct':'wrong');
+      setResults(p=>[...p,{round,seq:[...seq],input:ni,correct}]);
+      setTimeout(()=>{if(round>=TOTAL){setPhase('complete');}else{setRound(r=>r+1);startRound(round+1);}},1400);
+    }
+  }
+
+  const score=results.filter(r=>r.correct).length;
+  const C={background:'#fff',borderRadius:20,padding:'24px 20px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
+
+  if(phase==='intro') return(
+    <Screen player={player} title="Number Chain" onBack={onBack}>
+      <div style={C}>
+        <div style={{fontSize:52,textAlign:'center',marginBottom:10}}>🔢</div>
+        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',textAlign:'center',marginBottom:6}}>Number Chain</h2>
+        <div style={{textAlign:'center',color:'var(--mint)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>Working Memory + Processing Speed</div>
+        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:16}}>Numbers flash one at a time. Remember the sequence, then type it in <strong>reverse order</strong>.</p>
+        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',flexDirection:'column',gap:8}}>
+          {[['📺','Digits appear one by one'],['🔄','Enter them in REVERSE order'],['📈','Sequences get longer each round']].map(([e,t])=>(
+            <div key={t} style={{display:'flex',gap:12,alignItems:'center',fontSize:14}}><span>{e}</span><span>{t}</span></div>
+          ))}
+        </div>
+        <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:'var(--mint)',padding:'8px',background:'var(--light-bg)',borderRadius:8,marginBottom:16}}>{TOTAL} rounds · Starting with {seqLen(1)} digits</div>
+        <Btn onClick={()=>startRound(1)}>Start →</Btn>
+        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:10,fontStyle:'italic'}}>Digit span backward — standard MoCA clinical test (NICE NG236)</p>
+      </div>
+    </Screen>
+  );
+
+  if(phase==='show') return(
+    <Screen player={player} title={`Round ${round}/${TOTAL} — Watch`} onBack={onBack}>
+      <div style={C}>
+        <p style={{textAlign:'center',color:'var(--muted)',fontSize:14,marginBottom:18}}>Remember this sequence — you'll reverse it next</p>
+        <div style={{display:'flex',justifyContent:'center',minHeight:110,alignItems:'center',marginBottom:20}}>
+          {showIdx<seq.length
+            ?<div style={{fontSize:80,fontWeight:700,color:'var(--navy)',fontFamily:'var(--font-serif)',animation:'pop 0.4s ease',lineHeight:1}}>{seq[showIdx]}</div>
+            :<div style={{fontSize:32,color:'var(--teal)',fontWeight:700}}>Ready?</div>
+          }
+        </div>
+        <div style={{display:'flex',justifyContent:'center',gap:8}}>
+          {seq.map((_,i)=>(
+            <div key={i} style={{width:14,height:14,borderRadius:'50%',background:i<showIdx?'var(--teal)':'var(--border)',transition:'background 0.3s'}}/>
+          ))}
+        </div>
+      </div>
+    </Screen>
+  );
+
+  if(phase==='recall') return(
+    <Screen player={player} title={`Round ${round}/${TOTAL} — Your turn`} onBack={onBack}>
+      <div style={C}>
+        <p style={{textAlign:'center',color:'var(--muted)',fontSize:14,marginBottom:8}}>Enter <strong>{seq.length} digits</strong> in <strong style={{color:'var(--teal)'}}>reverse order</strong></p>
+        <div style={{display:'flex',justifyContent:'center',gap:8,marginBottom:18,minHeight:52,flexWrap:'wrap'}}>
+          {Array.from({length:seq.length}).map((_,i)=>(
+            <div key={i} style={{width:44,height:44,borderRadius:10,border:`2px solid ${input[i]!==undefined?'var(--teal)':'var(--border)'}`,background:input[i]!==undefined?'var(--light-bg)':'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,fontWeight:700,color:'var(--navy)'}}>
+              {input[i]!==undefined?input[i]:''}
+            </div>
+          ))}
+        </div>
+        {feedback&&(
+          <div style={{textAlign:'center',fontSize:18,marginBottom:14,animation:'fadeIn 0.3s ease'}}>
+            {feedback==='correct'?'✅ Correct!':'❌ Incorrect'}<br/>
+            <span style={{fontSize:12,color:'var(--muted)'}}>Sequence: {seq.join(' ')} → Reverse: {[...seq].reverse().join(' ')}</span>
+          </div>
+        )}
+        {!feedback&&(
+          <>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:10}}>
+              {[1,2,3,4,5,6,7,8,9].map(n=>(
+                <button key={n} style={{padding:'16px',fontSize:22,fontWeight:700,color:'var(--navy)',background:'var(--light-bg)',border:'2px solid var(--border)',borderRadius:12,cursor:'pointer',fontFamily:'var(--font-sans)'}} onClick={()=>tap(n)}>{n}</button>
+              ))}
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <button style={{padding:'16px',fontSize:22,fontWeight:700,color:'var(--navy)',background:'var(--light-bg)',border:'2px solid var(--border)',borderRadius:12,cursor:'pointer',fontFamily:'var(--font-sans)'}} onClick={()=>tap(0)}>0</button>
+              <button style={{padding:'16px',fontSize:18,color:'var(--error)',background:'#fdecea',border:'2px solid #f5b8b8',borderRadius:12,cursor:'pointer',fontFamily:'var(--font-sans)'}} onClick={()=>setInput(p=>p.slice(0,-1))}>⌫ Delete</button>
+            </div>
+          </>
+        )}
+      </div>
+    </Screen>
+  );
+
+  if(phase==='complete'){
+    const pct=Math.round((score/TOTAL)*100);const stars=pct>=90?3:pct>=60?2:1;
+    return(
+      <Screen player={player} title="Session complete" onBack={onBack}>
+        <div style={{...C,textAlign:'center'}}>
+          <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:14}}>{[1,2,3].map(n=><span key={n} style={{fontSize:36,opacity:n<=stars?1:0.2}}>⭐</span>)}</div>
+          <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:6}}>Well done, {player.name}!</h2>
+          <p style={{color:'var(--muted)',fontSize:15,marginBottom:18}}>Number Chain complete.</p>
+          <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:18}}>
+            {[['Correct',`${score}/${TOTAL}`,'var(--navy)'],['Accuracy',`${pct}%`,'var(--teal)']].map(([l,v,c])=>(
+              <div key={l} style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 20px',textAlign:'center'}}>
+                <div style={{fontSize:26,fontWeight:700,color:c}}>{v}</div>
+                <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{l}</div>
+              </div>
+            ))}
+          </div>
+          <CognitiveAgeBlock player={player}/>
+          <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:18,border:'1px solid var(--border)'}}>
+            <strong>What you trained:</strong> Working memory and processing speed — essential for mental arithmetic, following multi-step instructions, and holding information while completing tasks.
+          </div>
+          <div style={{display:'flex',gap:10}}>
+            <Btn secondary onClick={()=>{setRound(1);setResults([]);setInput([]);setFeedback(null);setPhase('intro');}}>Play again</Btn>
+            <Btn onClick={onBack}>← Menu</Btn>
+          </div>
+        </div>
+      </Screen>
+    );
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 5. MATCHING PAIRS
+// ═══════════════════════════════════════════════════════════════════
+const PAIR_POOL=[
+  {id:'a',emoji:'🌺'},{id:'b',emoji:'🦋'},{id:'c',emoji:'🌙'},{id:'d',emoji:'⭐'},
+  {id:'e',emoji:'🌈'},{id:'f',emoji:'🐢'},{id:'g',emoji:'🍄'},{id:'h',emoji:'🎸'},
+  {id:'i',emoji:'🦊'},{id:'j',emoji:'🌻'},{id:'k',emoji:'🐬'},{id:'l',emoji:'🎪'},
+];
+
+function MatchingPairs({player,onBack}){
+  const [phase,setPhase]=useState('intro');
+  const [cards,setCards]=useState([]);
+  const [flipped,setFlipped]=useState([]);
+  const [matched,setMatched]=useState([]);
+  const [moves,setMoves]=useState(0);
+  const [blocked,setBlocked]=useState(false);
+  const [elapsed,setElapsed]=useState(0);
+  const [startT,setStartT]=useState(null);
+  const timer=useRef(null);
+  const PAIRS=6;
+
+  function start(){
+    const chosen=shuffle(PAIR_POOL).slice(0,PAIRS);
+    const deck=shuffle([...chosen.map(c=>({...c,uid:c.id+'_a'})),...chosen.map(c=>({...c,uid:c.id+'_b'}))]);
+    setCards(deck);setFlipped([]);setMatched([]);setMoves(0);setBlocked(false);
+    setElapsed(0);setStartT(Date.now());setPhase('play');
+  }
+
+  useEffect(()=>{
+    if(phase!=='play') return;
+    timer.current=setInterval(()=>setElapsed(Math.floor((Date.now()-startT)/1000)),500);
+    return()=>clearInterval(timer.current);
+  },[phase,startT]);
+
+  function flip(uid){
+    if(blocked||flipped.length===2||flipped.includes(uid)||matched.includes(uid)) return;
+    const nf=[...flipped,uid];
+    setFlipped(nf);
+    if(nf.length===2){
+      setMoves(m=>m+1);
+      const [a,b]=nf.map(id=>cards.find(c=>c.uid===id));
+      if(a.id===b.id){
+        const nm=[...matched,...nf];
+        setMatched(nm);setFlipped([]);
+        if(nm.length===cards.length){clearInterval(timer.current);setPhase('complete');}
+      } else {
+        setBlocked(true);
+        setTimeout(()=>{setFlipped([]);setBlocked(false);},900);
+      }
+    }
+  }
+
+  const C={background:'#fff',borderRadius:20,padding:'24px 20px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
+
+  if(phase==='intro') return(
+    <Screen player={player} title="Matching Pairs" onBack={onBack}>
+      <div style={C}>
+        <div style={{fontSize:52,textAlign:'center',marginBottom:10}}>🎨</div>
+        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',textAlign:'center',marginBottom:6}}>Matching Pairs</h2>
+        <div style={{textAlign:'center',color:'var(--teal)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>Visual Memory</div>
+        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:16}}>All cards are face down. Flip two at a time and find all matching pairs using your memory.</p>
+        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',flexDirection:'column',gap:8}}>
+          {[['👆','Tap a card to flip it face up'],['🔍','Remember where each emoji is'],['✅','Match all pairs to finish']].map(([e,t])=>(
+            <div key={t} style={{display:'flex',gap:12,alignItems:'center',fontSize:14}}><span>{e}</span><span>{t}</span></div>
+          ))}
+        </div>
+        <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:'var(--teal)',padding:'8px',background:'var(--light-bg)',borderRadius:8,marginBottom:16}}>{PAIRS} pairs · {PAIRS*2} cards total</div>
+        <Btn onClick={start}>Start →</Btn>
+        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:10,fontStyle:'italic'}}>Visual recognition memory — measurable gains in 2 weeks (UCLA Health, 2024)</p>
+      </div>
+    </Screen>
+  );
+
+  if(phase==='play') return(
+    <Screen player={player} title={`Matched: ${matched.length/2}/${PAIRS}`} onBack={onBack}>
+      <div style={C}>
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:14,fontSize:14}}>
+          <span style={{color:'var(--muted)'}}>⏱ {elapsed}s</span>
+          <span style={{color:'var(--muted)'}}>Moves: {moves}</span>
+          <span style={{color:'var(--teal)',fontWeight:700}}>{matched.length/2}/{PAIRS} pairs</span>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+          {cards.map(c=>{
+            const isFl=flipped.includes(c.uid)||matched.includes(c.uid);
+            const isMa=matched.includes(c.uid);
+            return(
+              <button key={c.uid}
+                style={{aspectRatio:'1',fontSize:'clamp(20px,5vw,28px)',borderRadius:12,
+                  border:`2px solid ${isMa?'#27ae60':isFl?'var(--teal)':'var(--border)'}`,
+                  background:isMa?'#e8f8f0':isFl?'var(--light-bg)':'var(--navy)',
+                  cursor:isFl?'default':'pointer',transition:'all 0.18s',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--font-sans)'}}
+                onClick={()=>flip(c.uid)}>
+                {isFl?c.emoji:''}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </Screen>
+  );
+
+  if(phase==='complete'){
+    const stars=moves<=PAIRS+2?3:moves<=PAIRS*2?2:1;
+    return(
+      <Screen player={player} title="Session complete" onBack={onBack}>
+        <div style={{...C,textAlign:'center'}}>
+          <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:14}}>{[1,2,3].map(n=><span key={n} style={{fontSize:36,opacity:n<=stars?1:0.2}}>⭐</span>)}</div>
+          <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:6}}>Excellent, {player.name}!</h2>
+          <p style={{color:'var(--muted)',fontSize:15,marginBottom:18}}>All {PAIRS} pairs matched!</p>
+          <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:18}}>
+            {[['Moves',moves,'var(--navy)'],['Time',`${elapsed}s`,'var(--navy)'],['Pairs',`${PAIRS}/${PAIRS}`,'var(--teal)']].map(([l,v,c])=>(
+              <div key={l} style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 18px',textAlign:'center'}}>
+                <div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div>
+                <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{l}</div>
+              </div>
+            ))}
+          </div>
+          <CognitiveAgeBlock player={player}/>
+          <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:18,border:'1px solid var(--border)'}}>
+            <strong>What you trained:</strong> Visual memory and spatial reasoning — used for recognising faces, navigating familiar places, and locating objects around the home.
+          </div>
+          <div style={{display:'flex',gap:10}}>
+            <Btn secondary onClick={start}>Play again</Btn>
+            <Btn onClick={onBack}>← Menu</Btn>
+          </div>
+        </div>
+      </Screen>
+    );
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 6. THE ROUTE
+// ═══════════════════════════════════════════════════════════════════
+const TASKS=[
+  {instructions:["Start at Home","Go to the Pharmacy first","Then visit the Market","Return Home","Do NOT pass through the Park"],
+   nodes:[{id:'home',label:'🏠',name:'Home',x:0,y:2},{id:'pharmacy',label:'💊',name:'Pharmacy',x:2,y:0},{id:'market',label:'🛒',name:'Market',x:2,y:2},{id:'park',label:'🌳',name:'Park',x:0,y:0},{id:'bakery',label:'🥖',name:'Bakery',x:1,y:1}],
+   edges:[['home','park'],['home','bakery'],['home','market'],['park','pharmacy'],['bakery','pharmacy'],['bakery','market'],['market','pharmacy']],
+   correct:['home','pharmacy','market','home'],forbidden:['park']},
+  {instructions:["Start at the Library","Visit the Post Office next","Then go to the Café","Finish at the Park","Do NOT go through the School"],
+   nodes:[{id:'library',label:'📚',name:'Library',x:0,y:1},{id:'postoffice',label:'📮',name:'Post Office',x:2,y:0},{id:'cafe',label:'☕',name:'Café',x:2,y:2},{id:'park',label:'🌳',name:'Park',x:4,y:1},{id:'school',label:'🏫',name:'School',x:1,y:0}],
+   edges:[['library','school'],['library','cafe'],['school','postoffice'],['postoffice','park'],['postoffice','cafe'],['cafe','park']],
+   correct:['library','postoffice','cafe','park'],forbidden:['school']},
+];
+
+function TheRoute({player,onBack}){
+  const [phase,setPhase]=useState('intro');
+  const [ti]=useState(()=>Math.floor(Math.random()*TASKS.length));
+  const [path,setPath]=useState([]);
+  const [msg,setMsg]=useState('');
+  const [done,setDone]=useState(false);
+  const T=TASKS[ti];
+
+  const maxX=Math.max(...T.nodes.map(n=>n.x));
+  const maxY=Math.max(...T.nodes.map(n=>n.y));
+  const W=320;const H=200;
+  const pad=40;
+  function pos(n){return{x:pad+n.x*(W-pad*2)/Math.max(maxX,1),y:pad+n.y*(H-pad*2)/Math.max(maxY,1)};}
+
+  function tap(id){
+    if(done) return;
+    if((T.forbidden||[]).includes(id)){setMsg('🚫 That location is forbidden! Choose a different path.');setPath([]);return;}
+    setPath(p=>{const np=p[p.length-1]===id?p:[...p,id];return np;});
+    setMsg('');
+  }
+
+  function check(){
+    const c=T.correct;
+    const ok=path.length===c.length&&path.every((p,i)=>p===c[i]);
+    if(ok){setMsg('✅ Perfect route! Well planned.');setDone(true);}
+    else{setMsg('❌ That route doesn\'t follow all instructions. Try again!');setPath([]);}
+  }
+
+  const C={background:'#fff',borderRadius:20,padding:'24px 20px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
+
+  if(phase==='intro') return(
+    <Screen player={player} title="The Route" onBack={onBack}>
+      <div style={C}>
+        <div style={{fontSize:52,textAlign:'center',marginBottom:10}}>🧭</div>
+        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',textAlign:'center',marginBottom:6}}>The Route</h2>
+        <div style={{textAlign:'center',color:'var(--mint)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>Executive Function</div>
+        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:16}}>Plan the correct route on the map, following all given instructions. Think before you tap!</p>
+        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',flexDirection:'column',gap:8}}>
+          {[['📋','Read all instructions first'],['🗺','Tap locations in the correct order'],['🚫','Avoid forbidden locations']].map(([e,t])=>(
+            <div key={t} style={{display:'flex',gap:12,alignItems:'center',fontSize:14}}><span>{e}</span><span>{t}</span></div>
+          ))}
+        </div>
+        <Btn onClick={()=>setPhase('play')}>Start →</Btn>
+        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:10,fontStyle:'italic'}}>Goal management & sequencing training (EBRSR 19th Ed.)</p>
+      </div>
+    </Screen>
+  );
+
+  if(phase==='play') return(
+    <Screen player={player} title="Plan your route" onBack={onBack}>
+      <div style={C}>
+        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 14px',marginBottom:14}}>
+          <div style={{fontWeight:700,fontSize:12,color:'var(--navy)',marginBottom:8,textTransform:'uppercase',letterSpacing:0.4}}>Your instructions:</div>
+          {T.instructions.map((inst,i)=>(
+            <div key={i} style={{display:'flex',gap:8,alignItems:'flex-start',marginBottom:4,fontSize:13,color:inst.includes('NOT')?'var(--error)':'var(--text)'}}>
+              <span style={{fontWeight:700,color:'var(--teal)',minWidth:16}}>{i+1}.</span><span>{inst}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{position:'relative',margin:'0 auto',marginBottom:12}}>
+          <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{display:'block',maxWidth:W}}>
+            {T.edges.map(([a,b],i)=>{
+              const na=T.nodes.find(n=>n.id===a);const nb=T.nodes.find(n=>n.id===b);
+              const pa=pos(na);const pb=pos(nb);
+              const active=(path.includes(a)&&path.includes(b)&&Math.abs(path.indexOf(a)-path.indexOf(b))===1);
+              return <line key={i} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke={active?'#0A7E8C':'#C8E0E5'} strokeWidth={active?3:1.5} strokeDasharray={active?'none':'4,3'}/>;
+            })}
+            {T.nodes.map(n=>{
+              const p=pos(n);const isForbidden=(T.forbidden||[]).includes(n.id);
+              const inPath=path.includes(n.id);const isLast=path[path.length-1]===n.id;
+              const pidx=path.indexOf(n.id);
+              return(
+                <g key={n.id} style={{cursor:done?'default':'pointer'}} onClick={()=>tap(n.id)}>
+                  <circle cx={p.x} cy={p.y} r={22} fill={isForbidden?'#fdecea':inPath?'var(--light-bg)':'#fff'} stroke={isForbidden?'#e74c3c':isLast?'var(--teal)':inPath?'var(--teal)':'var(--border)'} strokeWidth={isLast?3:2}/>
+                  <text x={p.x} y={p.y-2} textAnchor="middle" fontSize="16" dominantBaseline="middle">{n.label}</text>
+                  <text x={p.x} y={p.y+13} textAnchor="middle" fontSize="7" fill={isForbidden?'#e74c3c':'#6B8A99'} dominantBaseline="middle">{n.name}</text>
+                  {inPath&&<text x={p.x+17} y={p.y-17} textAnchor="middle" fontSize="10" fill="var(--teal)" fontWeight="700">{pidx+1}</text>}
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+
+        <div style={{background:'var(--light-bg)',borderRadius:10,padding:'8px 12px',marginBottom:10,fontSize:13,color:'var(--muted)',textAlign:'center',minHeight:36}}>
+          {path.length>0?'Route: '+path.map(id=>T.nodes.find(n=>n.id===id)?.name).join(' → '):'Tap a location on the map to start'}
+        </div>
+
+        {msg&&(
+          <div style={{borderRadius:10,padding:'10px 14px',marginBottom:10,fontSize:14,textAlign:'center',
+            background:msg.startsWith('✅')?'#e8f8f0':msg.startsWith('🚫')?'#fff3cd':'#fdecea',
+            color:msg.startsWith('✅')?'#27ae60':msg.startsWith('🚫')?'#a0640a':'var(--error)',fontWeight:600}}>
+            {msg}
+          </div>
+        )}
+
+        <div style={{display:'flex',gap:10}}>
+          <Btn secondary small onClick={()=>{setPath([]);setMsg('');setDone(false);}}>Reset</Btn>
+          {done?<Btn onClick={()=>setPhase('complete')}>See results →</Btn>:<Btn onClick={check} disabled={path.length<2}>Check my route</Btn>}
+        </div>
+      </div>
+    </Screen>
+  );
+
+  if(phase==='complete') return(
+    <Screen player={player} title="Session complete" onBack={onBack}>
+      <div style={{...C,textAlign:'center'}}>
+        <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:14}}>{[1,2,3].map(n=><span key={n} style={{fontSize:36}}>⭐</span>)}</div>
+        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:6}}>Excellent, {player.name}!</h2>
+        <p style={{color:'var(--muted)',fontSize:15,marginBottom:18}}>You planned the correct route successfully.</p>
+        <CognitiveAgeBlock player={player}/>
+        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:18,border:'1px solid var(--border)'}}>
+          <strong>What you trained:</strong> Executive function — planning, sequencing, and constraint-following. Used for planning errands, managing medications, and organising the day.
+        </div>
+        <div style={{display:'flex',gap:10}}>
+          <Btn secondary onClick={()=>{setPath([]);setMsg('');setDone(false);setPhase('play');}}>Play again</Btn>
+          <Btn onClick={onBack}>← Menu</Btn>
+        </div>
+      </div>
+    </Screen>
+  );
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// APP ROUTER
+// ═══════════════════════════════════════════════════════════════════
+function App(){
+  const [player,setPlayer]=useState(null);
+  const [screen,setScreen]=useState('onboarding');
+  if(screen==='onboarding') return <Onboarding onDone={p=>{setPlayer(p);setScreen('menu');}}/>;
+  const map={shopping:<ShoppingList player={player} onBack={()=>setScreen('menu')}/>,odd:<FindOdd player={player} onBack={()=>setScreen('menu')}/>,yesterday:<WhatWasYesterday player={player} onBack={()=>setScreen('menu')}/>,chain:<NumberChain player={player} onBack={()=>setScreen('menu')}/>,pairs:<MatchingPairs player={player} onBack={()=>setScreen('menu')}/>,route:<TheRoute player={player} onBack={()=>setScreen('menu')}/>};
+  return map[screen]||<Menu player={player} onPlay={id=>setScreen(id)}/>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
