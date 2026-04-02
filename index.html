@@ -2,9 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0"/>
+
+  <!-- ═══════════════════════════════════════════════
+       PWA + iPhone / iOS meta tags
+       ═══════════════════════════════════════════════ -->
+
+  <!-- Viewport: allow user zoom up to 3× for accessibility -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes"/>
+
+  <!-- Android Chrome theme colour -->
   <meta name="theme-color" content="#0D2B4E"/>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json"/>
+
+  <!-- ── iOS-specific tags ── -->
+  <!-- Enables "Add to Home Screen" standalone mode on iPhone -->
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <!-- Hides Safari's top bar and bottom bar when launched from home screen -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <!-- App name shown under the icon on the home screen -->
+  <meta name="apple-mobile-web-app-title" content="CLIVE"/>
+  <!-- Home screen icon — used by iPhone when adding to home screen -->
+  <link rel="apple-touch-icon" href="/icon-180.png"/>
+  <!-- Splash screens so there's no white flash on launch -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+
+  <!-- General SEO / sharing meta -->
+  <meta name="description" content="Daily cognitive training for adults 55+, grounded in clinical evidence."/>
+  <meta name="application-name" content="CLIVE"/>
+
   <title>CLIVE — Cognitive Health</title>
+
+  <!-- ═══════════════════════════════════════════════
+       Fonts
+       ═══════════════════════════════════════════════ -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
@@ -80,12 +112,22 @@
       scroll-behavior: smooth;
     }
 
+    /* ── iOS Safe Area (notch / Dynamic Island / home indicator) ── */
     body {
       font-family: var(--font);
       background: var(--bg);
       color: var(--text);
       line-height: 1.7;
       min-height: 100vh;
+      /* Push content below the notch and above the home indicator */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      /* Prevent text size from changing when orientation changes on iOS */
+      -webkit-text-size-adjust: 100%;
+      /* Smooth momentum scrolling on iOS */
+      -webkit-overflow-scrolling: touch;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
     }
@@ -1998,5 +2040,19 @@ function App(){
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
+
+<!-- ═══════════════════════════════════════════════
+     Service Worker registration (enables offline + install)
+     ═══════════════════════════════════════════════ -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('CLIVE SW registered:', reg.scope))
+        .catch(err => console.log('SW registration failed:', err));
+    });
+  }
+</script>
+
 </body>
 </html>
