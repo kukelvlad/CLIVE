@@ -1,111 +1,403 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0"/>
+  <meta name="theme-color" content="#0D2B4E"/>
   <title>CLIVE — Cognitive Health</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
   <style>
+    /* ═══════════════════════════════════════════════════════════════════
+       CLIVE — 55+ Design System
+       Standards: WCAG 2.2 AA, W3C Older Users Guidelines,
+       JMIR Mobile Apps for Older Adults (2023), ISO 9241-171
+       ═══════════════════════════════════════════════════════════════════ */
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --navy:#0D2B4E; --teal:#0A7E8C; --mint:#00B4A6; --gold:#E8A838;
-      --gold-light:#FDF3DC; --off-white:#F4F8F9; --light-bg:#EAF4F5;
-      --text:#1A2E3B; --muted:#6B8A99; --border:#C8E0E5;
-      --error:#C0392B; --success:#27AE60;
-      --font-serif:'Lora',Georgia,serif;
-      --font-sans:'Source Sans 3','Segoe UI',sans-serif;
-      --shadow:0 4px 24px rgba(13,43,78,0.10);
+      /* Colours — WCAG AA contrast ≥4.5:1 on all backgrounds */
+      --navy:        #0D2B4E;   /* primary dark */
+      --navy-light:  #1A3D62;
+      --teal:        #006B7A;   /* darkened for AA contrast on white */
+      --teal-light:  #EAF5F7;
+      --mint:        #00857A;
+      --mint-light:  #E8F7F5;
+      --gold:        #B8620A;   /* darkened amber for contrast */
+      --gold-light:  #FDF3DC;
+      --white:       #FFFFFF;
+      --bg:          #F0F4F8;   /* soft grey-blue, less glare than pure white */
+      --surface:     #FFFFFF;
+      --text:        #1A2B3C;   /* near-black, max legibility */
+      --text-med:    #2D4057;
+      --text-soft:   #4A5E72;
+      --border:      #9BB4C5;   /* high enough contrast to see clearly */
+      --error:       #C0392B;
+      --success:     #1A7A3A;
+      --disabled:    #7A8E9E;
+
+      /* Typography — Atkinson Hyperlegible designed for low vision */
+      --font:        'Atkinson Hyperlegible', 'Trebuchet MS', sans-serif;
+      --font-ui:     'Nunito', 'Arial Rounded MT Bold', sans-serif;
+
+      /* Sizing — minimum 18px body, 20px+ for interactive elements */
+      --text-sm:     1rem;       /* 16px min */
+      --text-base:   1.2rem;     /* 19px */
+      --text-lg:     1.4rem;     /* 22px */
+      --text-xl:     1.7rem;     /* 27px */
+      --text-2xl:    2.1rem;     /* 34px */
+      --text-3xl:    2.6rem;     /* 42px */
+
+      /* Touch targets — minimum 48×48px (WCAG 2.2 / Apple HIG) */
+      --target-min:  56px;       /* exceed minimum for 55+ */
+      --target-lg:   64px;
+
+      /* Spacing */
+      --space-xs:    8px;
+      --space-sm:    14px;
+      --space-md:    22px;
+      --space-lg:    32px;
+      --space-xl:    48px;
+
+      /* Shape */
+      --radius:      16px;
+      --radius-sm:   10px;
+      --radius-lg:   24px;
+      --radius-pill: 100px;
+
+      /* Shadow */
+      --shadow:      0 3px 12px rgba(13,43,78,0.12);
+      --shadow-lg:   0 6px 24px rgba(13,43,78,0.16);
     }
-    html { font-size:16px; }
-    body { font-family:var(--font-sans); background:var(--off-white); color:var(--text); line-height:1.6; min-height:100vh; -webkit-font-smoothing:antialiased; }
-    button { cursor:pointer; font-family:var(--font-sans); border:none; outline:none; }
-    button:focus-visible { outline:3px solid var(--teal); outline-offset:3px; }
-    input { font-family:var(--font-sans); }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-    @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
-    ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:var(--off-white)} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-    input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{opacity:1}
+
+    html {
+      font-size: 18px;  /* base larger than default */
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* All interactive elements: large focus ring (WCAG 2.4.11) */
+    :focus-visible {
+      outline: 3px solid var(--teal);
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+
+    button, input, select {
+      font-family: var(--font-ui);
+      font-size: var(--text-base);
+    }
+
+    button { cursor: pointer; border: none; }
+
+    /* Animations — subtle, respects prefers-reduced-motion */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+    @keyframes timerShrink { from{width:100%} to{width:0%} }
+    @keyframes correctPop { 0%{transform:scale(1)} 50%{transform:scale(1.1)} 100%{transform:scale(1)} }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Scrollbar — visible and large */
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; min-height: 44px; }
+
+    /* Utility */
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); border: 0;
+    }
   </style>
 </head>
 <body>
-<div id="root"></div>
+<div id="root" role="main"></div>
 <script type="text/babel">
 const { useState, useEffect, useCallback, useRef } = React;
 
+/* ─────────────────────────────────────────────────────────────────
+   DESIGN TOKENS (inline styles mirror CSS vars)
+───────────────────────────────────────────────────────────────── */
+const T = {
+  navy:'#0D2B4E', navyL:'#1A3D62',
+  teal:'#006B7A', tealL:'#EAF5F7',
+  mint:'#00857A', mintL:'#E8F7F5',
+  gold:'#B8620A', goldL:'#FDF3DC',
+  bg:'#F0F4F8', surface:'#FFFFFF',
+  text:'#1A2B3C', textM:'#2D4057', textS:'#4A5E72',
+  border:'#9BB4C5',
+  error:'#C0392B', errorL:'#FDECEA',
+  success:'#1A7A3A', successL:'#E8F7EE',
+  disabled:'#7A8E9E',
+};
+
 function shuffle(arr){return [...arr].sort(()=>Math.random()-0.5);}
 
-// ── Shared Button ─────────────────────────────────────────────────
-function Btn({children,onClick,disabled,secondary,small,style={}}){
-  const [h,setH]=useState(false);
+/* ─────────────────────────────────────────────────────────────────
+   SHARED: PRIMARY BUTTON
+   56px min height, 20px font, full-width, high contrast
+───────────────────────────────────────────────────────────────── */
+function PrimaryBtn({children,onClick,disabled,color,icon,style={}}){
+  const [pressed,setPressed]=useState(false);
+  const bg = disabled ? T.disabled : (color||T.navy);
+  const hovered = pressed && !disabled;
   return(
     <button
       onClick={!disabled?onClick:undefined}
-      onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-      style={{width:'100%',padding:small?'10px 18px':'15px 24px',
-        background:secondary?(h?'#d8ecee':'var(--light-bg)'):(disabled?'#bbb':(h?'#0a2240':'var(--navy)')),
-        color:secondary?'var(--navy)':'#fff',fontSize:small?14:16,fontWeight:700,
-        borderRadius:12,border:secondary?'2px solid var(--border)':'none',
-        cursor:disabled?'not-allowed':'pointer',display:'block',
-        fontFamily:'var(--font-sans)',transition:'background 0.18s',opacity:disabled?0.55:1,...style}}>
+      onMouseDown={()=>setPressed(true)}
+      onMouseUp={()=>setPressed(false)}
+      onTouchStart={()=>setPressed(true)}
+      onTouchEnd={()=>setPressed(false)}
+      aria-disabled={disabled}
+      style={{
+        display:'flex', alignItems:'center', justifyContent:'center', gap:10,
+        width:'100%', minHeight:60, padding:'14px 24px',
+        background: hovered ? T.navyL : bg,
+        color:'#fff', fontSize:'1.2rem', fontWeight:700,
+        borderRadius:14, border:'none', cursor:disabled?'not-allowed':'pointer',
+        fontFamily:'Nunito,sans-serif',
+        transform: pressed&&!disabled ? 'scale(0.98)' : 'scale(1)',
+        transition:'background 0.15s, transform 0.1s',
+        boxShadow: disabled ? 'none' : '0 3px 8px rgba(0,0,0,0.18)',
+        opacity: disabled ? 0.65 : 1,
+        letterSpacing: 0.3,
+        ...style
+      }}>
+      {icon&&<span aria-hidden="true" style={{fontSize:'1.4rem'}}>{icon}</span>}
       {children}
     </button>
   );
 }
 
-function Label({children}){
-  return <label style={{display:'block',fontSize:13,fontWeight:700,color:'var(--navy)',marginBottom:8,textTransform:'uppercase',letterSpacing:0.4}}>{children}</label>;
+/* Secondary button — outlined */
+function SecondaryBtn({children,onClick,icon,style={}}){
+  const [pressed,setPressed]=useState(false);
+  return(
+    <button
+      onClick={onClick}
+      onMouseDown={()=>setPressed(true)} onMouseUp={()=>setPressed(false)}
+      onTouchStart={()=>setPressed(true)} onTouchEnd={()=>setPressed(false)}
+      style={{
+        display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+        width:'100%', minHeight:56, padding:'12px 20px',
+        background: pressed ? T.tealL : T.surface,
+        color: T.teal, fontSize:'1.15rem', fontWeight:700,
+        borderRadius:14, border:`2.5px solid ${T.teal}`, cursor:'pointer',
+        fontFamily:'Nunito,sans-serif',
+        transform: pressed ? 'scale(0.98)' : 'scale(1)',
+        transition:'all 0.12s',
+        ...style
+      }}>
+      {icon&&<span aria-hidden="true" style={{fontSize:'1.3rem'}}>{icon}</span>}
+      {children}
+    </button>
+  );
 }
 
-// ── Screen Wrapper ────────────────────────────────────────────────
-function Screen({player,title,onBack,children}){
+/* ─────────────────────────────────────────────────────────────────
+   SHARED: SCREEN WRAPPER — sticky header with large back button
+───────────────────────────────────────────────────────────────── */
+function Screen({player,title,subtitle,onBack,children,headerColor}){
   return(
-    <div style={{minHeight:'100vh',background:'var(--off-white)',display:'flex',flexDirection:'column'}}>
-      <header style={{background:'var(--navy)',height:58,padding:'0 20px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:10}}>
-        <button style={{background:'none',border:'none',color:'#7AAFBF',fontSize:14,cursor:'pointer',fontFamily:'var(--font-sans)',padding:'4px 0',whiteSpace:'nowrap'}} onClick={onBack}>← Menu</button>
-        <span style={{color:'#fff',fontWeight:700,fontSize:14,textAlign:'center',flex:1,padding:'0 8px'}}>{title}</span>
-        <span style={{color:'#7AAFBF',fontSize:13,whiteSpace:'nowrap'}}>{player.gender==='female'?'👩':'👨'} {player.name}</span>
+    <div style={{minHeight:'100vh',background:T.bg,display:'flex',flexDirection:'column'}}>
+      {/* Header — 72px tall, sticky */}
+      <header
+        role="banner"
+        style={{
+          background: headerColor||T.navy,
+          minHeight:72, padding:'0 20px',
+          display:'flex', alignItems:'center', justifyContent:'space-between',
+          position:'sticky', top:0, zIndex:100,
+          boxShadow:'0 2px 8px rgba(0,0,0,0.2)',
+          flexShrink:0,
+        }}>
+        {/* Back button — minimum 56px touch target */}
+        <button
+          onClick={onBack}
+          aria-label="Back to menu"
+          style={{
+            minWidth:56, minHeight:56, padding:'10px 14px',
+            background:'rgba(255,255,255,0.12)',
+            border:'2px solid rgba(255,255,255,0.3)',
+            borderRadius:12, color:'#fff',
+            fontSize:'1rem', fontWeight:700,
+            cursor:'pointer', fontFamily:'Nunito,sans-serif',
+            display:'flex', alignItems:'center', gap:6,
+          }}>
+          <span aria-hidden="true" style={{fontSize:'1.3rem'}}>←</span>
+          <span style={{fontSize:'0.95rem'}}>Menu</span>
+        </button>
+
+        {/* Title block */}
+        <div style={{textAlign:'center',flex:1,padding:'0 8px'}}>
+          <div style={{color:'#fff',fontWeight:800,fontSize:'1.05rem',fontFamily:'Nunito,sans-serif',lineHeight:1.2}}>
+            {title}
+          </div>
+          {subtitle&&<div style={{color:'rgba(255,255,255,0.75)',fontSize:'0.85rem',marginTop:2}}>{subtitle}</div>}
+        </div>
+
+        {/* Player badge */}
+        <div style={{
+          minWidth:56, minHeight:56, display:'flex', flexDirection:'column',
+          alignItems:'center', justifyContent:'center',
+        }}>
+          <div style={{fontSize:'1.6rem',lineHeight:1}}>{player.gender==='female'?'👩':'👨'}</div>
+          <div style={{color:'rgba(255,255,255,0.8)',fontSize:'0.72rem',fontWeight:600,marginTop:2,maxWidth:52,textAlign:'center',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>
+            {player.name}
+          </div>
+        </div>
       </header>
-      <main style={{maxWidth:620,margin:'0 auto',padding:'24px 16px 80px',width:'100%'}}>{children}</main>
+
+      {/* Content */}
+      <main role="main" style={{flex:1,maxWidth:680,margin:'0 auto',padding:'24px 16px 80px',width:'100%'}}>
+        {children}
+      </main>
     </div>
   );
 }
 
-// ── Cognitive Age Block ───────────────────────────────────────────
-function CognitiveAgeBlock({player}){
-  const rawAge=parseInt(player.ageNum)||65;
-  const cogAge=Math.max(rawAge-1,18);
+/* ─────────────────────────────────────────────────────────────────
+   SHARED: CARD — elevated surface
+───────────────────────────────────────────────────────────────── */
+function Card({children,style={},accent}){
   return(
-    <div style={{background:'linear-gradient(135deg,#0D2B4E 0%,#0A7E8C 100%)',borderRadius:14,padding:'18px 20px',marginBottom:18,color:'#fff'}}>
-      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
-        <span style={{fontSize:30}}>🧠</span>
+    <div style={{
+      background:T.surface, borderRadius:20, overflow:'hidden',
+      boxShadow:'0 3px 14px rgba(13,43,78,0.11)',
+      border:`1px solid rgba(155,180,197,0.4)`,
+      animation:'fadeUp 0.4s ease both',
+      ...style
+    }}>
+      {accent&&<div style={{height:6,background:accent,width:'100%'}}/>}
+      {children}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SHARED: PROGRESS BAR — large, animated, colour-coded
+───────────────────────────────────────────────────────────────── */
+function TimerBar({fraction,label}){
+  const color = fraction>0.5?T.teal:fraction>0.25?T.gold:'#C0392B';
+  return(
+    <div>
+      <div style={{
+        height:14, background:'#DDE8EE', borderRadius:8,
+        overflow:'hidden', marginBottom:6,
+      }}>
+        <div style={{
+          height:'100%', width:`${fraction*100}%`,
+          background:color, borderRadius:8,
+          transition:'width 1s linear, background 0.5s',
+        }}/>
+      </div>
+      {label&&<div style={{textAlign:'right',fontSize:'0.9rem',color:T.textS,fontWeight:600}}>{label}</div>}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SHARED: ROUND INDICATOR — step dots
+───────────────────────────────────────────────────────────────── */
+function RoundDots({total,current,correct=[]}){
+  return(
+    <div style={{display:'flex',gap:8,justifyContent:'center',marginBottom:4}}>
+      {Array.from({length:total}).map((_,i)=>(
+        <div key={i} style={{
+          width:14,height:14,borderRadius:'50%',
+          background: correct[i]==='yes' ? T.success :
+                      correct[i]==='no'  ? T.error :
+                      i===current ? T.teal : '#BDD3DD',
+          transition:'background 0.3s',
+        }}/>
+      ))}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SHARED: RESULT HEADER — big emoji + message
+───────────────────────────────────────────────────────────────── */
+function ResultHeader({correct,total}){
+  const pct=Math.round((correct/total)*100);
+  const [emoji,msg,color]=
+    pct===100 ? ['🏆','Perfect!',T.success] :
+    pct>=70   ? ['👍','Well done!',T.teal] :
+                ['💪','Good effort!',T.gold];
+  return(
+    <div style={{textAlign:'center',marginBottom:24}}>
+      <div style={{fontSize:'4rem',marginBottom:8,animation:'correctPop 0.5s ease'}}>{emoji}</div>
+      <div style={{fontSize:'2rem',fontWeight:800,color,fontFamily:'Nunito,sans-serif',marginBottom:6}}>{msg}</div>
+      <div style={{
+        display:'inline-flex',alignItems:'center',gap:6,
+        background:color,color:'#fff',borderRadius:100,
+        padding:'8px 24px',fontSize:'1.4rem',fontWeight:700,fontFamily:'Nunito,sans-serif'
+      }}>
+        {correct}/{total} correct — {pct}%
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SHARED: COGNITIVE AGE BLOCK
+───────────────────────────────────────────────────────────────── */
+function CognitiveAge({player}){
+  const age=parseInt(player.ageNum)||65;
+  const cogAge=Math.max(age-1,18);
+  return(
+    <div style={{
+      background:`linear-gradient(135deg, ${T.navy} 0%, ${T.teal} 100%)`,
+      borderRadius:18, padding:'20px 22px', marginBottom:20, color:'#fff',
+    }} role="region" aria-label="Cognitive Age result">
+      <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:12}}>
+        <span style={{fontSize:'2.4rem'}} aria-hidden="true">🧠</span>
         <div style={{flex:1}}>
-          <div style={{fontWeight:700,fontSize:15}}>Your Cognitive Age</div>
-          <div style={{fontSize:12,color:'#A8CEDA'}}>Based on this session</div>
+          <div style={{fontWeight:800,fontSize:'1.25rem',fontFamily:'Nunito,sans-serif'}}>Your Cognitive Age</div>
+          <div style={{fontSize:'0.9rem',color:'rgba(255,255,255,0.75)'}}>Based on this session</div>
         </div>
         <div style={{textAlign:'right'}}>
-          <div style={{fontSize:40,fontWeight:700,color:'#00B4A6',lineHeight:1}}>{cogAge}</div>
-          <div style={{fontSize:11,color:'#A8CEDA'}}>years</div>
+          <div style={{fontSize:'3.2rem',fontWeight:800,color:'#6EE7DF',lineHeight:1,fontFamily:'Nunito,sans-serif'}}>{cogAge}</div>
+          <div style={{fontSize:'0.85rem',color:'rgba(255,255,255,0.7)'}}>years</div>
         </div>
       </div>
-      <div style={{background:'rgba(255,255,255,0.10)',borderRadius:10,padding:'10px 14px',fontSize:13,lineHeight:1.6,color:'#D0EEF5'}}>
-        Based on a comparison of your results with average scores for your age group ({player.age}),
-        your cognitive performance corresponds to someone approximately{' '}
-        <strong style={{color:'#00B4A6'}}>{cogAge} years old</strong> — one year younger than your current age.
+      <div style={{background:'rgba(255,255,255,0.12)',borderRadius:12,padding:'12px 16px',fontSize:'1rem',lineHeight:1.6}}>
+        Compared to average scores for your age group ({player.age}),
+        your cognitive performance matches someone approximately{' '}
+        <strong style={{color:'#6EE7DF'}}>{cogAge} years old</strong> — one year younger.
         Keep training daily to maintain and improve this result.
       </div>
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ONBOARDING
-// ═══════════════════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────────────
+   ONBOARDING
+───────────────────────────────────────────────────────────────── */
 const AGE_GROUPS=[
   {label:'55–59',num:57},{label:'60–64',num:62},{label:'65–69',num:67},
   {label:'70–74',num:72},{label:'75–79',num:77},{label:'80+',num:82},
@@ -118,206 +410,378 @@ function Onboarding({onDone}){
   const [ageGroup,setAgeGroup]=useState('');
   const [ageCustom,setAgeCustom]=useState('');
   const [errors,setErrors]=useState({});
+  const nameRef=useRef(null);
 
   const finalAge=ageCustom.trim()?ageCustom.trim():ageGroup;
   const finalAgeNum=ageCustom.trim()?parseInt(ageCustom):(AGE_GROUPS.find(a=>a.label===ageGroup)?.num||65);
 
+  useEffect(()=>{ if(step===1&&nameRef.current) nameRef.current.focus(); },[step]);
+
   function validate(){
     const e={};
-    if(!name.trim()||name.trim().length<2) e.name='Please enter your name (at least 2 characters).';
-    if(!gender) e.gender='Please select your gender.';
+    if(!name.trim()||name.trim().length<2) e.name='Please enter your name (at least 2 letters).';
+    if(!gender) e.gender='Please choose your gender.';
     if(!finalAge) e.age='Please select or enter your age.';
-    if(ageCustom.trim()){const n=parseInt(ageCustom);if(isNaN(n)||n<18||n>120) e.age='Please enter a valid age between 18 and 120.';}
+    if(ageCustom.trim()){const n=parseInt(ageCustom);if(isNaN(n)||n<18||n>120) e.age='Please enter an age between 18 and 120.';}
     setErrors(e);
     return Object.keys(e).length===0;
   }
 
-  const shell={minHeight:'100vh',background:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',padding:'32px 16px',position:'relative',overflow:'hidden'};
-  const orb1={position:'absolute',top:-100,right:-80,width:360,height:360,borderRadius:'50%',background:'radial-gradient(circle,rgba(10,126,140,0.28) 0%,transparent 70%)',pointerEvents:'none'};
-  const orb2={position:'absolute',bottom:-80,left:-60,width:280,height:280,borderRadius:'50%',background:'radial-gradient(circle,rgba(0,180,166,0.20) 0%,transparent 70%)',pointerEvents:'none'};
-  const card={background:'#fff',borderRadius:24,padding:'clamp(24px,5vw,44px)',width:'100%',maxWidth:500,position:'relative',boxShadow:'0 24px 80px rgba(0,0,0,0.28)',animation:'fadeUp 0.6s ease both'};
-
+  /* ── Welcome screen ── */
   if(step===0) return(
-    <div style={shell}><div style={orb1}/><div style={orb2}/>
-      <div style={card}>
-        <div style={{fontFamily:'var(--font-serif)',fontSize:22,fontWeight:700,color:'var(--navy)',letterSpacing:5,marginBottom:28,textAlign:'center'}}>CLIVE</div>
-        <h1 style={{fontFamily:'var(--font-serif)',fontSize:'clamp(24px,5vw,36px)',color:'var(--navy)',fontWeight:700,lineHeight:1.25,marginBottom:16,textAlign:'center'}}>
-          Your mind deserves<br/><span style={{color:'var(--teal)'}}>daily care.</span>
-        </h1>
-        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:22}}>
-          CLIVE is a calm, ad-free cognitive training app for adults 55+, built on clinically validated methods.
-        </p>
-        <div style={{display:'flex',flexWrap:'wrap',gap:7,justifyContent:'center',marginBottom:28}}>
-          {['🧠 Working Memory','👁 Attention','🗂 Executive Function','🎯 Episodic Memory','⚡ Processing Speed','🗺 Spatial Thinking'].map(p=>(
-            <span key={p} style={{background:'var(--light-bg)',color:'var(--teal)',fontSize:12,fontWeight:600,padding:'4px 12px',borderRadius:20,border:'1px solid var(--border)'}}>{p}</span>
-          ))}
-        </div>
-        <Btn onClick={()=>setStep(1)}>Get started →</Btn>
-        <p style={{textAlign:'center',fontSize:11,color:'#aaa',marginTop:14,fontStyle:'italic'}}>NICE NG236 (2023) · Cicerone et al. (2019) · CST · EBRSR</p>
-      </div>
-    </div>
-  );
+    <div style={{
+      minHeight:'100vh', background:T.navy,
+      display:'flex', alignItems:'center', justifyContent:'center',
+      padding:'24px 16px', position:'relative', overflow:'hidden',
+    }}>
+      {/* Decorative circles */}
+      <div style={{position:'absolute',top:-80,right:-60,width:300,height:300,borderRadius:'50%',background:'rgba(0,180,166,0.15)',pointerEvents:'none'}}/>
+      <div style={{position:'absolute',bottom:-60,left:-40,width:220,height:220,borderRadius:'50%',background:'rgba(10,126,140,0.2)',pointerEvents:'none'}}/>
 
-  if(step===2) return(
-    <div style={shell}><div style={orb1}/><div style={orb2}/>
-      <div style={{...card,textAlign:'center'}}>
-        <div style={{fontSize:60,marginBottom:16}}>{gender==='female'?'👩':'👨'}</div>
-        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:12}}>Welcome, {name.trim()}.</h2>
-        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,marginBottom:24}}>You're all set. Let's begin your first session.</p>
-        <div style={{background:'var(--light-bg)',borderRadius:14,padding:'14px 18px',marginBottom:24}}>
-          {[['Name',name.trim()],['Gender',gender==='female'?'Female':'Male'],['Age',finalAge]].map(([l,v])=>(
-            <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid var(--border)'}}>
-              <span style={{fontSize:14,color:'var(--muted)'}}>{l}</span>
-              <span style={{fontSize:14,fontWeight:700,color:'var(--navy)'}}>{v}</span>
+      <div style={{
+        background:T.surface, borderRadius:28, padding:'clamp(28px,6vw,52px)',
+        width:'100%', maxWidth:500, position:'relative',
+        boxShadow:'0 20px 60px rgba(0,0,0,0.3)', animation:'fadeUp 0.6s ease',
+      }}>
+        {/* Logo */}
+        <div style={{textAlign:'center',marginBottom:28}}>
+          <div style={{
+            display:'inline-flex',alignItems:'center',gap:10,
+            background:T.navy,borderRadius:100,padding:'10px 28px',
+          }}>
+            <span style={{fontSize:'1.8rem'}} aria-hidden="true">🧠</span>
+            <span style={{color:'#fff',fontWeight:800,fontSize:'1.8rem',fontFamily:'Nunito,sans-serif',letterSpacing:3}}>CLIVE</span>
+          </div>
+        </div>
+
+        <h1 style={{
+          fontFamily:'Nunito,sans-serif', fontWeight:800,
+          fontSize:'clamp(1.8rem,5vw,2.4rem)', color:T.navy,
+          lineHeight:1.2, marginBottom:14, textAlign:'center',
+        }}>
+          Your mind deserves<br/>
+          <span style={{color:T.teal}}>daily care.</span>
+        </h1>
+
+        <p style={{fontSize:'1.15rem',color:T.textM,lineHeight:1.75,textAlign:'center',marginBottom:26}}>
+          CLIVE is a calm, ad-free cognitive training app built for adults 55+,
+          grounded in clinically validated methods — not games.
+        </p>
+
+        {/* Feature pills */}
+        <div style={{display:'flex',flexWrap:'wrap',gap:10,justifyContent:'center',marginBottom:32}}>
+          {[
+            {e:'🧠','t':'Working Memory'},
+            {e:'👁','t':'Attention'},
+            {e:'🗂','t':'Executive Function'},
+            {e:'🎯','t':'Episodic Memory'},
+          ].map(({e,t})=>(
+            <div key={t} style={{
+              display:'flex',alignItems:'center',gap:6,
+              background:T.tealL, color:T.teal, fontSize:'1rem',fontWeight:700,
+              padding:'8px 16px', borderRadius:100, border:`2px solid ${T.teal}`,
+            }}>
+              <span aria-hidden="true">{e}</span>{t}
             </div>
           ))}
         </div>
-        <Btn onClick={()=>onDone({name:name.trim(),gender,age:finalAge,ageNum:finalAgeNum})}>Open my dashboard →</Btn>
+
+        <PrimaryBtn onClick={()=>setStep(1)} icon="→">Get started</PrimaryBtn>
+
+        <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14,lineHeight:1.5}}>
+          NICE NG236 (2023) · Cicerone et al. (2019) · CST/NICE · EBRSR
+        </p>
       </div>
     </div>
   );
 
-  return(
-    <div style={shell}><div style={orb1}/><div style={orb2}/>
-      <div style={card}>
-        <button style={{background:'none',border:'none',color:'var(--muted)',fontSize:14,cursor:'pointer',padding:'0 0 18px',display:'block'}} onClick={()=>setStep(0)}>← Back</button>
-        <h2 style={{fontFamily:'var(--font-serif)',fontSize:24,color:'var(--navy)',fontWeight:700,marginBottom:6}}>Tell us about yourself</h2>
-        <p style={{fontSize:13,color:'var(--muted)',lineHeight:1.6,marginBottom:22}}>This helps personalise your training. Your data stays on your device.</p>
+  /* ── Confirmation screen ── */
+  if(step===2){
+    return(
+      <div style={{minHeight:'100vh',background:T.navy,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px 16px'}}>
+        <div style={{background:T.surface,borderRadius:28,padding:'clamp(28px,6vw,48px)',width:'100%',maxWidth:480,boxShadow:'0 20px 60px rgba(0,0,0,0.3)',animation:'fadeUp 0.5s ease',textAlign:'center'}}>
+          <div style={{fontSize:'4.5rem',marginBottom:14}} aria-hidden="true">{gender==='female'?'👩':'👨'}</div>
+          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'2rem',color:T.navy,marginBottom:10}}>
+            Welcome, {name.trim()}!
+          </h2>
+          <p style={{fontSize:'1.15rem',color:T.textM,lineHeight:1.7,marginBottom:26}}>
+            You're all set. Let's begin your first cognitive session.
+          </p>
+          {/* Summary */}
+          <div style={{background:T.bg,borderRadius:14,padding:'16px 20px',marginBottom:28,textAlign:'left'}}>
+            {[['Name',name.trim()],['Gender',gender==='female'?'Female':'Male'],['Age',finalAge]].map(([l,v])=>(
+              <div key={l} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:`1px solid ${T.border}`}}>
+                <span style={{fontSize:'1rem',color:T.textS,fontWeight:600}}>{l}</span>
+                <span style={{fontSize:'1.1rem',fontWeight:700,color:T.navy}}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <PrimaryBtn icon="→" onClick={()=>onDone({name:name.trim(),gender,age:finalAge,ageNum:finalAgeNum})}>
+            Open my dashboard
+          </PrimaryBtn>
+        </div>
+      </div>
+    );
+  }
 
-        <div style={{marginBottom:20}}>
-          <Label>Your first name</Label>
-          <input style={{width:'100%',padding:'13px 16px',border:`2px solid ${errors.name?'var(--error)':'var(--border)'}`,borderRadius:12,fontSize:17,color:'var(--text)',outline:'none'}}
-            type="text" placeholder="e.g. Margaret" value={name}
-            onChange={e=>{setName(e.target.value);setErrors(ev=>({...ev,name:''}));}} autoFocus/>
-          {errors.name&&<span style={{display:'block',marginTop:5,fontSize:12,color:'var(--error)'}}>{errors.name}</span>}
+  /* ── Form screen ── */
+  return(
+    <div style={{minHeight:'100vh',background:T.navy,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px 16px'}}>
+      <div style={{background:T.surface,borderRadius:28,padding:'clamp(24px,5vw,44px)',width:'100%',maxWidth:520,boxShadow:'0 20px 60px rgba(0,0,0,0.3)',animation:'fadeUp 0.5s ease'}}>
+
+        <SecondaryBtn onClick={()=>setStep(0)} icon="←" style={{width:'auto',minWidth:120,marginBottom:24}}>Back</SecondaryBtn>
+
+        <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,marginBottom:6}}>
+          About you
+        </h2>
+        <p style={{fontSize:'1rem',color:T.textS,marginBottom:28,lineHeight:1.6}}>
+          This personalises your training. Your data stays on your device and is never shared.
+        </p>
+
+        {/* NAME */}
+        <div style={{marginBottom:26}}>
+          <label htmlFor="name-input" style={{display:'block',fontSize:'1rem',fontWeight:700,color:T.navy,marginBottom:10,textTransform:'uppercase',letterSpacing:0.8}}>
+            Your first name
+          </label>
+          <input
+            id="name-input"
+            ref={nameRef}
+            type="text"
+            placeholder="e.g. Margaret"
+            value={name}
+            autoComplete="given-name"
+            onChange={e=>{setName(e.target.value);setErrors(ev=>({...ev,name:''}));}}
+            style={{
+              width:'100%', padding:'16px 18px',
+              border:`2.5px solid ${errors.name?T.error:T.border}`,
+              borderRadius:14, fontSize:'1.25rem', color:T.text, outline:'none',
+              fontFamily:'Atkinson Hyperlegible,sans-serif',
+              transition:'border-color 0.2s',
+              background: errors.name ? T.errorL : '#fff',
+            }}
+          />
+          {errors.name&&(
+            <div role="alert" style={{marginTop:8,fontSize:'1rem',color:T.error,fontWeight:600,display:'flex',gap:6,alignItems:'center'}}>
+              <span aria-hidden="true">⚠️</span> {errors.name}
+            </div>
+          )}
         </div>
 
-        <div style={{marginBottom:20}}>
-          <Label>Gender</Label>
-          <div style={{display:'flex',gap:12}}>
-            {[{value:'female',label:'Female',emoji:'👩'},{value:'male',label:'Male',emoji:'👨'}].map(opt=>(
-              <button key={opt.value} type="button"
-                style={{flex:1,padding:'16px 8px',border:`2px solid ${errors.gender&&!gender?'var(--error)':gender===opt.value?'var(--teal)':'var(--border)'}`,
-                  borderRadius:12,background:gender===opt.value?'var(--light-bg)':'#fff',
-                  display:'flex',flexDirection:'column',alignItems:'center',gap:5,cursor:'pointer',
-                  color:gender===opt.value?'var(--teal)':'var(--text)',transition:'all 0.15s'}}
-                onClick={()=>{setGender(opt.value);setErrors(ev=>({...ev,gender:''}));}}>
-                <span style={{fontSize:30}}>{opt.emoji}</span>
-                <span style={{fontSize:14,fontWeight:600}}>{opt.label}</span>
+        {/* GENDER */}
+        <div style={{marginBottom:26}}>
+          <div style={{fontSize:'1rem',fontWeight:700,color:T.navy,marginBottom:12,textTransform:'uppercase',letterSpacing:0.8}}>
+            Gender
+          </div>
+          <div style={{display:'flex',gap:14}} role="group" aria-label="Gender">
+            {[{v:'female',l:'Female',e:'👩'},{v:'male',l:'Male',e:'👨'}].map(opt=>(
+              <button key={opt.v} type="button"
+                aria-pressed={gender===opt.v}
+                onClick={()=>{setGender(opt.v);setErrors(ev=>({...ev,gender:''}));}}
+                style={{
+                  flex:1, minHeight:72, padding:'14px 8px',
+                  border:`2.5px solid ${errors.gender&&!gender?T.error:gender===opt.v?T.teal:T.border}`,
+                  borderRadius:14, background:gender===opt.v?T.tealL:'#fff',
+                  display:'flex',flexDirection:'column',alignItems:'center',gap:6,
+                  cursor:'pointer', color:gender===opt.v?T.teal:T.textM,
+                  transition:'all 0.15s', fontFamily:'Nunito,sans-serif',
+                }}>
+                <span style={{fontSize:'2rem'}} aria-hidden="true">{opt.e}</span>
+                <span style={{fontSize:'1.05rem',fontWeight:700}}>{opt.l}</span>
               </button>
             ))}
           </div>
-          {errors.gender&&<span style={{display:'block',marginTop:5,fontSize:12,color:'var(--error)'}}>{errors.gender}</span>}
+          {errors.gender&&<div role="alert" style={{marginTop:8,fontSize:'1rem',color:T.error,fontWeight:600,display:'flex',gap:6}}><span aria-hidden="true">⚠️</span>{errors.gender}</div>}
         </div>
 
-        <div style={{marginBottom:28}}>
-          <Label>Age</Label>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:12}}>
+        {/* AGE */}
+        <div style={{marginBottom:32}}>
+          <div style={{fontSize:'1rem',fontWeight:700,color:T.navy,marginBottom:12,textTransform:'uppercase',letterSpacing:0.8}}>
+            Age group
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:14}}
+               role="group" aria-label="Age group">
             {AGE_GROUPS.map(ag=>(
               <button key={ag.label} type="button"
-                style={{padding:'11px 6px',border:`2px solid ${errors.age&&!finalAge?'var(--error)':ageGroup===ag.label&&!ageCustom?'var(--teal)':'var(--border)'}`,
-                  borderRadius:10,background:ageGroup===ag.label&&!ageCustom?'var(--light-bg)':'#fff',
-                  fontSize:15,fontWeight:600,color:ageGroup===ag.label&&!ageCustom?'var(--teal)':'var(--text)',cursor:'pointer',transition:'all 0.15s'}}
-                onClick={()=>{setAgeGroup(ag.label);setAgeCustom('');setErrors(ev=>({...ev,age:''}));}}>
+                aria-pressed={ageGroup===ag.label&&!ageCustom}
+                onClick={()=>{setAgeGroup(ag.label);setAgeCustom('');setErrors(ev=>({...ev,age:''}));}}
+                style={{
+                  minHeight:56, padding:'12px 6px',
+                  border:`2.5px solid ${errors.age&&!finalAge?T.error:ageGroup===ag.label&&!ageCustom?T.teal:T.border}`,
+                  borderRadius:12, background:ageGroup===ag.label&&!ageCustom?T.tealL:'#fff',
+                  fontSize:'1.1rem',fontWeight:700,
+                  color:ageGroup===ag.label&&!ageCustom?T.teal:T.textM,
+                  cursor:'pointer', transition:'all 0.15s',fontFamily:'Nunito,sans-serif',
+                }}>
                 {ag.label}
               </button>
             ))}
           </div>
-          <div style={{display:'flex',alignItems:'center',gap:10}}>
-            <span style={{fontSize:13,color:'var(--muted)',whiteSpace:'nowrap'}}>Or exact age:</span>
-            <input
-              style={{flex:1,padding:'10px 14px',border:`2px solid ${ageCustom?'var(--teal)':'var(--border)'}`,borderRadius:10,fontSize:16,color:'var(--text)',outline:'none',textAlign:'center'}}
-              type="number" placeholder="e.g. 68" min="18" max="120"
+          <div style={{display:'flex',alignItems:'center',gap:12}}>
+            <span style={{fontSize:'1rem',color:T.textS,whiteSpace:'nowrap',fontWeight:600}}>Exact age:</span>
+            <input type="number" placeholder="e.g. 68" min="18" max="120"
               value={ageCustom}
-              onChange={e=>{setAgeCustom(e.target.value);if(e.target.value) setAgeGroup('');setErrors(ev=>({...ev,age:''}));}}
+              aria-label="Enter exact age"
+              onChange={e=>{setAgeCustom(e.target.value);if(e.target.value)setAgeGroup('');setErrors(ev=>({...ev,age:''}));}}
+              style={{
+                flex:1, padding:'14px 16px',
+                border:`2.5px solid ${ageCustom?T.teal:T.border}`,
+                borderRadius:12, fontSize:'1.2rem', color:T.text, outline:'none',
+                textAlign:'center', fontFamily:'Atkinson Hyperlegible,sans-serif',
+              }}
             />
           </div>
-          {errors.age&&<span style={{display:'block',marginTop:5,fontSize:12,color:'var(--error)'}}>{errors.age}</span>}
+          {errors.age&&<div role="alert" style={{marginTop:8,fontSize:'1rem',color:T.error,fontWeight:600,display:'flex',gap:6}}><span aria-hidden="true">⚠️</span>{errors.age}</div>}
         </div>
 
-        <Btn onClick={()=>{if(validate())setStep(2);}}>Continue →</Btn>
+        <PrimaryBtn icon="→" onClick={()=>{if(validate())setStep(2);}}>Continue</PrimaryBtn>
       </div>
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// MENU
-// ═══════════════════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────────────
+   MENU / DASHBOARD
+───────────────────────────────────────────────────────────────── */
 const GAMES=[
-  {id:'shopping',  emoji:'🛒',title:'Shopping List',    domain:'Working Memory',              color:'#0A7E8C',desc:'Memorise items, then recall them from a shuffled grid.'},
-  {id:'odd',       emoji:'🔦',title:'Find the Odd One', domain:'Attention & Speed',            color:'#00B4A6',desc:'Spot the one element that does not belong in the grid.'},
-  {id:'yesterday', emoji:'🗓️',title:'What Was Yesterday?',domain:'Episodic Memory',           color:'#0A7E8C',desc:'Read a short story, then answer recall questions.'},
-  {id:'chain',     emoji:'🔢',title:'Number Chain',     domain:'Working Memory + Processing',  color:'#00B4A6',desc:'See digits one by one, then repeat them in reverse.'},
-  {id:'pairs',     emoji:'🎨',title:'Matching Pairs',   domain:'Visual Memory',                color:'#0A7E8C',desc:'Flip cards to find all matching pairs from memory.'},
-  {id:'route',     emoji:'🧭',title:'The Route',        domain:'Executive Function',            color:'#00B4A6',desc:'Plan a multi-step route on a map following given rules.'},
+  {id:'shopping', e:'🛒', title:'Shopping List',    domain:'Working Memory',          color:T.teal,  desc:'Study a list, then recall the items from memory.'},
+  {id:'odd',      e:'🔦', title:'Find the Odd One', domain:'Attention & Speed',        color:T.mint,  desc:'Spot the one item that is different from the rest.'},
+  {id:'yesterday',e:'🗓️', title:'Story & Recall',   domain:'Episodic Memory',          color:T.teal,  desc:'Read a short story, then answer questions about it.'},
+  {id:'chain',    e:'🔢', title:'Number Chain',     domain:'Working Memory + Processing',color:T.mint,desc:'See digits one by one, then type them in reverse.'},
+  {id:'pairs',    e:'🎨', title:'Matching Pairs',   domain:'Visual Memory',            color:T.teal,  desc:'Flip cards face-up to find all matching pairs.'},
+  {id:'route',    e:'🧭', title:'The Route',        domain:'Executive Function',        color:T.mint,  desc:'Plan a route on a map while following the rules.'},
 ];
 
 function Menu({player,onPlay}){
-  const [hov,setHov]=useState(null);
+  const hour=new Date().getHours();
+  const greeting=hour<12?'Good morning':'hour<18'?'Good afternoon':'Good evening';
+  const time=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
+
   return(
-    <div style={{minHeight:'100vh',background:'var(--off-white)',display:'flex',flexDirection:'column'}}>
-      <header style={{background:'var(--navy)',padding:'0 24px',height:60,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:10}}>
-        <div style={{fontFamily:'var(--font-serif)',fontSize:22,fontWeight:700,color:'#fff',letterSpacing:4}}>CLIVE</div>
-        <div style={{display:'flex',alignItems:'center',gap:8}}>
-          <span style={{fontSize:24}}>{player.gender==='female'?'👩':'👨'}</span>
-          <div><div style={{color:'#fff',fontWeight:600,fontSize:14,lineHeight:1.2}}>{player.name}</div><div style={{color:'#7AAFBF',fontSize:12}}>{player.age}</div></div>
+    <div style={{minHeight:'100vh',background:T.bg,display:'flex',flexDirection:'column'}}>
+      {/* Header */}
+      <header style={{
+        background:T.navy,padding:'0 24px',minHeight:72,
+        display:'flex',alignItems:'center',justifyContent:'space-between',
+        boxShadow:'0 2px 8px rgba(0,0,0,0.2)',flexShrink:0,
+      }}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <span style={{fontSize:'1.6rem'}} aria-hidden="true">🧠</span>
+          <span style={{color:'#fff',fontWeight:800,fontSize:'1.4rem',fontFamily:'Nunito,sans-serif',letterSpacing:2}}>CLIVE</span>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <span style={{fontSize:'1.8rem'}} aria-hidden="true">{player.gender==='female'?'👩':'👨'}</span>
+          <div>
+            <div style={{color:'#fff',fontWeight:700,fontSize:'1rem',lineHeight:1.2}}>{player.name}</div>
+            <div style={{color:'rgba(255,255,255,0.65)',fontSize:'0.82rem'}}>{player.age}</div>
+          </div>
         </div>
       </header>
-      <main style={{maxWidth:960,margin:'0 auto',padding:'40px 20px 80px',width:'100%'}}>
-        <div style={{marginBottom:36,animation:'fadeUp 0.5s ease'}}>
-          <h1 style={{fontFamily:'var(--font-serif)',fontSize:'clamp(24px,4vw,36px)',color:'var(--navy)',fontWeight:700,lineHeight:1.2}}>
-            Good day, <span style={{color:'var(--teal)'}}>{player.name}.</span>
+
+      <main style={{maxWidth:720,margin:'0 auto',padding:'32px 16px 80px',width:'100%'}}>
+        {/* Greeting */}
+        <div style={{marginBottom:32,animation:'fadeUp 0.5s ease'}}>
+          <h1 style={{
+            fontFamily:'Nunito,sans-serif',fontWeight:800,
+            fontSize:'clamp(1.7rem,4vw,2.4rem)',color:T.navy,lineHeight:1.2,marginBottom:8,
+          }}>
+            {time}, <span style={{color:T.teal}}>{player.name}.</span>
           </h1>
-          <p style={{fontSize:17,color:'var(--muted)',marginTop:6}}>Choose an exercise to begin your daily session.</p>
+          <p style={{fontSize:'1.15rem',color:T.textM}}>
+            Choose an exercise to begin your daily session.
+          </p>
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(270px,1fr))',gap:18,marginBottom:36}}>
-          {GAMES.map((game,i)=>(
-            <div key={game.id}
-              style={{background:'#fff',borderRadius:16,overflow:'hidden',cursor:'pointer',
-                transform:hov===game.id?'translateY(-4px)':'none',
-                boxShadow:hov===game.id?'0 12px 36px rgba(13,43,78,0.16)':'0 3px 16px rgba(13,43,78,0.08)',
-                transition:'transform 0.2s,box-shadow 0.2s',animation:`fadeUp 0.5s ease ${i*55}ms both`}}
-              onClick={()=>onPlay(game.id)}
-              onMouseEnter={()=>setHov(game.id)} onMouseLeave={()=>setHov(null)}>
-              <div style={{height:5,background:game.color}}/>
-              <div style={{padding:'18px 18px 10px',display:'flex',gap:12,alignItems:'flex-start'}}>
-                <span style={{fontSize:30,lineHeight:1,marginTop:2}}>{game.emoji}</span>
-                <div>
-                  <div style={{fontWeight:700,fontSize:15,color:'var(--navy)',marginBottom:2}}>{game.title}</div>
-                  <div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:0.5,color:game.color,marginBottom:5}}>{game.domain}</div>
-                  <div style={{fontSize:13,color:'var(--muted)',lineHeight:1.4}}>{game.desc}</div>
-                </div>
-              </div>
-              <div style={{margin:'6px 18px 14px',display:'inline-block',color:'#fff',fontWeight:700,fontSize:12,padding:'5px 14px',borderRadius:20,background:game.color}}>Play →</div>
-            </div>
+
+        {/* Game cards */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:16,marginBottom:32}}>
+          {GAMES.map((g,i)=>(
+            <GameCard key={g.id} game={g} index={i} onPlay={onPlay}/>
           ))}
         </div>
-        <p style={{textAlign:'center',fontSize:12,color:'var(--muted)',lineHeight:1.6,maxWidth:540,margin:'0 auto',fontStyle:'italic'}}>
-          All exercises are based on clinically validated cognitive rehabilitation methods.<br/>
-          NICE NG236 (2023) · Cicerone et al. (2019) · CST/NICE · EBRSR 19th Ed.
-        </p>
+
+        {/* Clinical note */}
+        <div style={{
+          background:T.surface,borderRadius:14,padding:'16px 20px',
+          border:`1px solid ${T.border}`,textAlign:'center',
+        }}>
+          <p style={{fontSize:'0.9rem',color:T.textS,lineHeight:1.6}}>
+            All exercises are grounded in clinically validated cognitive rehabilitation methods.<br/>
+            <strong style={{color:T.textM}}>NICE NG236 (2023) · Cicerone et al. (2019) · CST/NICE · EBRSR 19th Ed.</strong>
+          </p>
+        </div>
       </main>
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 1. SHOPPING LIST
-// ═══════════════════════════════════════════════════════════════════
-const ITEM_POOL=[
-  {id:'milk',label:'Milk',emoji:'🥛'},{id:'bread',label:'Bread',emoji:'🍞'},{id:'eggs',label:'Eggs',emoji:'🥚'},
-  {id:'butter',label:'Butter',emoji:'🧈'},{id:'apples',label:'Apples',emoji:'🍎'},{id:'tomatoes',label:'Tomatoes',emoji:'🍅'},
-  {id:'cheese',label:'Cheese',emoji:'🧀'},{id:'chicken',label:'Chicken',emoji:'🍗'},{id:'carrots',label:'Carrots',emoji:'🥕'},
-  {id:'potatoes',label:'Potatoes',emoji:'🥔'},{id:'onions',label:'Onions',emoji:'🧅'},{id:'yogurt',label:'Yogurt',emoji:'🫙'},
-  {id:'coffee',label:'Coffee',emoji:'☕'},{id:'tea',label:'Tea',emoji:'🍵'},{id:'sugar',label:'Sugar',emoji:'🍬'},
-  {id:'flour',label:'Flour',emoji:'🌾'},{id:'rice',label:'Rice',emoji:'🍚'},{id:'pasta',label:'Pasta',emoji:'🍝'},
-  {id:'fish',label:'Fish',emoji:'🐟'},{id:'lemons',label:'Lemons',emoji:'🍋'},{id:'strawberry',label:'Strawberries',emoji:'🍓'},
-  {id:'banana',label:'Bananas',emoji:'🍌'},{id:'orange',label:'Oranges',emoji:'🍊'},{id:'grapes',label:'Grapes',emoji:'🍇'},
+function GameCard({game,index,onPlay}){
+  const [hov,setHov]=useState(false);
+  return(
+    <button
+      onClick={()=>onPlay(game.id)}
+      onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      aria-label={`Play ${game.title} — ${game.domain}`}
+      style={{
+        background:T.surface, borderRadius:18, overflow:'hidden',
+        boxShadow: hov ? '0 8px 28px rgba(13,43,78,0.18)' : '0 3px 12px rgba(13,43,78,0.10)',
+        border:`2px solid ${hov?game.color:'rgba(155,180,197,0.4)'}`,
+        cursor:'pointer', textAlign:'left', padding:0,
+        transform: hov ? 'translateY(-3px)' : 'none',
+        transition:'all 0.2s', animation:`fadeUp 0.5s ease ${index*60}ms both`,
+        fontFamily:'inherit',
+      }}>
+      {/* Colour accent bar */}
+      <div style={{height:7,background:game.color,width:'100%'}}/>
+      {/* Content */}
+      <div style={{padding:'18px 20px 16px',display:'flex',gap:14,alignItems:'flex-start'}}>
+        <div style={{
+          width:54,height:54,borderRadius:14,
+          background:game.color+'22',display:'flex',alignItems:'center',justifyContent:'center',
+          fontSize:'1.8rem',flexShrink:0,
+        }} aria-hidden="true">{game.e}</div>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:800,fontSize:'1.1rem',color:T.navy,marginBottom:2,fontFamily:'Nunito,sans-serif'}}>{game.title}</div>
+          <div style={{fontSize:'0.85rem',fontWeight:700,color:game.color,textTransform:'uppercase',letterSpacing:0.5,marginBottom:6}}>{game.domain}</div>
+          <div style={{fontSize:'0.97rem',color:T.textM,lineHeight:1.5}}>{game.desc}</div>
+        </div>
+      </div>
+      {/* Play button */}
+      <div style={{
+        margin:'0 20px 18px',
+        background:game.color,color:'#fff',
+        borderRadius:100,padding:'9px 20px',
+        fontSize:'0.95rem',fontWeight:700,fontFamily:'Nunito,sans-serif',
+        display:'inline-flex',alignItems:'center',gap:6,
+      }}>
+        <span aria-hidden="true">▶</span> Play
+      </div>
+    </button>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   GAME 1: SHOPPING LIST (Working Memory)
+   Clinical: Cicerone et al. 2019 — Practice Standard
+───────────────────────────────────────────────────────────────── */
+const ITEMS=[
+  {id:'milk',   l:'Milk',        e:'🥛'},{id:'bread',  l:'Bread',       e:'🍞'},
+  {id:'eggs',   l:'Eggs',        e:'🥚'},{id:'butter', l:'Butter',      e:'🧈'},
+  {id:'apples', l:'Apples',      e:'🍎'},{id:'tomato', l:'Tomatoes',    e:'🍅'},
+  {id:'cheese', l:'Cheese',      e:'🧀'},{id:'chicken',l:'Chicken',     e:'🍗'},
+  {id:'carrots',l:'Carrots',     e:'🥕'},{id:'potato', l:'Potatoes',    e:'🥔'},
+  {id:'onions', l:'Onions',      e:'🧅'},{id:'yogurt', l:'Yogurt',      e:'🫙'},
+  {id:'coffee', l:'Coffee',      e:'☕'},{id:'tea',    l:'Tea',         e:'🍵'},
+  {id:'sugar',  l:'Sugar',       e:'🍬'},{id:'flour',  l:'Flour',       e:'🌾'},
+  {id:'rice',   l:'Rice',        e:'🍚'},{id:'pasta',  l:'Pasta',       e:'🍝'},
+  {id:'fish',   l:'Fish',        e:'🐟'},{id:'lemons', l:'Lemons',      e:'🍋'},
+  {id:'berry',  l:'Strawberries',e:'🍓'},{id:'banana', l:'Bananas',     e:'🍌'},
+  {id:'orange', l:'Oranges',     e:'🍊'},{id:'grapes', l:'Grapes',      e:'🍇'},
 ];
 const SL_LEVELS=[
-  {level:1,n:4,secs:8,label:'Warm-up'},{level:2,n:5,secs:10,label:'Easy'},
-  {level:3,n:6,secs:12,label:'Moderate'},{level:4,n:7,secs:14,label:'Challenging'},{level:5,n:8,secs:16,label:'Expert'},
+  {n:1,items:4,secs:10,label:'Warm-up'},
+  {n:2,items:5,secs:12,label:'Easy'},
+  {n:3,items:6,secs:14,label:'Moderate'},
+  {n:4,items:7,secs:16,label:'Challenging'},
+  {n:5,items:8,secs:18,label:'Expert'},
 ];
 
 function ShoppingList({player,onBack}){
@@ -335,23 +799,28 @@ function ShoppingList({player,onBack}){
   const cfg=SL_LEVELS[Math.min(lvl,SL_LEVELS.length-1)];
 
   const startRound=useCallback(()=>{
-    const items=shuffle(ITEM_POOL).slice(0,cfg.n);
-    const dist=shuffle(ITEM_POOL.filter(p=>!items.find(i=>i.id===p.id))).slice(0,cfg.n);
-    setTarget(items);setPool(shuffle([...items,...dist]));setSel([]);setT(cfg.secs);setPhase('memorise');
+    const its=shuffle(ITEMS).slice(0,cfg.items);
+    const dist=shuffle(ITEMS.filter(p=>!its.find(i=>i.id===p.id))).slice(0,cfg.items);
+    setTarget(its);setPool(shuffle([...its,...dist]));setSel([]);setT(cfg.secs);setPhase('memorise');
   },[cfg]);
 
   useEffect(()=>{
     if(phase!=='memorise') return;
-    timer.current=setInterval(()=>setT(prev=>{if(prev<=1){clearInterval(timer.current);setPhase('recall');return 0;}return prev-1;}),1000);
+    timer.current=setInterval(()=>setT(prev=>{
+      if(prev<=1){clearInterval(timer.current);setPhase('recall');return 0;}
+      return prev-1;
+    }),1000);
     return()=>clearInterval(timer.current);
   },[phase]);
 
-  function toggle(item){setSel(p=>p.find(s=>s.id===item.id)?p.filter(s=>s.id!==item.id):p.length<cfg.n?[...p,item]:p);}
+  function toggle(item){
+    setSel(p=>p.find(s=>s.id===item.id)?p.filter(s=>s.id!==item.id):p.length<cfg.items?[...p,item]:p);
+  }
 
   function submit(){
     const c=sel.filter(s=>target.find(t=>t.id===s.id)).length;
-    setScore(sc=>({c:sc.c+c,tot:sc.tot+cfg.n}));
-    setRounds(p=>[...p,{round,target,sel:[...sel],c,tot:cfg.n}]);
+    setScore(sc=>({c:sc.c+c,tot:sc.tot+cfg.items}));
+    setRounds(p=>[...p,{round,target,sel:[...sel],c,tot:cfg.items}]);
     setPhase('result');
   }
 
@@ -362,156 +831,250 @@ function ShoppingList({player,onBack}){
     setRound(r=>r+1);startRound();
   }
 
-  const pct=(t/cfg.secs)*100;
-  const C={background:'#fff',borderRadius:20,padding:'24px 20px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
-
   if(phase==='intro') return(
-    <Screen player={player} title="Shopping List" onBack={onBack}>
-      <div style={C}>
-        <div style={{fontSize:52,textAlign:'center',marginBottom:10}}>🛒</div>
-        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',textAlign:'center',marginBottom:6}}>Shopping List</h2>
-        <div style={{textAlign:'center',color:'var(--teal)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>Working Memory</div>
-        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:16}}>You will see a shopping list for <strong>{cfg.secs} seconds</strong>. Memorise it, then recall the items from a mixed grid.</p>
-        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',flexDirection:'column',gap:8}}>
-          {[['📋','Study the list carefully'],['🙈','List disappears automatically'],['☑️','Tap the items you remember']].map(([e,t])=>(
-            <div key={t} style={{display:'flex',gap:12,alignItems:'center',fontSize:14}}><span>{e}</span><span>{t}</span></div>
-          ))}
+    <Screen player={player} title="Shopping List" subtitle="Working Memory" onBack={onBack} headerColor={T.teal}>
+      <Card accent={T.teal}>
+        <div style={{padding:'28px 24px'}}>
+          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🛒</div>
+          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Shopping List</h2>
+          <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',display:'inline-block',margin:'0 auto 18px',letterSpacing:1,textTransform:'uppercase',width:'100%'}}>Working Memory</div>
+
+          {/* How to play — clear step-by-step */}
+          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+            <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem',marginBottom:14}}>How to play:</div>
+            {[
+              ['📋','A shopping list appears on screen'],
+              ['👀',`Study it carefully for ${cfg.secs} seconds`],
+              ['🙈','The list disappears automatically'],
+              ['☑️','Tap all the items you remember'],
+            ].map(([e,t])=>(
+              <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
+                <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{background:T.tealL,borderRadius:12,padding:'12px 16px',marginBottom:22,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <span style={{fontWeight:600,color:T.teal,fontSize:'1rem'}}>Level {cfg.n} · {cfg.label}</span>
+            <span style={{fontWeight:700,color:T.navy,fontSize:'1.1rem'}}>{cfg.items} items · {cfg.secs}s</span>
+          </div>
+
+          <PrimaryBtn color={T.teal} icon="▶" onClick={startRound}>
+            Start round 1 of {TOTAL}
+          </PrimaryBtn>
+
+          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>
+            📌 Cicerone et al. 2019 — Episodic memory training, Practice Standard
+          </p>
         </div>
-        <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:'var(--teal)',padding:'8px',background:'var(--light-bg)',borderRadius:8,marginBottom:16}}>Level {cfg.level} · {cfg.label} · {cfg.n} items</div>
-        <Btn onClick={startRound}>Start round 1 of {TOTAL}</Btn>
-        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:10,fontStyle:'italic'}}>Cicerone et al. 2019 — Episodic memory training, Practice Standard</p>
-      </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='memorise') return(
-    <Screen player={player} title={`Round ${round}/${TOTAL} — Memorise`} onBack={onBack}>
-      <div style={C}>
-        <div style={{height:8,background:'var(--border)',borderRadius:8,overflow:'hidden',marginBottom:6}}>
-          <div style={{height:'100%',borderRadius:8,transition:'width 1s linear,background 0.5s',width:`${pct}%`,background:pct>50?'var(--teal)':pct>25?'var(--gold)':'#e74c3c'}}/>
+    <Screen player={player} title={`Round ${round}/${TOTAL} — Study`} onBack={onBack} headerColor={T.teal}>
+      <Card>
+        <div style={{padding:'22px 20px'}}>
+          {/* Timer */}
+          <div style={{marginBottom:16}}>
+            <TimerBar fraction={t/cfg.secs} label={`${t} seconds left`}/>
+          </div>
+
+          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.5rem',color:T.navy,textAlign:'center',marginBottom:20}}>
+            Remember these {cfg.items} items:
+          </h2>
+
+          {/* Item grid — large tiles */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))',gap:12}}>
+            {target.map((item,i)=>(
+              <div key={item.id} style={{
+                background:T.tealL,borderRadius:16,padding:'18px 10px',
+                display:'flex',flexDirection:'column',alignItems:'center',gap:8,
+                border:`2px solid ${T.teal}`,
+                animation:`fadeUp 0.4s ease ${i*60}ms both`,
+              }}>
+                <span style={{fontSize:'2.4rem'}} aria-hidden="true">{item.e}</span>
+                <span style={{fontSize:'1.05rem',fontWeight:700,color:T.navy,textAlign:'center'}}>{item.l}</span>
+              </div>
+            ))}
+          </div>
+
+          <p style={{textAlign:'center',color:T.textS,fontSize:'1rem',marginTop:18,fontWeight:600}}>
+            The list will hide automatically when the timer ends.
+          </p>
         </div>
-        <div style={{display:'flex',justifyContent:'space-between',marginBottom:16}}>
-          <span style={{fontWeight:700,fontSize:22,color:pct<30?'#e74c3c':'var(--teal)'}}>{t}s</span>
-          <span style={{color:'var(--muted)',fontSize:14}}>to memorise</span>
-        </div>
-        <h3 style={{fontFamily:'var(--font-serif)',fontSize:18,color:'var(--navy)',marginBottom:14,textAlign:'center'}}>Remember these {cfg.n} items:</h3>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:10}}>
-          {target.map((item,i)=>(
-            <div key={item.id} style={{background:'var(--light-bg)',borderRadius:12,padding:'14px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:6,border:'2px solid var(--border)',animation:`fadeUp 0.4s ease ${i*55}ms both`}}>
-              <span style={{fontSize:30}}>{item.emoji}</span>
-              <span style={{fontSize:12,fontWeight:600,color:'var(--navy)',textAlign:'center'}}>{item.label}</span>
-            </div>
-          ))}
-        </div>
-        <p style={{textAlign:'center',color:'var(--muted)',fontSize:13,marginTop:12}}>The list will hide automatically.</p>
-      </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='recall') return(
-    <Screen player={player} title={`Round ${round}/${TOTAL} — Recall`} onBack={onBack}>
-      <div style={C}>
-        <h3 style={{fontFamily:'var(--font-serif)',fontSize:20,color:'var(--navy)',marginBottom:6,textAlign:'center'}}>Which items were on the list?</h3>
-        <p style={{textAlign:'center',color:'var(--muted)',fontSize:14,marginBottom:18}}>Select <strong>{cfg.n} items</strong> · Chosen: {sel.length}/{cfg.n}</p>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:8,marginBottom:18}}>
-          {pool.map(item=>{const s=!!sel.find(x=>x.id===item.id);return(
-            <button key={item.id}
-              style={{background:s?'var(--light-bg)':'#fff',border:`2px solid ${s?'var(--teal)':'var(--border)'}`,borderRadius:12,padding:'12px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:5,cursor:'pointer',position:'relative',transition:'all 0.15s',fontFamily:'var(--font-sans)'}}
-              onClick={()=>toggle(item)}>
-              <span style={{fontSize:28}}>{item.emoji}</span>
-              <span style={{fontSize:11,fontWeight:600,color:'var(--navy)',textAlign:'center'}}>{item.label}</span>
-              {s&&<span style={{position:'absolute',top:3,right:5,fontSize:10,color:'var(--teal)',fontWeight:700}}>✓</span>}
-            </button>
-          );})}
+    <Screen player={player} title={`Round ${round}/${TOTAL} — Recall`} onBack={onBack} headerColor={T.teal}>
+      <Card>
+        <div style={{padding:'22px 20px'}}>
+          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.5rem',color:T.navy,textAlign:'center',marginBottom:8}}>
+            Which items were on the list?
+          </h2>
+          {/* Large clear counter */}
+          <div style={{textAlign:'center',marginBottom:20}}>
+            <div style={{display:'inline-flex',alignItems:'center',gap:8,background:T.bg,borderRadius:100,padding:'8px 22px'}}>
+              <span style={{fontSize:'1rem',color:T.textS,fontWeight:600}}>Selected:</span>
+              <span style={{fontSize:'1.3rem',fontWeight:800,color:T.teal,fontFamily:'Nunito,sans-serif'}}>{sel.length} / {cfg.items}</span>
+            </div>
+          </div>
+
+          {/* Recall grid — large tap targets */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))',gap:10,marginBottom:22}}>
+            {pool.map(item=>{
+              const s=!!sel.find(x=>x.id===item.id);
+              return(
+                <button key={item.id}
+                  aria-pressed={s}
+                  aria-label={`${item.l}${s?' — selected':''}`}
+                  onClick={()=>toggle(item)}
+                  style={{
+                    minHeight:96,
+                    background:s?T.tealL:'#fff',
+                    border:`3px solid ${s?T.teal:T.border}`,
+                    borderRadius:16, padding:'14px 8px',
+                    display:'flex',flexDirection:'column',alignItems:'center',gap:7,
+                    cursor:'pointer', position:'relative', transition:'all 0.15s',
+                    fontFamily:'inherit',
+                  }}>
+                  <span style={{fontSize:'2.2rem'}} aria-hidden="true">{item.e}</span>
+                  <span style={{fontSize:'0.95rem',fontWeight:700,color:T.navy,textAlign:'center'}}>{item.l}</span>
+                  {s&&<div style={{position:'absolute',top:6,right:8,width:24,height:24,borderRadius:'50%',background:T.teal,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <span style={{color:'#fff',fontSize:'0.8rem',fontWeight:800}}>✓</span>
+                  </div>}
+                </button>
+              );
+            })}
+          </div>
+
+          <PrimaryBtn color={T.teal} icon="✓" onClick={submit} disabled={sel.length===0}>
+            Submit my answers
+          </PrimaryBtn>
         </div>
-        <Btn onClick={submit} disabled={sel.length===0}>Submit my answers →</Btn>
-      </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='result'){
-    const last=rounds[rounds.length-1];const p=Math.round((last.c/last.tot)*100);
+    const last=rounds[rounds.length-1];
     return(
-      <Screen player={player} title={`Round ${round} — Result`} onBack={onBack}>
-        <div style={{...C,textAlign:'center'}}>
-          <div style={{fontSize:48,marginBottom:8}}>{p===100?'🏆':p>=60?'👍':'💪'}</div>
-          <h3 style={{fontFamily:'var(--font-serif)',fontSize:24,color:'var(--navy)',marginBottom:12}}>{p===100?'Perfect!':p>=60?'Well done!':'Good effort!'}</h3>
-          <div style={{display:'inline-flex',alignItems:'baseline',gap:3,background:'var(--light-bg)',borderRadius:'50%',width:90,height:90,justifyContent:'center',border:'4px solid var(--teal)',marginBottom:6}}>
-            <span style={{fontSize:32,fontWeight:700,color:'var(--navy)'}}>{last.c}</span>
-            <span style={{fontSize:13,color:'var(--muted)'}}>/{last.tot}</span>
-          </div>
-          <p style={{color:'var(--muted)',marginBottom:14,fontSize:14}}>{p}% correct</p>
-          {p===100&&<div style={{background:'var(--gold-light)',color:'#a0640a',fontWeight:700,fontSize:12,padding:'7px 14px',borderRadius:8,marginBottom:14,display:'inline-block'}}>⭐ Difficulty increases next round!</div>}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(86px,1fr))',gap:7,marginBottom:16,textAlign:'left'}}>
-            {last.target.map(item=>{const was=!!last.sel.find(s=>s.id===item.id);return(
-              <div key={item.id} style={{borderRadius:10,border:`2px solid ${was?'#27ae60':'#e74c3c'}`,padding:'9px 5px',display:'flex',flexDirection:'column',alignItems:'center',gap:3,background:was?'#e8f8f0':'#fdecea',fontSize:20}}>
-                <span>{item.emoji}</span><span style={{fontSize:10}}>{item.label}</span><span>{was?'✅':'❌'}</span>
+      <Screen player={player} title={`Round ${round} — Result`} onBack={onBack} headerColor={T.teal}>
+        <Card>
+          <div style={{padding:'28px 22px'}}>
+            <ResultHeader correct={last.c} total={last.tot}/>
+
+            {/* Item review */}
+            <div style={{marginBottom:24}}>
+              <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem',marginBottom:12}}>Your answers:</div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:8}}>
+                {last.target.map(item=>{
+                  const was=!!last.sel.find(s=>s.id===item.id);
+                  return(
+                    <div key={item.id} style={{
+                      borderRadius:14,border:`3px solid ${was?T.success:T.error}`,
+                      padding:'12px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:5,
+                      background:was?T.successL:T.errorL,
+                    }}>
+                      <span style={{fontSize:'2rem'}} aria-hidden="true">{item.e}</span>
+                      <span style={{fontSize:'0.88rem',fontWeight:700,color:T.text,textAlign:'center'}}>{item.l}</span>
+                      <span style={{fontSize:'1.2rem'}} aria-label={was?'Correct':'Missed'}>{was?'✅':'❌'}</span>
+                    </div>
+                  );
+                })}
               </div>
-            );})}
+            </div>
+
+            {round>=TOTAL&&<CognitiveAge player={player}/>}
+
+            <PrimaryBtn color={T.teal} icon="→" onClick={next}>
+              {round>=TOTAL?'See final results':'Round '+(round+1)}
+            </PrimaryBtn>
           </div>
-          {round>=TOTAL&&<CognitiveAgeBlock player={player}/>}
-          <Btn onClick={next}>{round>=TOTAL?'See final results →':`Round ${round+1} →`}</Btn>
-        </div>
+        </Card>
       </Screen>
     );
   }
 
   if(phase==='complete'){
-    const tp=Math.round((score.c/score.tot)*100);const stars=tp>=90?3:tp>=65?2:1;
+    const tp=Math.round((score.c/score.tot)*100);
+    const stars=tp>=90?3:tp>=65?2:1;
     return(
-      <Screen player={player} title="Session complete" onBack={onBack}>
-        <div style={{...C,textAlign:'center'}}>
-          <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:14}}>{[1,2,3].map(n=><span key={n} style={{fontSize:36,opacity:n<=stars?1:0.2}}>⭐</span>)}</div>
-          <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:6}}>Great work, {player.name}!</h2>
-          <p style={{color:'var(--muted)',fontSize:15,marginBottom:18}}>Shopping List complete.</p>
-          <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:18}}>
-            {[['Recalled',score.c,'var(--navy)'],['Total',score.tot,'var(--navy)'],['Accuracy',`${tp}%`,'var(--teal)']].map(([l,v,c])=>(
-              <div key={l} style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',textAlign:'center'}}>
-                <div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div>
-                <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{l}</div>
+      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.teal}>
+        <Card>
+          <div style={{padding:'28px 22px'}}>
+            <div style={{textAlign:'center',marginBottom:20}}>
+              <div style={{fontSize:'2.2rem',marginBottom:8}} aria-label={`${stars} stars`}>
+                {'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}
               </div>
-            ))}
-          </div>
-          <CognitiveAgeBlock player={player}/>
-          <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:18,border:'1px solid var(--border)'}}>
-            <strong>What you trained:</strong> Working memory and episodic recall — used for remembering names, appointments, and daily tasks.
-          </div>
-          <div style={{marginBottom:18}}>{rounds.map((r,i)=>(
-            <div key={i} style={{display:'flex',alignItems:'center',gap:10,marginBottom:6}}>
-              <span style={{color:'var(--muted)',fontSize:12,width:54}}>Round {r.round}</span>
-              <div style={{flex:1,height:7,background:'var(--border)',borderRadius:4,overflow:'hidden'}}>
-                <div style={{height:'100%',width:`${(r.c/r.tot)*100}%`,background:r.c===r.tot?'var(--mint)':'var(--teal)',borderRadius:4}}/>
-              </div>
-              <span style={{fontSize:12,fontWeight:700,color:'var(--navy)',width:28}}>{r.c}/{r.tot}</span>
+              <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>
+                Great work, {player.name}!
+              </h2>
+              <p style={{fontSize:'1.1rem',color:T.textM}}>Shopping List session complete.</p>
             </div>
-          ))}</div>
-          <div style={{display:'flex',gap:10}}>
-            <Btn secondary onClick={()=>{setRound(1);setScore({c:0,tot:0});setRounds([]);setLvl(0);setPhase('intro');}}>Play again</Btn>
-            <Btn onClick={onBack}>← Menu</Btn>
+
+            {/* Stats */}
+            <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
+              {[['Recalled',score.c,T.navy],['Total',score.tot,T.navy],['Accuracy',`${tp}%`,T.teal]].map(([l,v,c])=>(
+                <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 18px',textAlign:'center',flex:1}}>
+                  <div style={{fontSize:'1.8rem',fontWeight:800,color:c,fontFamily:'Nunito,sans-serif'}}>{v}</div>
+                  <div style={{fontSize:'0.9rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
+                </div>
+              ))}
+            </div>
+
+            <CognitiveAge player={player}/>
+
+            {/* Round bars */}
+            <div style={{marginBottom:22}}>
+              {rounds.map((r,i)=>(
+                <div key={i} style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
+                  <span style={{color:T.textS,fontSize:'0.95rem',width:64,fontWeight:600}}>Round {r.round}</span>
+                  <div style={{flex:1,height:10,background:'#DDE8EE',borderRadius:6,overflow:'hidden'}}>
+                    <div style={{height:'100%',width:`${(r.c/r.tot)*100}%`,background:r.c===r.tot?T.mint:T.teal,borderRadius:6}}/>
+                  </div>
+                  <span style={{fontSize:'0.95rem',fontWeight:700,color:T.navy,width:36,textAlign:'right'}}>{r.c}/{r.tot}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* What you trained */}
+            <div style={{background:T.tealL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.teal}44`}}>
+              <strong style={{color:T.teal}}>What you trained:</strong> Working memory and episodic recall — used every day for remembering names, appointments, shopping, and instructions.
+            </div>
+
+            <div style={{display:'flex',gap:12}}>
+              <SecondaryBtn icon="↺" onClick={()=>{setRound(1);setScore({c:0,tot:0});setRounds([]);setLvl(0);setPhase('intro');}}>Play again</SecondaryBtn>
+              <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+            </div>
           </div>
-        </div>
+        </Card>
       </Screen>
     );
   }
   return null;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 2. FIND THE ODD ONE
-// ═══════════════════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────────────
+   GAME 2: FIND THE ODD ONE (Attention & Speed)
+   Clinical: NICE NG236 (2023) §1.5 — HIGH confidence
+───────────────────────────────────────────────────────────────── */
 const ODD_SETS=[
-  {items:['🍎','🍎','🍎','🍊','🍎','🍎','🍎','🍎','🍎'],odd:'🍊'},
-  {items:['🔵','🔵','🔵','🔵','🔴','🔵','🔵','🔵','🔵'],odd:'🔴'},
-  {items:['🐕','🐕','🐈','🐕','🐕','🐕','🐕','🐕','🐕'],odd:'🐈'},
-  {items:['⭐','⭐','⭐','⭐','⭐','🌙','⭐','⭐','⭐'],odd:'🌙'},
-  {items:['🚗','🚗','🚗','🚗','🚗','🚗','✈️','🚗','🚗'],odd:'✈️'},
-  {items:['🍕','🍕','🍕','🍔','🍕','🍕','🍕','🍕','🍕'],odd:'🍔'},
-  {items:['💙','💙','💙','💙','💙','💚','💙','💙','💙'],odd:'💚'},
-  {items:['🌳','🌳','🌳','🌳','🌴','🌳','🌳','🌳','🌳'],odd:'🌴'},
-  {items:['🎵','🎵','🎵','🎵','🎵','🎵','🎸','🎵','🎵'],odd:'🎸'},
-  {items:['🟦','🟦','🟦','🟦','🟦','🟦','🟦','🟧','🟦'],odd:'🟧'},
-  {items:['☀️','☀️','☀️','☀️','☀️','❄️','☀️','☀️','☀️'],odd:'❄️'},
-  {items:['🐟','🐟','🐟','🐟','🐠','🐟','🐟','🐟','🐟'],odd:'🐠'},
+  {items:['🍎','🍎','🍎','🍊','🍎','🍎','🍎','🍎','🍎'],odd:'🍊',hint:'Find the orange'},
+  {items:['🔵','🔵','🔵','🔵','🔴','🔵','🔵','🔵','🔵'],odd:'🔴',hint:'Find the red circle'},
+  {items:['🐕','🐕','🐈','🐕','🐕','🐕','🐕','🐕','🐕'],odd:'🐈',hint:'Find the cat'},
+  {items:['⭐','⭐','⭐','⭐','⭐','🌙','⭐','⭐','⭐'],odd:'🌙',hint:'Find the moon'},
+  {items:['🚗','🚗','🚗','🚗','🚗','🚗','✈️','🚗','🚗'],odd:'✈️',hint:'Find the plane'},
+  {items:['🍕','🍕','🍕','🍔','🍕','🍕','🍕','🍕','🍕'],odd:'🍔',hint:'Find the burger'},
+  {items:['💙','💙','💙','💙','💙','💚','💙','💙','💙'],odd:'💚',hint:'Find the green heart'},
+  {items:['🌳','🌳','🌳','🌳','🌴','🌳','🌳','🌳','🌳'],odd:'🌴',hint:'Find the palm tree'},
+  {items:['☀️','☀️','☀️','☀️','☀️','❄️','☀️','☀️','☀️'],odd:'❄️',hint:'Find the snowflake'},
+  {items:['🐟','🐟','🐟','🐟','🐠','🐟','🐟','🐟','🐟'],odd:'🐠',hint:'Find the clownfish'},
+  {items:['🎵','🎵','🎵','🎵','🎵','🎵','🎸','🎵','🎵'],odd:'🎸',hint:'Find the guitar'},
+  {items:['🟦','🟦','🟦','🟦','🟦','🟦','🟦','🟧','🟦'],odd:'🟧',hint:'Find the orange square'},
 ];
 
 function FindOdd({player,onBack}){
@@ -524,7 +1087,7 @@ function FindOdd({player,onBack}){
   const [answered,setAnswered]=useState(false);
   const [wasCorrect,setWasCorrect]=useState(false);
   const timer=useRef(null);
-  const TOTAL=6;const TIME=12;
+  const TOTAL=6;const TIME=15;
 
   function startRound(r){
     const set=ODD_SETS[(r-1)%ODD_SETS.length];
@@ -533,7 +1096,10 @@ function FindOdd({player,onBack}){
 
   useEffect(()=>{
     if(phase!=='play'||answered) return;
-    timer.current=setInterval(()=>setT(prev=>{if(prev<=1){clearInterval(timer.current);handleAnswer(null);return 0;}return prev-1;}),1000);
+    timer.current=setInterval(()=>setT(prev=>{
+      if(prev<=1){clearInterval(timer.current);handleAnswer(null);return 0;}
+      return prev-1;
+    }),1000);
     return()=>clearInterval(timer.current);
   },[phase,answered]);
 
@@ -543,130 +1109,165 @@ function FindOdd({player,onBack}){
     setWasCorrect(correct);setAnswered(true);
     setResults(p=>[...p,{round,correct,timeUsed:TIME-t}]);
   }
-
   function next(){
     if(round>=TOTAL){setPhase('complete');return;}
     setRound(r=>r+1);startRound(round+1);
   }
 
   const score=results.filter(r=>r.correct).length;
-  const C={background:'#fff',borderRadius:20,padding:'24px 20px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
 
   if(phase==='intro') return(
-    <Screen player={player} title="Find the Odd One" onBack={onBack}>
-      <div style={C}>
-        <div style={{fontSize:52,textAlign:'center',marginBottom:10}}>🔦</div>
-        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',textAlign:'center',marginBottom:6}}>Find the Odd One</h2>
-        <div style={{textAlign:'center',color:'var(--mint)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>Attention & Speed</div>
-        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:16}}>A grid of items appears. One item is different from all others. Tap it as quickly as you can!</p>
-        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',flexDirection:'column',gap:8}}>
-          {[['👀','Look carefully at every item'],['⚡','Tap the one that is different'],['⏱','Speed and accuracy both count']].map(([e,t])=>(
-            <div key={t} style={{display:'flex',gap:12,alignItems:'center',fontSize:14}}><span>{e}</span><span>{t}</span></div>
-          ))}
+    <Screen player={player} title="Find the Odd One" subtitle="Attention & Speed" onBack={onBack} headerColor={T.mint}>
+      <Card accent={T.mint}>
+        <div style={{padding:'28px 24px'}}>
+          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🔦</div>
+          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Find the Odd One</h2>
+          <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Attention & Speed</div>
+          <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
+            A grid of items appears. One item is <strong>different</strong> from all the others. Tap it as quickly as you can!
+          </p>
+          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+            {[['👀','Look carefully at every item in the grid'],['⚡','Tap the one that is different'],['⏱','The faster you answer, the better']].map(([e,t])=>(
+              <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
+                <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{background:T.mintL,borderRadius:12,padding:'12px 16px',marginBottom:22,display:'flex',justifyContent:'space-between'}}>
+            <span style={{fontWeight:600,color:T.mint}}>{TOTAL} rounds total</span>
+            <span style={{fontWeight:700,color:T.navy}}>{TIME}s per round</span>
+          </div>
+          <PrimaryBtn color={T.mint} icon="▶" onClick={()=>startRound(1)}>Start</PrimaryBtn>
+          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>📌 NICE NG236 (2023) §1.5 — Sustained attention training, HIGH confidence</p>
         </div>
-        <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:'var(--mint)',padding:'8px',background:'var(--light-bg)',borderRadius:8,marginBottom:16}}>{TOTAL} rounds · {TIME}s per round</div>
-        <Btn onClick={()=>startRound(1)}>Start →</Btn>
-        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:10,fontStyle:'italic'}}>NICE NG236 §1.5 — Sustained attention training, HIGH confidence evidence</p>
-      </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='play') return(
-    <Screen player={player} title={`Round ${round}/${TOTAL}`} onBack={onBack}>
-      <div style={C}>
-        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
-          <div style={{flex:1,height:8,background:'var(--border)',borderRadius:8,overflow:'hidden'}}>
-            <div style={{height:'100%',borderRadius:8,transition:'width 1s linear,background 0.5s',width:`${(t/TIME)*100}%`,background:t>6?'var(--mint)':t>3?'var(--gold)':'#e74c3c'}}/>
+    <Screen player={player} title={`Round ${round}/${TOTAL}`} onBack={onBack} headerColor={T.mint}>
+      <Card>
+        <div style={{padding:'22px 20px'}}>
+          <div style={{marginBottom:16}}>
+            <TimerBar fraction={t/TIME} label={`${t} seconds`}/>
           </div>
-          <span style={{fontWeight:700,fontSize:20,color:t<4?'#e74c3c':'var(--teal)',minWidth:32,textAlign:'right'}}>{t}s</span>
-        </div>
-        <p style={{textAlign:'center',color:'var(--muted)',fontSize:14,marginBottom:14}}>Find the item that is different from all others</p>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:10}}>
-          {grid.map((item,i)=>{
-            const isOdd=item===current.odd;
-            return(
-              <button key={i}
-                style={{aspectRatio:'1',fontSize:'clamp(26px,6vw,38px)',
-                  background:answered?(isOdd?(wasCorrect?'#e8f8f0':'#fdecea'):'#fff'):(item===current.odd&&answered?'#e8f8f0':'#fff'),
-                  border:`2px solid ${answered&&isOdd?(wasCorrect?'#27ae60':'#e74c3c'):'var(--border)'}`,
-                  borderRadius:14,cursor:answered?'default':'pointer',display:'flex',alignItems:'center',justifyContent:'center',
-                  transition:'all 0.15s',fontFamily:'var(--font-sans)'}}
-                onClick={()=>!answered&&handleAnswer(item)}>
-                {item}
-              </button>
-            );
-          })}
-        </div>
-        {answered&&(
-          <div style={{textAlign:'center',marginTop:12,animation:'fadeIn 0.3s ease'}}>
-            <div style={{fontSize:20,marginBottom:6}}>{wasCorrect?'✅ Correct!':'❌ Missed!'}</div>
-            <div style={{fontSize:13,color:'var(--muted)',marginBottom:14}}>
-              {wasCorrect?`Found in ${results[results.length-1].timeUsed}s.`:`The odd one was: ${current.odd}`}
+
+          {/* Hint */}
+          <div style={{background:T.mintL,borderRadius:12,padding:'12px 16px',marginBottom:18,textAlign:'center'}}>
+            <span style={{fontSize:'1.05rem',fontWeight:700,color:T.mint}}>Tap the item that is different from all others</span>
+          </div>
+
+          {/* 3×3 grid — large tap targets */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:16}} role="group" aria-label="Find the odd item">
+            {grid.map((item,i)=>{
+              const isOdd=item===current.odd;
+              const bg=answered?(isOdd?(wasCorrect?T.successL:T.errorL):'#fff'):'#fff';
+              const border=answered&&isOdd?(wasCorrect?T.success:T.error):T.border;
+              return(
+                <button key={i}
+                  aria-label={`Item ${i+1}`}
+                  onClick={()=>!answered&&handleAnswer(item)}
+                  style={{
+                    aspectRatio:'1', fontSize:'clamp(2rem,7vw,2.8rem)',
+                    background:bg,
+                    border:`3px solid ${border}`,
+                    borderRadius:16, cursor:answered?'default':'pointer',
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    transition:'all 0.15s',
+                    fontFamily:'inherit',
+                  }}>
+                  {item}
+                </button>
+              );
+            })}
+          </div>
+
+          {answered&&(
+            <div style={{animation:'fadeUp 0.3s ease'}}>
+              <div style={{
+                background:wasCorrect?T.successL:T.errorL,
+                border:`2px solid ${wasCorrect?T.success:T.error}`,
+                borderRadius:14,padding:'16px 20px',textAlign:'center',marginBottom:16,
+              }}>
+                <div style={{fontSize:'2rem',marginBottom:6}}>{wasCorrect?'✅':'❌'}</div>
+                <div style={{fontSize:'1.2rem',fontWeight:700,color:wasCorrect?T.success:T.error}}>
+                  {wasCorrect?`Found it in ${results[results.length-1].timeUsed}s!`:`The odd one was: ${current.odd}`}
+                </div>
+                {!wasCorrect&&<div style={{fontSize:'1rem',color:T.textS,marginTop:4}}>{current.hint}</div>}
+              </div>
+              <PrimaryBtn color={T.mint} icon="→" onClick={next}>
+                {round>=TOTAL?'See results':'Round '+(round+1)}
+              </PrimaryBtn>
             </div>
-            <Btn onClick={next}>{round>=TOTAL?'See results →':`Round ${round+1} →`}</Btn>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='complete'){
-    const pct=Math.round((score/TOTAL)*100);const stars=pct>=90?3:pct>=60?2:1;
+    const pct=Math.round((score/TOTAL)*100);
     const correct=results.filter(r=>r.correct);
-    const avgT=correct.length?correct.reduce((a,b)=>a+b.timeUsed,0)/correct.length:0;
+    const avgT=correct.length?Math.round(correct.reduce((a,b)=>a+b.timeUsed,0)/correct.length):0;
+    const stars=pct>=90?3:pct>=60?2:1;
     return(
-      <Screen player={player} title="Session complete" onBack={onBack}>
-        <div style={{...C,textAlign:'center'}}>
-          <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:14}}>{[1,2,3].map(n=><span key={n} style={{fontSize:36,opacity:n<=stars?1:0.2}}>⭐</span>)}</div>
-          <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:6}}>Well done, {player.name}!</h2>
-          <p style={{color:'var(--muted)',fontSize:15,marginBottom:18}}>Attention exercise complete.</p>
-          <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:18}}>
-            {[['Correct',`${score}/${TOTAL}`,'var(--navy)'],['Accuracy',`${pct}%`,'var(--teal)'],['Avg time',avgT?`${avgT.toFixed(1)}s`:'—','var(--navy)']].map(([l,v,c])=>(
-              <div key={l} style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',textAlign:'center'}}>
-                <div style={{fontSize:22,fontWeight:700,color:c}}>{v}</div>
-                <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{l}</div>
-              </div>
-            ))}
+      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.mint}>
+        <Card>
+          <div style={{padding:'28px 22px'}}>
+            <div style={{textAlign:'center',marginBottom:20}}>
+              <div style={{fontSize:'2.2rem',marginBottom:8}} aria-label={`${stars} stars`}>{'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}</div>
+              <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}!</h2>
+            </div>
+            <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
+              {[['Correct',`${score}/${TOTAL}`,T.navy],['Accuracy',`${pct}%`,T.mint],['Avg time',avgT?`${avgT}s`:'—',T.navy]].map(([l,v,c])=>(
+                <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 16px',textAlign:'center',flex:1}}>
+                  <div style={{fontSize:'1.7rem',fontWeight:800,color:c,fontFamily:'Nunito,sans-serif'}}>{v}</div>
+                  <div style={{fontSize:'0.88rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <CognitiveAge player={player}/>
+            <div style={{background:T.mintL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`}}>
+              <strong style={{color:T.mint}}>What you trained:</strong> Selective and sustained attention, and processing speed — essential for reading, driving, and following conversations.
+            </div>
+            <div style={{display:'flex',gap:12}}>
+              <SecondaryBtn icon="↺" onClick={()=>{setRound(1);setResults([]);setPhase('intro');}}>Play again</SecondaryBtn>
+              <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+            </div>
           </div>
-          <CognitiveAgeBlock player={player}/>
-          <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:18,border:'1px solid var(--border)'}}>
-            <strong>What you trained:</strong> Selective and sustained attention, processing speed — key for reading, driving, and following conversations.
-          </div>
-          <div style={{display:'flex',gap:10}}>
-            <Btn secondary onClick={()=>{setRound(1);setResults([]);setPhase('intro');}}>Play again</Btn>
-            <Btn onClick={onBack}>← Menu</Btn>
-          </div>
-        </div>
+        </Card>
       </Screen>
     );
   }
   return null;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 3. WHAT WAS YESTERDAY?
-// ═══════════════════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────────────
+   GAME 3: STORY & RECALL (Episodic Memory)
+   Clinical: Spector et al. 2003 RCT — Reality Orientation / CST
+───────────────────────────────────────────────────────────────── */
 const STORIES=[
-  {story:"Margaret went to the market on Tuesday morning. She bought fresh bread, a bunch of carrots, and a small jar of honey. On her way home she met her neighbour George, who told her about a new café that opened on Baker Street called 'The Blue Cup'. It serves homemade cake every day.",
+  {story:"Margaret went to the market on Tuesday morning. She bought fresh bread, a bunch of carrots, and a small jar of honey. On her way home she met her neighbour George, who told her about a new café on Baker Street called 'The Blue Cup'. It serves homemade cake every day.",
    qs:[
     {q:"What day did Margaret go to the market?",opts:["Monday","Tuesday","Wednesday","Thursday"],c:1},
-    {q:"What is the name of the new café?",opts:["The Red Cup","The Green Cup","The Blue Cup","The Gold Cup"],c:2},
+    {q:"What is the café called?",opts:["The Red Cup","The Green Cup","The Blue Cup","The Gold Cup"],c:2},
     {q:"Which street is the café on?",opts:["King Street","Baker Street","Church Road","Market Lane"],c:1},
-    {q:"What did Margaret buy at the market?",opts:["Milk, eggs and bread","Bread, carrots and honey","Apples, honey and flour","Carrots, butter and tea"],c:1},
+    {q:"What did Margaret buy?",opts:["Milk, eggs, bread","Bread, carrots, honey","Apples, honey, flour","Carrots, butter, tea"],c:1},
   ]},
-  {story:"Robert had a busy Wednesday. In the morning he called his daughter Emma, who lives in Edinburgh. She told him she had just started a new job at a library. In the afternoon Robert took a walk in the park and saw a family of ducks near the pond. He returned home at half past four.",
+  {story:"Robert had a busy Wednesday. In the morning he called his daughter Emma, who lives in Edinburgh. She said she had just started a new job at a library. In the afternoon Robert walked in the park and saw a family of ducks near the pond. He got home at half past four.",
    qs:[
-    {q:"What day was it in the story?",opts:["Tuesday","Wednesday","Thursday","Friday"],c:1},
+    {q:"What day was it?",opts:["Tuesday","Wednesday","Thursday","Friday"],c:1},
     {q:"Where does Emma live?",opts:["London","Dublin","Edinburgh","Glasgow"],c:2},
-    {q:"What is Emma's new job?",opts:["Teacher","Doctor","Library worker","Shop assistant"],c:2},
+    {q:"What is Emma's new job?",opts:["Teacher","Doctor","Library worker","Nurse"],c:2},
     {q:"What did Robert see in the park?",opts:["Swans","Ducks","Geese","Dogs"],c:1},
   ]},
-  {story:"Dorothy received a letter on Friday from her old friend Helen. Helen wrote she was visiting in two weeks and would arrive by train at 3pm. She asked Dorothy to pick her up from Central Station and mentioned she was bringing a gift — a recipe book with 100 Italian dishes.",
+  {story:"Dorothy received a letter on Friday from her old friend Helen. Helen said she was visiting in two weeks and would arrive by train at 3pm. She asked Dorothy to pick her up from Central Station, and mentioned she was bringing a gift — an Italian recipe book with 100 recipes.",
    qs:[
-    {q:"On what day did Dorothy receive the letter?",opts:["Thursday","Friday","Saturday","Sunday"],c:1},
-    {q:"How is Helen travelling to visit?",opts:["By car","By bus","By plane","By train"],c:3},
+    {q:"What day did Dorothy get the letter?",opts:["Thursday","Friday","Saturday","Sunday"],c:1},
+    {q:"How is Helen travelling?",opts:["By car","By bus","By plane","By train"],c:3},
     {q:"What time does Helen arrive?",opts:["1pm","2pm","3pm","4pm"],c:2},
-    {q:"What gift is Helen bringing?",opts:["A French recipe book","An Italian recipe book","A painting","A box of chocolates"],c:1},
+    {q:"What gift is Helen bringing?",opts:["A French recipe book","An Italian recipe book","A painting","Chocolates"],c:1},
   ]},
 ];
 
@@ -682,7 +1283,10 @@ function WhatWasYesterday({player,onBack}){
 
   useEffect(()=>{
     if(phase!=='read') return;
-    timer.current=setInterval(()=>setReadT(t=>{if(t<=1){clearInterval(timer.current);setPhase('quiz');return 0;}return t-1;}),1000);
+    timer.current=setInterval(()=>setReadT(t=>{
+      if(t<=1){clearInterval(timer.current);setPhase('quiz');return 0;}
+      return t-1;
+    }),1000);
     return()=>clearInterval(timer.current);
   },[phase]);
 
@@ -691,116 +1295,154 @@ function WhatWasYesterday({player,onBack}){
     setChosen(idx);
     const correct=idx===S.qs[qi].c;
     setAnswers(p=>[...p,{qi,chosen:idx,correct}]);
-    setTimeout(()=>{if(qi+1>=S.qs.length){setPhase('complete');}else{setQi(i=>i+1);setChosen(null);}},900);
+    setTimeout(()=>{if(qi+1>=S.qs.length){setPhase('complete');}else{setQi(i=>i+1);setChosen(null);}},1100);
   }
 
   const score=answers.filter(a=>a.correct).length;
-  const C={background:'#fff',borderRadius:20,padding:'24px 20px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
 
   if(phase==='intro') return(
-    <Screen player={player} title="What Was Yesterday?" onBack={onBack}>
-      <div style={C}>
-        <div style={{fontSize:52,textAlign:'center',marginBottom:10}}>🗓️</div>
-        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',textAlign:'center',marginBottom:6}}>What Was Yesterday?</h2>
-        <div style={{textAlign:'center',color:'var(--teal)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>Episodic Memory</div>
-        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:16}}>Read a short story carefully. Then answer questions about what you read from memory.</p>
-        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',flexDirection:'column',gap:8}}>
-          {[['📖','Read the story — take your time'],['🙈','Story disappears after 35 seconds'],['❓','Answer questions from memory']].map(([e,t])=>(
-            <div key={t} style={{display:'flex',gap:12,alignItems:'center',fontSize:14}}><span>{e}</span><span>{t}</span></div>
-          ))}
+    <Screen player={player} title="Story & Recall" subtitle="Episodic Memory" onBack={onBack} headerColor={T.teal}>
+      <Card accent={T.teal}>
+        <div style={{padding:'28px 24px'}}>
+          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🗓️</div>
+          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Story &amp; Recall</h2>
+          <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Episodic Memory</div>
+          <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Read a short story carefully, then answer questions about what you read from memory.</p>
+          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+            {[['📖','Read the story — take your time'],['🙈','Story disappears after 35 seconds'],['❓','Answer questions from memory']].map(([e,t])=>(
+              <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
+                <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{background:T.tealL,borderRadius:12,padding:'12px 16px',marginBottom:22,display:'flex',justifyContent:'space-between'}}>
+            <span style={{fontWeight:600,color:T.teal}}>{S.qs.length} questions</span>
+            <span style={{fontWeight:700,color:T.navy}}>35s to read</span>
+          </div>
+          <PrimaryBtn color={T.teal} icon="📖" onClick={()=>setPhase('read')}>Start reading</PrimaryBtn>
+          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>📌 Spector et al. 2003 — Reality Orientation / CST, 201-participant RCT</p>
         </div>
-        <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:'var(--teal)',padding:'8px',background:'var(--light-bg)',borderRadius:8,marginBottom:16}}>{S.qs.length} questions · 35s to read</div>
-        <Btn onClick={()=>setPhase('read')}>Start reading →</Btn>
-        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:10,fontStyle:'italic'}}>Reality Orientation — core CST component (Spector 2003 RCT)</p>
-      </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='read') return(
-    <Screen player={player} title="Read carefully" onBack={onBack}>
-      <div style={C}>
-        <div style={{height:7,background:'var(--border)',borderRadius:8,overflow:'hidden',marginBottom:6}}>
-          <div style={{height:'100%',borderRadius:8,transition:'width 1s linear',width:`${(readT/35)*100}%`,background:readT>15?'var(--teal)':readT>8?'var(--gold)':'#e74c3c'}}/>
+    <Screen player={player} title="Read carefully" onBack={onBack} headerColor={T.teal}>
+      <Card>
+        <div style={{padding:'22px 20px'}}>
+          <div style={{marginBottom:16}}>
+            <TimerBar fraction={readT/35} label={`${readT} seconds`}/>
+          </div>
+          {/* Story — large font, generous line height */}
+          <div style={{
+            background:T.bg,borderRadius:16,padding:'22px 20px',
+            fontSize:'1.2rem',lineHeight:1.9,color:T.text,
+            marginBottom:18,
+            border:`2px solid ${T.border}`,
+            fontFamily:'Atkinson Hyperlegible,sans-serif',
+          }}>
+            {S.story}
+          </div>
+          <PrimaryBtn color={T.teal} icon="✓" onClick={()=>{clearInterval(timer.current);setPhase('quiz');}}>
+            I'm ready — start questions
+          </PrimaryBtn>
         </div>
-        <div style={{display:'flex',justifyContent:'space-between',marginBottom:16}}>
-          <span style={{fontWeight:700,fontSize:20,color:readT<8?'#e74c3c':'var(--teal)'}}>{readT}s</span>
-          <span style={{color:'var(--muted)',fontSize:14}}>read carefully</span>
-        </div>
-        <div style={{background:'var(--light-bg)',borderRadius:14,padding:'18px 16px',fontSize:16,lineHeight:1.85,color:'var(--text)',marginBottom:16,border:'1px solid var(--border)',fontFamily:'var(--font-serif)'}}>
-          {S.story}
-        </div>
-        <Btn onClick={()=>{clearInterval(timer.current);setPhase('quiz');}}>I'm ready — start the questions</Btn>
-      </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='quiz'){
     const q=S.qs[qi];
     return(
-      <Screen player={player} title={`Question ${qi+1}/${S.qs.length}`} onBack={onBack}>
-        <div style={C}>
-          <div style={{display:'flex',gap:6,marginBottom:18}}>
-            {S.qs.map((_,i)=>(
-              <div key={i} style={{flex:1,height:5,borderRadius:3,background:i<answers.length?(answers[i].correct?'var(--mint)':'#e74c3c'):i===qi?'var(--teal)':'var(--border)'}}/>
-            ))}
+      <Screen player={player} title={`Question ${qi+1} of ${S.qs.length}`} onBack={onBack} headerColor={T.teal}>
+        <Card>
+          <div style={{padding:'22px 20px'}}>
+            {/* Progress dots */}
+            <div style={{display:'flex',gap:8,marginBottom:20}}>
+              {S.qs.map((_,i)=>(
+                <div key={i} style={{flex:1,height:8,borderRadius:4,background:
+                  i<answers.length?(answers[i].correct?T.success:T.error):
+                  i===qi?T.teal:'#DDE8EE',transition:'background 0.3s'}}/>
+              ))}
+            </div>
+
+            <h3 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.4rem',color:T.navy,marginBottom:22,lineHeight:1.4}}>
+              {q.q}
+            </h3>
+
+            {/* Answer options — large touch targets */}
+            <div style={{display:'flex',flexDirection:'column',gap:12}}>
+              {q.opts.map((opt,i)=>{
+                const isChosen=chosen===i;const isCorrect=i===q.c;
+                const bg=chosen!==null?(isCorrect?T.successL:isChosen?T.errorL:'#fff'):'#fff';
+                const border=chosen!==null?(isCorrect?T.success:isChosen?T.error:T.border):T.border;
+                return(
+                  <button key={i}
+                    aria-pressed={isChosen}
+                    onClick={()=>answer(i)}
+                    style={{
+                      minHeight:60,padding:'14px 18px',
+                      border:`2.5px solid ${border}`,borderRadius:14,
+                      background:bg,textAlign:'left',
+                      fontSize:'1.1rem',fontWeight:600,color:T.text,
+                      cursor:chosen!==null?'default':'pointer',
+                      fontFamily:'Atkinson Hyperlegible,sans-serif',
+                      display:'flex',justifyContent:'space-between',alignItems:'center',
+                      transition:'all 0.2s',
+                    }}>
+                    <span>{opt}</span>
+                    {chosen!==null&&isCorrect&&<span style={{fontSize:'1.4rem'}} aria-label="Correct">✅</span>}
+                    {chosen!==null&&isChosen&&!isCorrect&&<span style={{fontSize:'1.4rem'}} aria-label="Incorrect">❌</span>}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <h3 style={{fontFamily:'var(--font-serif)',fontSize:19,color:'var(--navy)',marginBottom:18,lineHeight:1.4}}>{q.q}</h3>
-          <div style={{display:'flex',flexDirection:'column',gap:10}}>
-            {q.opts.map((opt,i)=>{
-              const isChosen=chosen===i;const isCorrect=i===q.c;
-              return(
-                <button key={i}
-                  style={{padding:'14px 16px',border:`2px solid ${chosen!==null?(isCorrect?'#27ae60':isChosen?'#e74c3c':'var(--border)'):'var(--border)'}`,
-                    borderRadius:12,background:chosen!==null?(isCorrect?'#e8f8f0':isChosen?'#fdecea':'#fff'):'#fff',
-                    textAlign:'left',fontSize:15,color:'var(--text)',cursor:chosen!==null?'default':'pointer',
-                    fontFamily:'var(--font-sans)',transition:'all 0.2s',display:'flex',justifyContent:'space-between',alignItems:'center'}}
-                  onClick={()=>answer(i)}>
-                  <span>{opt}</span>
-                  {chosen!==null&&isCorrect&&<span>✅</span>}
-                  {chosen!==null&&isChosen&&!isCorrect&&<span>❌</span>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        </Card>
       </Screen>
     );
   }
 
   if(phase==='complete'){
-    const pct=Math.round((score/S.qs.length)*100);const stars=pct>=90?3:pct>=60?2:1;
+    const pct=Math.round((score/S.qs.length)*100);
+    const stars=pct>=90?3:pct>=60?2:1;
     return(
-      <Screen player={player} title="Session complete" onBack={onBack}>
-        <div style={{...C,textAlign:'center'}}>
-          <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:14}}>{[1,2,3].map(n=><span key={n} style={{fontSize:36,opacity:n<=stars?1:0.2}}>⭐</span>)}</div>
-          <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:6}}>Well done, {player.name}!</h2>
-          <p style={{color:'var(--muted)',fontSize:15,marginBottom:18}}>Episodic memory session complete.</p>
-          <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:18}}>
-            {[['Correct',`${score}/${S.qs.length}`,'var(--navy)'],['Score',`${pct}%`,'var(--teal)']].map(([l,v,c])=>(
-              <div key={l} style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 20px',textAlign:'center'}}>
-                <div style={{fontSize:26,fontWeight:700,color:c}}>{v}</div>
-                <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{l}</div>
-              </div>
-            ))}
+      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.teal}>
+        <Card>
+          <div style={{padding:'28px 22px'}}>
+            <div style={{textAlign:'center',marginBottom:20}}>
+              <div style={{fontSize:'2.2rem',marginBottom:8}}>{'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}</div>
+              <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}!</h2>
+            </div>
+            <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
+              {[['Correct',`${score}/${S.qs.length}`,T.navy],['Score',`${pct}%`,T.teal]].map(([l,v,c])=>(
+                <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 22px',textAlign:'center',flex:1}}>
+                  <div style={{fontSize:'1.8rem',fontWeight:800,color:c,fontFamily:'Nunito,sans-serif'}}>{v}</div>
+                  <div style={{fontSize:'0.9rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <CognitiveAge player={player}/>
+            <div style={{background:T.tealL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.teal}44`}}>
+              <strong style={{color:T.teal}}>What you trained:</strong> Episodic memory — retaining details from everyday events, essential for conversations, medical instructions, and daily planning.
+            </div>
+            <div style={{display:'flex',gap:12}}>
+              <SecondaryBtn icon="↺" onClick={()=>{setQi(0);setAnswers([]);setChosen(null);setReadT(35);setPhase('intro');}}>Play again</SecondaryBtn>
+              <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+            </div>
           </div>
-          <CognitiveAgeBlock player={player}/>
-          <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:18,border:'1px solid var(--border)'}}>
-            <strong>What you trained:</strong> Episodic memory — retaining details from daily life. Critical for following conversations and remembering medical instructions.
-          </div>
-          <div style={{display:'flex',gap:10}}>
-            <Btn secondary onClick={()=>{setQi(0);setAnswers([]);setChosen(null);setReadT(35);setPhase('intro');}}>Play again</Btn>
-            <Btn onClick={onBack}>← Menu</Btn>
-          </div>
-        </div>
+        </Card>
       </Screen>
     );
   }
   return null;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 4. NUMBER CHAIN
-// ═══════════════════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────────────
+   GAME 4: NUMBER CHAIN (Working Memory + Processing Speed)
+   Clinical: NICE NG236 — Digit span backward (MoCA test)
+───────────────────────────────────────────────────────────────── */
 function NumberChain({player,onBack}){
   const [phase,setPhase]=useState('intro');
   const [round,setRound]=useState(1);
@@ -810,7 +1452,6 @@ function NumberChain({player,onBack}){
   const [results,setResults]=useState([]);
   const [feedback,setFeedback]=useState(null);
   const TOTAL=6;
-
   function seqLen(r){return 2+Math.floor((r-1)*0.6);}
 
   function startRound(r){
@@ -821,15 +1462,14 @@ function NumberChain({player,onBack}){
 
   useEffect(()=>{
     if(phase!=='show') return;
-    if(showIdx>=seq.length){const t=setTimeout(()=>setPhase('recall'),600);return()=>clearTimeout(t);}
-    const t=setTimeout(()=>setShowIdx(i=>i+1),900);
-    return()=>clearTimeout(t);
+    if(showIdx>=seq.length){const ti=setTimeout(()=>setPhase('recall'),700);return()=>clearTimeout(ti);}
+    const ti=setTimeout(()=>setShowIdx(i=>i+1),950);
+    return()=>clearTimeout(ti);
   },[phase,showIdx,seq.length]);
 
   function tap(n){
     if(input.length>=seq.length||feedback) return;
-    const ni=[...input,n];
-    setInput(ni);
+    const ni=[...input,n];setInput(ni);
     if(ni.length===seq.length){
       const rev=[...seq].reverse();
       const correct=ni.every((v,i)=>v===rev[i]);
@@ -840,118 +1480,181 @@ function NumberChain({player,onBack}){
   }
 
   const score=results.filter(r=>r.correct).length;
-  const C={background:'#fff',borderRadius:20,padding:'24px 20px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
 
   if(phase==='intro') return(
-    <Screen player={player} title="Number Chain" onBack={onBack}>
-      <div style={C}>
-        <div style={{fontSize:52,textAlign:'center',marginBottom:10}}>🔢</div>
-        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',textAlign:'center',marginBottom:6}}>Number Chain</h2>
-        <div style={{textAlign:'center',color:'var(--mint)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>Working Memory + Processing Speed</div>
-        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:16}}>Numbers flash one at a time. Remember the sequence, then type it in <strong>reverse order</strong>.</p>
-        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',flexDirection:'column',gap:8}}>
-          {[['📺','Digits appear one by one'],['🔄','Enter them in REVERSE order'],['📈','Sequences get longer each round']].map(([e,t])=>(
-            <div key={t} style={{display:'flex',gap:12,alignItems:'center',fontSize:14}}><span>{e}</span><span>{t}</span></div>
-          ))}
+    <Screen player={player} title="Number Chain" subtitle="Working Memory" onBack={onBack} headerColor={T.mint}>
+      <Card accent={T.mint}>
+        <div style={{padding:'28px 24px'}}>
+          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🔢</div>
+          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Number Chain</h2>
+          <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Working Memory + Processing Speed</div>
+          <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
+            Digits will flash one at a time. Remember them in order, then type them back in <strong>reverse order</strong>.
+          </p>
+          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+            {[['📺','Digits appear one at a time on screen'],['🔄','Enter them in REVERSE order'],['📈','Sequences get longer each round']].map(([e,t])=>(
+              <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
+                <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
+              </div>
+            ))}
+          </div>
+          <PrimaryBtn color={T.mint} icon="▶" onClick={()=>startRound(1)}>Start</PrimaryBtn>
+          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>📌 NICE NG236 — Digit span backward (standard MoCA clinical test)</p>
         </div>
-        <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:'var(--mint)',padding:'8px',background:'var(--light-bg)',borderRadius:8,marginBottom:16}}>{TOTAL} rounds · Starting with {seqLen(1)} digits</div>
-        <Btn onClick={()=>startRound(1)}>Start →</Btn>
-        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:10,fontStyle:'italic'}}>Digit span backward — standard MoCA clinical test (NICE NG236)</p>
-      </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='show') return(
-    <Screen player={player} title={`Round ${round}/${TOTAL} — Watch`} onBack={onBack}>
-      <div style={C}>
-        <p style={{textAlign:'center',color:'var(--muted)',fontSize:14,marginBottom:18}}>Remember this sequence — you'll reverse it next</p>
-        <div style={{display:'flex',justifyContent:'center',minHeight:110,alignItems:'center',marginBottom:20}}>
-          {showIdx<seq.length
-            ?<div style={{fontSize:80,fontWeight:700,color:'var(--navy)',fontFamily:'var(--font-serif)',animation:'pop 0.4s ease',lineHeight:1}}>{seq[showIdx]}</div>
-            :<div style={{fontSize:32,color:'var(--teal)',fontWeight:700}}>Ready?</div>
-          }
+    <Screen player={player} title={`Round ${round}/${TOTAL} — Watch`} onBack={onBack} headerColor={T.mint}>
+      <Card>
+        <div style={{padding:'22px 20px',textAlign:'center'}}>
+          <p style={{fontSize:'1.1rem',color:T.textM,marginBottom:22,fontWeight:600}}>
+            Watch the numbers — you will type them in <strong style={{color:T.mint}}>reverse order</strong>
+          </p>
+          {/* Giant number display */}
+          <div style={{minHeight:140,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:24}}>
+            {showIdx<seq.length
+              ?<div style={{
+                  fontSize:'clamp(5rem,15vw,7rem)',fontWeight:800,color:T.navy,
+                  fontFamily:'Nunito,sans-serif',lineHeight:1,
+                  animation:'fadeUp 0.3s ease',
+                  width:120,height:120,borderRadius:24,
+                  background:T.mintL,border:`4px solid ${T.mint}`,
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                }} aria-live="polite" aria-atomic="true">
+                  {seq[showIdx]}
+                </div>
+              :<div style={{fontSize:'2rem',color:T.mint,fontWeight:700}}>Get ready...</div>
+            }
+          </div>
+          {/* Dots */}
+          <div style={{display:'flex',justifyContent:'center',gap:10}}>
+            {seq.map((_,i)=>(
+              <div key={i} style={{width:16,height:16,borderRadius:'50%',background:i<showIdx?T.mint:'#DDE8EE',transition:'background 0.3s'}}/>
+            ))}
+          </div>
         </div>
-        <div style={{display:'flex',justifyContent:'center',gap:8}}>
-          {seq.map((_,i)=>(
-            <div key={i} style={{width:14,height:14,borderRadius:'50%',background:i<showIdx?'var(--teal)':'var(--border)',transition:'background 0.3s'}}/>
-          ))}
-        </div>
-      </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='recall') return(
-    <Screen player={player} title={`Round ${round}/${TOTAL} — Your turn`} onBack={onBack}>
-      <div style={C}>
-        <p style={{textAlign:'center',color:'var(--muted)',fontSize:14,marginBottom:8}}>Enter <strong>{seq.length} digits</strong> in <strong style={{color:'var(--teal)'}}>reverse order</strong></p>
-        <div style={{display:'flex',justifyContent:'center',gap:8,marginBottom:18,minHeight:52,flexWrap:'wrap'}}>
-          {Array.from({length:seq.length}).map((_,i)=>(
-            <div key={i} style={{width:44,height:44,borderRadius:10,border:`2px solid ${input[i]!==undefined?'var(--teal)':'var(--border)'}`,background:input[i]!==undefined?'var(--light-bg)':'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,fontWeight:700,color:'var(--navy)'}}>
-              {input[i]!==undefined?input[i]:''}
-            </div>
-          ))}
-        </div>
-        {feedback&&(
-          <div style={{textAlign:'center',fontSize:18,marginBottom:14,animation:'fadeIn 0.3s ease'}}>
-            {feedback==='correct'?'✅ Correct!':'❌ Incorrect'}<br/>
-            <span style={{fontSize:12,color:'var(--muted)'}}>Sequence: {seq.join(' ')} → Reverse: {[...seq].reverse().join(' ')}</span>
+    <Screen player={player} title={`Round ${round}/${TOTAL} — Your turn`} onBack={onBack} headerColor={T.mint}>
+      <Card>
+        <div style={{padding:'22px 20px'}}>
+          <p style={{textAlign:'center',fontSize:'1.1rem',fontWeight:700,color:T.navy,marginBottom:16}}>
+            Type the {seq.length} digits in <span style={{color:T.mint}}>reverse order</span>
+          </p>
+
+          {/* Answer display — large boxes */}
+          <div style={{display:'flex',justifyContent:'center',gap:10,marginBottom:22,flexWrap:'wrap'}}>
+            {Array.from({length:seq.length}).map((_,i)=>(
+              <div key={i} style={{
+                width:54,height:54,borderRadius:12,
+                border:`3px solid ${input[i]!==undefined?T.mint:T.border}`,
+                background:input[i]!==undefined?T.mintL:'#fff',
+                display:'flex',alignItems:'center',justifyContent:'center',
+                fontSize:'1.6rem',fontWeight:800,color:T.navy,fontFamily:'Nunito,sans-serif',
+              }} aria-label={`Position ${i+1}: ${input[i]!==undefined?input[i]:'empty'}`}>
+                {input[i]!==undefined?input[i]:''}
+              </div>
+            ))}
           </div>
-        )}
-        {!feedback&&(
-          <>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:10}}>
-              {[1,2,3,4,5,6,7,8,9].map(n=>(
-                <button key={n} style={{padding:'16px',fontSize:22,fontWeight:700,color:'var(--navy)',background:'var(--light-bg)',border:'2px solid var(--border)',borderRadius:12,cursor:'pointer',fontFamily:'var(--font-sans)'}} onClick={()=>tap(n)}>{n}</button>
-              ))}
+
+          {feedback&&(
+            <div style={{
+              background:feedback==='correct'?T.successL:T.errorL,
+              border:`2px solid ${feedback==='correct'?T.success:T.error}`,
+              borderRadius:14,padding:'16px 20px',textAlign:'center',marginBottom:16,
+              animation:'fadeUp 0.3s ease',
+            }}>
+              <div style={{fontSize:'2rem',marginBottom:6}}>{feedback==='correct'?'✅':'❌'}</div>
+              <div style={{fontSize:'1.1rem',fontWeight:700,color:feedback==='correct'?T.success:T.error}}>
+                {feedback==='correct'?'Correct!':'Incorrect'}
+              </div>
+              <div style={{fontSize:'0.95rem',color:T.textS,marginTop:4}}>
+                Sequence: {seq.join(' ')} → Reverse: {[...seq].reverse().join(' ')}
+              </div>
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-              <button style={{padding:'16px',fontSize:22,fontWeight:700,color:'var(--navy)',background:'var(--light-bg)',border:'2px solid var(--border)',borderRadius:12,cursor:'pointer',fontFamily:'var(--font-sans)'}} onClick={()=>tap(0)}>0</button>
-              <button style={{padding:'16px',fontSize:18,color:'var(--error)',background:'#fdecea',border:'2px solid #f5b8b8',borderRadius:12,cursor:'pointer',fontFamily:'var(--font-sans)'}} onClick={()=>setInput(p=>p.slice(0,-1))}>⌫ Delete</button>
-            </div>
-          </>
-        )}
-      </div>
+          )}
+
+          {/* Large numpad */}
+          {!feedback&&(
+            <>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:12}}>
+                {[1,2,3,4,5,6,7,8,9].map(n=>(
+                  <button key={n}
+                    aria-label={String(n)}
+                    onClick={()=>tap(n)}
+                    style={{
+                      height:66,fontSize:'1.6rem',fontWeight:800,color:T.navy,
+                      background:T.mintL,border:`2.5px solid ${T.border}`,
+                      borderRadius:14,cursor:'pointer',fontFamily:'Nunito,sans-serif',
+                      transition:'all 0.1s',
+                    }}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+                <button aria-label="0" onClick={()=>tap(0)}
+                  style={{height:66,fontSize:'1.6rem',fontWeight:800,color:T.navy,background:T.mintL,border:`2.5px solid ${T.border}`,borderRadius:14,cursor:'pointer',fontFamily:'Nunito,sans-serif'}}>0</button>
+                <button aria-label="Delete last digit" onClick={()=>setInput(p=>p.slice(0,-1))}
+                  style={{height:66,fontSize:'1.4rem',fontWeight:700,color:T.error,background:'#FDECEA',border:`2.5px solid ${T.error}44`,borderRadius:14,cursor:'pointer',fontFamily:'Nunito,sans-serif'}}>
+                  ⌫ Delete
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='complete'){
     const pct=Math.round((score/TOTAL)*100);const stars=pct>=90?3:pct>=60?2:1;
     return(
-      <Screen player={player} title="Session complete" onBack={onBack}>
-        <div style={{...C,textAlign:'center'}}>
-          <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:14}}>{[1,2,3].map(n=><span key={n} style={{fontSize:36,opacity:n<=stars?1:0.2}}>⭐</span>)}</div>
-          <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:6}}>Well done, {player.name}!</h2>
-          <p style={{color:'var(--muted)',fontSize:15,marginBottom:18}}>Number Chain complete.</p>
-          <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:18}}>
-            {[['Correct',`${score}/${TOTAL}`,'var(--navy)'],['Accuracy',`${pct}%`,'var(--teal)']].map(([l,v,c])=>(
-              <div key={l} style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 20px',textAlign:'center'}}>
-                <div style={{fontSize:26,fontWeight:700,color:c}}>{v}</div>
-                <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{l}</div>
-              </div>
-            ))}
+      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.mint}>
+        <Card>
+          <div style={{padding:'28px 22px'}}>
+            <div style={{textAlign:'center',marginBottom:20}}>
+              <div style={{fontSize:'2.2rem',marginBottom:8}}>{'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}</div>
+              <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}!</h2>
+            </div>
+            <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
+              {[['Correct',`${score}/${TOTAL}`,T.navy],['Accuracy',`${pct}%`,T.mint]].map(([l,v,c])=>(
+                <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 22px',textAlign:'center',flex:1}}>
+                  <div style={{fontSize:'1.8rem',fontWeight:800,color:c,fontFamily:'Nunito,sans-serif'}}>{v}</div>
+                  <div style={{fontSize:'0.9rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <CognitiveAge player={player}/>
+            <div style={{background:T.mintL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`}}>
+              <strong style={{color:T.mint}}>What you trained:</strong> Working memory and processing speed — essential for mental arithmetic, following multi-step instructions, and holding information in mind while doing tasks.
+            </div>
+            <div style={{display:'flex',gap:12}}>
+              <SecondaryBtn icon="↺" onClick={()=>{setRound(1);setResults([]);setInput([]);setFeedback(null);setPhase('intro');}}>Play again</SecondaryBtn>
+              <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+            </div>
           </div>
-          <CognitiveAgeBlock player={player}/>
-          <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:18,border:'1px solid var(--border)'}}>
-            <strong>What you trained:</strong> Working memory and processing speed — essential for mental arithmetic, following multi-step instructions, and holding information while completing tasks.
-          </div>
-          <div style={{display:'flex',gap:10}}>
-            <Btn secondary onClick={()=>{setRound(1);setResults([]);setInput([]);setFeedback(null);setPhase('intro');}}>Play again</Btn>
-            <Btn onClick={onBack}>← Menu</Btn>
-          </div>
-        </div>
+        </Card>
       </Screen>
     );
   }
   return null;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 5. MATCHING PAIRS
-// ═══════════════════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────────────
+   GAME 5: MATCHING PAIRS (Visual Memory)
+   Clinical: UCLA Health 2024 — measurable gains in 2 weeks
+───────────────────────────────────────────────────────────────── */
 const PAIR_POOL=[
-  {id:'a',emoji:'🌺'},{id:'b',emoji:'🦋'},{id:'c',emoji:'🌙'},{id:'d',emoji:'⭐'},
-  {id:'e',emoji:'🌈'},{id:'f',emoji:'🐢'},{id:'g',emoji:'🍄'},{id:'h',emoji:'🎸'},
-  {id:'i',emoji:'🦊'},{id:'j',emoji:'🌻'},{id:'k',emoji:'🐬'},{id:'l',emoji:'🎪'},
+  {id:'a',e:'🌺'},{id:'b',e:'🦋'},{id:'c',e:'🌙'},{id:'d',e:'⭐'},
+  {id:'e',e:'🌈'},{id:'f',e:'🐢'},{id:'g',e:'🍄'},{id:'h',e:'🎸'},
+  {id:'i',e:'🦊'},{id:'j',e:'🌻'},{id:'k',e:'🐬'},{id:'l',e:'🎪'},
 ];
 
 function MatchingPairs({player,onBack}){
@@ -981,112 +1684,140 @@ function MatchingPairs({player,onBack}){
 
   function flip(uid){
     if(blocked||flipped.length===2||flipped.includes(uid)||matched.includes(uid)) return;
-    const nf=[...flipped,uid];
-    setFlipped(nf);
+    const nf=[...flipped,uid];setFlipped(nf);
     if(nf.length===2){
       setMoves(m=>m+1);
       const [a,b]=nf.map(id=>cards.find(c=>c.uid===id));
       if(a.id===b.id){
-        const nm=[...matched,...nf];
-        setMatched(nm);setFlipped([]);
+        const nm=[...matched,...nf];setMatched(nm);setFlipped([]);
         if(nm.length===cards.length){clearInterval(timer.current);setPhase('complete');}
       } else {
-        setBlocked(true);
-        setTimeout(()=>{setFlipped([]);setBlocked(false);},900);
+        setBlocked(true);setTimeout(()=>{setFlipped([]);setBlocked(false);},1000);
       }
     }
   }
 
-  const C={background:'#fff',borderRadius:20,padding:'24px 20px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
-
   if(phase==='intro') return(
-    <Screen player={player} title="Matching Pairs" onBack={onBack}>
-      <div style={C}>
-        <div style={{fontSize:52,textAlign:'center',marginBottom:10}}>🎨</div>
-        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',textAlign:'center',marginBottom:6}}>Matching Pairs</h2>
-        <div style={{textAlign:'center',color:'var(--teal)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>Visual Memory</div>
-        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:16}}>All cards are face down. Flip two at a time and find all matching pairs using your memory.</p>
-        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',flexDirection:'column',gap:8}}>
-          {[['👆','Tap a card to flip it face up'],['🔍','Remember where each emoji is'],['✅','Match all pairs to finish']].map(([e,t])=>(
-            <div key={t} style={{display:'flex',gap:12,alignItems:'center',fontSize:14}}><span>{e}</span><span>{t}</span></div>
-          ))}
+    <Screen player={player} title="Matching Pairs" subtitle="Visual Memory" onBack={onBack} headerColor={T.teal}>
+      <Card accent={T.teal}>
+        <div style={{padding:'28px 24px'}}>
+          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🎨</div>
+          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Matching Pairs</h2>
+          <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Visual Memory</div>
+          <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>All cards are face down. Flip two at a time and find all {PAIRS} matching pairs using your memory.</p>
+          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+            {[['👆','Tap a card to flip it face up'],['🔍','Remember where each image is'],['✅','Match all pairs to finish']].map(([e,t])=>(
+              <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
+                <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{background:T.tealL,borderRadius:12,padding:'12px 16px',marginBottom:22,display:'flex',justifyContent:'space-between'}}>
+            <span style={{fontWeight:600,color:T.teal}}>{PAIRS} pairs</span>
+            <span style={{fontWeight:700,color:T.navy}}>{PAIRS*2} cards total</span>
+          </div>
+          <PrimaryBtn color={T.teal} icon="▶" onClick={start}>Start</PrimaryBtn>
+          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>📌 UCLA Health 2024 — Visual recognition memory gains measurable in 2 weeks</p>
         </div>
-        <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:'var(--teal)',padding:'8px',background:'var(--light-bg)',borderRadius:8,marginBottom:16}}>{PAIRS} pairs · {PAIRS*2} cards total</div>
-        <Btn onClick={start}>Start →</Btn>
-        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:10,fontStyle:'italic'}}>Visual recognition memory — measurable gains in 2 weeks (UCLA Health, 2024)</p>
-      </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='play') return(
-    <Screen player={player} title={`Matched: ${matched.length/2}/${PAIRS}`} onBack={onBack}>
-      <div style={C}>
-        <div style={{display:'flex',justifyContent:'space-between',marginBottom:14,fontSize:14}}>
-          <span style={{color:'var(--muted)'}}>⏱ {elapsed}s</span>
-          <span style={{color:'var(--muted)'}}>Moves: {moves}</span>
-          <span style={{color:'var(--teal)',fontWeight:700}}>{matched.length/2}/{PAIRS} pairs</span>
+    <Screen player={player} title={`Matched: ${matched.length/2}/${PAIRS}`} onBack={onBack} headerColor={T.teal}>
+      <Card>
+        <div style={{padding:'18px 16px'}}>
+          {/* Stats bar */}
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:16,background:T.bg,borderRadius:12,padding:'12px 16px'}}>
+            <div style={{textAlign:'center'}}>
+              <div style={{fontSize:'1.3rem',fontWeight:800,color:T.teal,fontFamily:'Nunito,sans-serif'}}>{matched.length/2}/{PAIRS}</div>
+              <div style={{fontSize:'0.8rem',color:T.textS,fontWeight:600}}>Pairs found</div>
+            </div>
+            <div style={{textAlign:'center'}}>
+              <div style={{fontSize:'1.3rem',fontWeight:800,color:T.navy,fontFamily:'Nunito,sans-serif'}}>{moves}</div>
+              <div style={{fontSize:'0.8rem',color:T.textS,fontWeight:600}}>Moves</div>
+            </div>
+            <div style={{textAlign:'center'}}>
+              <div style={{fontSize:'1.3rem',fontWeight:800,color:T.navy,fontFamily:'Nunito,sans-serif'}}>{elapsed}s</div>
+              <div style={{fontSize:'0.8rem',color:T.textS,fontWeight:600}}>Time</div>
+            </div>
+          </div>
+
+          {/* Card grid — extra large tap targets */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10}} role="grid" aria-label="Memory card grid">
+            {cards.map(c=>{
+              const isFl=flipped.includes(c.uid)||matched.includes(c.uid);
+              const isMa=matched.includes(c.uid);
+              return(
+                <button key={c.uid}
+                  aria-label={isFl?c.e:'Hidden card'}
+                  onClick={()=>flip(c.uid)}
+                  style={{
+                    aspectRatio:'1',fontSize:'clamp(1.6rem,5vw,2.2rem)',
+                    borderRadius:14,
+                    border:`3px solid ${isMa?T.success:isFl?T.teal:T.border}`,
+                    background:isMa?T.successL:isFl?T.tealL:T.navy,
+                    cursor:isFl?'default':'pointer',
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    transition:'all 0.2s',fontFamily:'inherit',
+                  }}>
+                  {isFl?c.e:''}
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
-          {cards.map(c=>{
-            const isFl=flipped.includes(c.uid)||matched.includes(c.uid);
-            const isMa=matched.includes(c.uid);
-            return(
-              <button key={c.uid}
-                style={{aspectRatio:'1',fontSize:'clamp(20px,5vw,28px)',borderRadius:12,
-                  border:`2px solid ${isMa?'#27ae60':isFl?'var(--teal)':'var(--border)'}`,
-                  background:isMa?'#e8f8f0':isFl?'var(--light-bg)':'var(--navy)',
-                  cursor:isFl?'default':'pointer',transition:'all 0.18s',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--font-sans)'}}
-                onClick={()=>flip(c.uid)}>
-                {isFl?c.emoji:''}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='complete'){
     const stars=moves<=PAIRS+2?3:moves<=PAIRS*2?2:1;
     return(
-      <Screen player={player} title="Session complete" onBack={onBack}>
-        <div style={{...C,textAlign:'center'}}>
-          <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:14}}>{[1,2,3].map(n=><span key={n} style={{fontSize:36,opacity:n<=stars?1:0.2}}>⭐</span>)}</div>
-          <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:6}}>Excellent, {player.name}!</h2>
-          <p style={{color:'var(--muted)',fontSize:15,marginBottom:18}}>All {PAIRS} pairs matched!</p>
-          <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:18}}>
-            {[['Moves',moves,'var(--navy)'],['Time',`${elapsed}s`,'var(--navy)'],['Pairs',`${PAIRS}/${PAIRS}`,'var(--teal)']].map(([l,v,c])=>(
-              <div key={l} style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 18px',textAlign:'center'}}>
-                <div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div>
-                <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{l}</div>
-              </div>
-            ))}
+      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.teal}>
+        <Card>
+          <div style={{padding:'28px 22px'}}>
+            <div style={{textAlign:'center',marginBottom:20}}>
+              <div style={{fontSize:'2.2rem',marginBottom:8}}>{'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}</div>
+              <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}!</h2>
+              <p style={{fontSize:'1.1rem',color:T.textM}}>All {PAIRS} pairs matched!</p>
+            </div>
+            <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
+              {[['Moves',moves,T.navy],['Time',`${elapsed}s`,T.navy],['Pairs',`${PAIRS}/${PAIRS}`,T.teal]].map(([l,v,c])=>(
+                <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 16px',textAlign:'center',flex:1}}>
+                  <div style={{fontSize:'1.7rem',fontWeight:800,color:c,fontFamily:'Nunito,sans-serif'}}>{v}</div>
+                  <div style={{fontSize:'0.88rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <CognitiveAge player={player}/>
+            <div style={{background:T.tealL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.teal}44`}}>
+              <strong style={{color:T.teal}}>What you trained:</strong> Visual memory and spatial reasoning — used for recognising faces, navigating familiar places, and finding objects around the home.
+            </div>
+            <div style={{display:'flex',gap:12}}>
+              <SecondaryBtn icon="↺" onClick={start}>Play again</SecondaryBtn>
+              <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+            </div>
           </div>
-          <CognitiveAgeBlock player={player}/>
-          <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:18,border:'1px solid var(--border)'}}>
-            <strong>What you trained:</strong> Visual memory and spatial reasoning — used for recognising faces, navigating familiar places, and locating objects around the home.
-          </div>
-          <div style={{display:'flex',gap:10}}>
-            <Btn secondary onClick={start}>Play again</Btn>
-            <Btn onClick={onBack}>← Menu</Btn>
-          </div>
-        </div>
+        </Card>
       </Screen>
     );
   }
   return null;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 6. THE ROUTE
-// ═══════════════════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────────────
+   GAME 6: THE ROUTE (Executive Function)
+   Clinical: EBRSR 19th Ed. — Goal management & sequencing training
+───────────────────────────────────────────────────────────────── */
 const TASKS=[
   {instructions:["Start at Home","Go to the Pharmacy first","Then visit the Market","Return Home","Do NOT pass through the Park"],
-   nodes:[{id:'home',label:'🏠',name:'Home',x:0,y:2},{id:'pharmacy',label:'💊',name:'Pharmacy',x:2,y:0},{id:'market',label:'🛒',name:'Market',x:2,y:2},{id:'park',label:'🌳',name:'Park',x:0,y:0},{id:'bakery',label:'🥖',name:'Bakery',x:1,y:1}],
+   nodes:[{id:'home',l:'🏠',n:'Home',x:0,y:2},{id:'pharmacy',l:'💊',n:'Pharmacy',x:2,y:0},{id:'market',l:'🛒',n:'Market',x:2,y:2},{id:'park',l:'🌳',n:'Park',x:0,y:0},{id:'bakery',l:'🥖',n:'Bakery',x:1,y:1}],
    edges:[['home','park'],['home','bakery'],['home','market'],['park','pharmacy'],['bakery','pharmacy'],['bakery','market'],['market','pharmacy']],
    correct:['home','pharmacy','market','home'],forbidden:['park']},
-  {instructions:["Start at the Library","Visit the Post Office next","Then go to the Café","Finish at the Park","Do NOT go through the School"],
-   nodes:[{id:'library',label:'📚',name:'Library',x:0,y:1},{id:'postoffice',label:'📮',name:'Post Office',x:2,y:0},{id:'cafe',label:'☕',name:'Café',x:2,y:2},{id:'park',label:'🌳',name:'Park',x:4,y:1},{id:'school',label:'🏫',name:'School',x:1,y:0}],
+  {instructions:["Start at the Library","Visit the Post Office","Then go to the Café","Finish at the Park","Do NOT go through the School"],
+   nodes:[{id:'library',l:'📚',n:'Library',x:0,y:1},{id:'postoffice',l:'📮',n:'Post Office',x:2,y:0},{id:'cafe',l:'☕',n:'Café',x:2,y:2},{id:'park',l:'🌳',n:'Park',x:4,y:1},{id:'school',l:'🏫',n:'School',x:1,y:0}],
    edges:[['library','school'],['library','cafe'],['school','postoffice'],['postoffice','park'],['postoffice','cafe'],['cafe','park']],
    correct:['library','postoffice','cafe','park'],forbidden:['school']},
 ];
@@ -1096,134 +1827,173 @@ function TheRoute({player,onBack}){
   const [ti]=useState(()=>Math.floor(Math.random()*TASKS.length));
   const [path,setPath]=useState([]);
   const [msg,setMsg]=useState('');
+  const [msgType,setMsgType]=useState('');
   const [done,setDone]=useState(false);
-  const T=TASKS[ti];
+  const T2=TASKS[ti];
 
-  const maxX=Math.max(...T.nodes.map(n=>n.x));
-  const maxY=Math.max(...T.nodes.map(n=>n.y));
-  const W=320;const H=200;
-  const pad=40;
+  const maxX=Math.max(...T2.nodes.map(n=>n.x));
+  const maxY=Math.max(...T2.nodes.map(n=>n.y));
+  const W=320,H=200,pad=44;
   function pos(n){return{x:pad+n.x*(W-pad*2)/Math.max(maxX,1),y:pad+n.y*(H-pad*2)/Math.max(maxY,1)};}
 
   function tap(id){
     if(done) return;
-    if((T.forbidden||[]).includes(id)){setMsg('🚫 That location is forbidden! Choose a different path.');setPath([]);return;}
-    setPath(p=>{const np=p[p.length-1]===id?p:[...p,id];return np;});
-    setMsg('');
+    if((T2.forbidden||[]).includes(id)){
+      setMsg('🚫 That location is forbidden! Your route has been reset.');setMsgType('error');setPath([]);return;
+    }
+    setPath(p=>{const np=p[p.length-1]===id?p:[...p,id];return np;});setMsg('');setMsgType('');
   }
 
   function check(){
-    const c=T.correct;
+    const c=T2.correct;
     const ok=path.length===c.length&&path.every((p,i)=>p===c[i]);
-    if(ok){setMsg('✅ Perfect route! Well planned.');setDone(true);}
-    else{setMsg('❌ That route doesn\'t follow all instructions. Try again!');setPath([]);}
+    if(ok){setMsg('✅ Perfect route! You followed all the instructions correctly.');setMsgType('success');setDone(true);}
+    else{setMsg('❌ That route doesn\'t follow all the instructions. Try again!');setMsgType('error');setPath([]);}
   }
 
-  const C={background:'#fff',borderRadius:20,padding:'24px 20px',boxShadow:'var(--shadow)',animation:'fadeUp 0.4s ease'};
-
   if(phase==='intro') return(
-    <Screen player={player} title="The Route" onBack={onBack}>
-      <div style={C}>
-        <div style={{fontSize:52,textAlign:'center',marginBottom:10}}>🧭</div>
-        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',textAlign:'center',marginBottom:6}}>The Route</h2>
-        <div style={{textAlign:'center',color:'var(--mint)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>Executive Function</div>
-        <p style={{fontSize:15,color:'var(--muted)',lineHeight:1.7,textAlign:'center',marginBottom:16}}>Plan the correct route on the map, following all given instructions. Think before you tap!</p>
-        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',flexDirection:'column',gap:8}}>
-          {[['📋','Read all instructions first'],['🗺','Tap locations in the correct order'],['🚫','Avoid forbidden locations']].map(([e,t])=>(
-            <div key={t} style={{display:'flex',gap:12,alignItems:'center',fontSize:14}}><span>{e}</span><span>{t}</span></div>
-          ))}
+    <Screen player={player} title="The Route" subtitle="Executive Function" onBack={onBack} headerColor={T.mint}>
+      <Card accent={T.mint}>
+        <div style={{padding:'28px 24px'}}>
+          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🧭</div>
+          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>The Route</h2>
+          <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Executive Function</div>
+          <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Plan the correct route on the map, following all the given rules. Think carefully before you tap!</p>
+          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+            {[['📋','Read all the instructions carefully'],['🗺','Tap locations on the map in order'],['🚫','Avoid any forbidden locations']].map(([e,t])=>(
+              <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
+                <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
+              </div>
+            ))}
+          </div>
+          <PrimaryBtn color={T.mint} icon="▶" onClick={()=>setPhase('play')}>Start</PrimaryBtn>
+          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>📌 EBRSR 19th Ed. — Goal management & sequencing training</p>
         </div>
-        <Btn onClick={()=>setPhase('play')}>Start →</Btn>
-        <p style={{textAlign:'center',fontSize:11,color:'#bbb',marginTop:10,fontStyle:'italic'}}>Goal management & sequencing training (EBRSR 19th Ed.)</p>
-      </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='play') return(
-    <Screen player={player} title="Plan your route" onBack={onBack}>
-      <div style={C}>
-        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 14px',marginBottom:14}}>
-          <div style={{fontWeight:700,fontSize:12,color:'var(--navy)',marginBottom:8,textTransform:'uppercase',letterSpacing:0.4}}>Your instructions:</div>
-          {T.instructions.map((inst,i)=>(
-            <div key={i} style={{display:'flex',gap:8,alignItems:'flex-start',marginBottom:4,fontSize:13,color:inst.includes('NOT')?'var(--error)':'var(--text)'}}>
-              <span style={{fontWeight:700,color:'var(--teal)',minWidth:16}}>{i+1}.</span><span>{inst}</span>
-            </div>
-          ))}
-        </div>
-
-        <div style={{position:'relative',margin:'0 auto',marginBottom:12}}>
-          <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{display:'block',maxWidth:W}}>
-            {T.edges.map(([a,b],i)=>{
-              const na=T.nodes.find(n=>n.id===a);const nb=T.nodes.find(n=>n.id===b);
-              const pa=pos(na);const pb=pos(nb);
-              const active=(path.includes(a)&&path.includes(b)&&Math.abs(path.indexOf(a)-path.indexOf(b))===1);
-              return <line key={i} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke={active?'#0A7E8C':'#C8E0E5'} strokeWidth={active?3:1.5} strokeDasharray={active?'none':'4,3'}/>;
-            })}
-            {T.nodes.map(n=>{
-              const p=pos(n);const isForbidden=(T.forbidden||[]).includes(n.id);
-              const inPath=path.includes(n.id);const isLast=path[path.length-1]===n.id;
-              const pidx=path.indexOf(n.id);
-              return(
-                <g key={n.id} style={{cursor:done?'default':'pointer'}} onClick={()=>tap(n.id)}>
-                  <circle cx={p.x} cy={p.y} r={22} fill={isForbidden?'#fdecea':inPath?'var(--light-bg)':'#fff'} stroke={isForbidden?'#e74c3c':isLast?'var(--teal)':inPath?'var(--teal)':'var(--border)'} strokeWidth={isLast?3:2}/>
-                  <text x={p.x} y={p.y-2} textAnchor="middle" fontSize="16" dominantBaseline="middle">{n.label}</text>
-                  <text x={p.x} y={p.y+13} textAnchor="middle" fontSize="7" fill={isForbidden?'#e74c3c':'#6B8A99'} dominantBaseline="middle">{n.name}</text>
-                  {inPath&&<text x={p.x+17} y={p.y-17} textAnchor="middle" fontSize="10" fill="var(--teal)" fontWeight="700">{pidx+1}</text>}
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-
-        <div style={{background:'var(--light-bg)',borderRadius:10,padding:'8px 12px',marginBottom:10,fontSize:13,color:'var(--muted)',textAlign:'center',minHeight:36}}>
-          {path.length>0?'Route: '+path.map(id=>T.nodes.find(n=>n.id===id)?.name).join(' → '):'Tap a location on the map to start'}
-        </div>
-
-        {msg&&(
-          <div style={{borderRadius:10,padding:'10px 14px',marginBottom:10,fontSize:14,textAlign:'center',
-            background:msg.startsWith('✅')?'#e8f8f0':msg.startsWith('🚫')?'#fff3cd':'#fdecea',
-            color:msg.startsWith('✅')?'#27ae60':msg.startsWith('🚫')?'#a0640a':'var(--error)',fontWeight:600}}>
-            {msg}
+    <Screen player={player} title="Plan your route" onBack={onBack} headerColor={T.mint}>
+      <Card>
+        <div style={{padding:'20px 18px'}}>
+          {/* Instructions — clear numbered list */}
+          <div style={{background:T.bg,borderRadius:14,padding:'16px 18px',marginBottom:16}}>
+            <div style={{fontWeight:800,fontSize:'1.05rem',color:T.navy,marginBottom:12,fontFamily:'Nunito,sans-serif'}}>Your instructions:</div>
+            {T2.instructions.map((inst,i)=>(
+              <div key={i} style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:10}}>
+                <div style={{
+                  width:28,height:28,borderRadius:'50%',flexShrink:0,
+                  background:inst.includes('NOT')?T.error:T.mint,
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                  fontSize:'0.85rem',fontWeight:700,color:'#fff',marginTop:1,
+                }}>{inst.includes('NOT')?'✕':i+1}</div>
+                <span style={{fontSize:'1rem',color:inst.includes('NOT')?T.error:T.textM,fontWeight:inst.includes('NOT')?700:500,lineHeight:1.5}}>
+                  {inst}
+                </span>
+              </div>
+            ))}
           </div>
-        )}
 
-        <div style={{display:'flex',gap:10}}>
-          <Btn secondary small onClick={()=>{setPath([]);setMsg('');setDone(false);}}>Reset</Btn>
-          {done?<Btn onClick={()=>setPhase('complete')}>See results →</Btn>:<Btn onClick={check} disabled={path.length<2}>Check my route</Btn>}
+          {/* Map SVG */}
+          <div style={{margin:'0 auto',marginBottom:14,background:T.bg,borderRadius:16,padding:8}}>
+            <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{display:'block'}}>
+              {T2.edges.map(([a,b],i)=>{
+                const na=T2.nodes.find(n=>n.id===a);const nb=T2.nodes.find(n=>n.id===b);
+                const pa=pos(na);const pb=pos(nb);
+                const active=path.includes(a)&&path.includes(b)&&Math.abs(path.indexOf(a)-path.indexOf(b))===1;
+                return <line key={i} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke={active?T.mint:'#BBC9D6'} strokeWidth={active?4:2} strokeDasharray={active?'none':'5,4'}/>;
+              })}
+              {T2.nodes.map(n=>{
+                const p=pos(n);const isForbidden=(T2.forbidden||[]).includes(n.id);
+                const inPath=path.includes(n.id);const isLast=path[path.length-1]===n.id;
+                const pidx=path.indexOf(n.id);
+                return(
+                  <g key={n.id} style={{cursor:done?'default':'pointer'}} onClick={()=>tap(n.id)}>
+                    <circle cx={p.x} cy={p.y} r={24}
+                      fill={isForbidden?'#FDECEA':inPath?T.mintL:'#fff'}
+                      stroke={isForbidden?T.error:isLast?T.mint:inPath?T.mint:T.border}
+                      strokeWidth={isLast?4:2}/>
+                    <text x={p.x} y={p.y-2} textAnchor="middle" fontSize="16" dominantBaseline="middle">{n.l}</text>
+                    <text x={p.x} y={p.y+15} textAnchor="middle" fontSize="7.5" fill={isForbidden?T.error:'#4A5E72'} dominantBaseline="middle">{n.n}</text>
+                    {inPath&&<text x={p.x+19} y={p.y-18} textAnchor="middle" fontSize="11" fill={T.mint} fontWeight="800">{pidx+1}</text>}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+
+          {/* Current route display */}
+          <div style={{background:T.bg,borderRadius:12,padding:'10px 14px',marginBottom:12,fontSize:'1rem',color:T.textS,textAlign:'center',minHeight:40,fontWeight:600}}>
+            {path.length>0
+              ?'Route: '+path.map(id=>T2.nodes.find(n=>n.id===id)?.l+' '+T2.nodes.find(n=>n.id===id)?.n).join(' → ')
+              :'Tap a location on the map to begin'}
+          </div>
+
+          {/* Feedback message — large, clear */}
+          {msg&&(
+            <div style={{
+              borderRadius:14,padding:'14px 18px',marginBottom:12,fontSize:'1.05rem',
+              textAlign:'center',fontWeight:700,lineHeight:1.5,
+              background:msgType==='success'?T.successL:msgType==='error'?T.errorL:T.goldL,
+              color:msgType==='success'?T.success:msgType==='error'?T.error:T.gold,
+              border:`2px solid ${msgType==='success'?T.success:msgType==='error'?T.error:T.gold}44`,
+            }}>{msg}</div>
+          )}
+
+          <div style={{display:'flex',gap:12}}>
+            <SecondaryBtn icon="↺" onClick={()=>{setPath([]);setMsg('');setMsgType('');setDone(false);}}>Reset</SecondaryBtn>
+            {done
+              ?<PrimaryBtn color={T.mint} icon="→" onClick={()=>setPhase('complete')}>See results</PrimaryBtn>
+              :<PrimaryBtn color={T.mint} icon="✓" onClick={check} disabled={path.length<2}>Check my route</PrimaryBtn>
+            }
+          </div>
         </div>
-      </div>
+      </Card>
     </Screen>
   );
 
   if(phase==='complete') return(
-    <Screen player={player} title="Session complete" onBack={onBack}>
-      <div style={{...C,textAlign:'center'}}>
-        <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:14}}>{[1,2,3].map(n=><span key={n} style={{fontSize:36}}>⭐</span>)}</div>
-        <h2 style={{fontFamily:'var(--font-serif)',fontSize:26,color:'var(--navy)',marginBottom:6}}>Excellent, {player.name}!</h2>
-        <p style={{color:'var(--muted)',fontSize:15,marginBottom:18}}>You planned the correct route successfully.</p>
-        <CognitiveAgeBlock player={player}/>
-        <div style={{background:'var(--light-bg)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'var(--text)',lineHeight:1.6,textAlign:'left',marginBottom:18,border:'1px solid var(--border)'}}>
-          <strong>What you trained:</strong> Executive function — planning, sequencing, and constraint-following. Used for planning errands, managing medications, and organising the day.
+    <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.mint}>
+      <Card>
+        <div style={{padding:'28px 22px',textAlign:'center'}}>
+          <div style={{fontSize:'2.2rem',marginBottom:14}}>⭐⭐⭐</div>
+          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}!</h2>
+          <p style={{fontSize:'1.1rem',color:T.textM,marginBottom:22}}>You planned the correct route successfully.</p>
+          <CognitiveAge player={player}/>
+          <div style={{background:T.mintL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`,textAlign:'left'}}>
+            <strong style={{color:T.mint}}>What you trained:</strong> Executive function — planning, sequencing, and following rules. These skills are used for planning errands, managing medications, and organising the day.
+          </div>
+          <div style={{display:'flex',gap:12}}>
+            <SecondaryBtn icon="↺" onClick={()=>{setPath([]);setMsg('');setMsgType('');setDone(false);setPhase('play');}}>Play again</SecondaryBtn>
+            <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+          </div>
         </div>
-        <div style={{display:'flex',gap:10}}>
-          <Btn secondary onClick={()=>{setPath([]);setMsg('');setDone(false);setPhase('play');}}>Play again</Btn>
-          <Btn onClick={onBack}>← Menu</Btn>
-        </div>
-      </div>
+      </Card>
     </Screen>
   );
   return null;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// APP ROUTER
-// ═══════════════════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────────────
+   APP ROUTER
+───────────────────────────────────────────────────────────────── */
 function App(){
   const [player,setPlayer]=useState(null);
   const [screen,setScreen]=useState('onboarding');
+
   if(screen==='onboarding') return <Onboarding onDone={p=>{setPlayer(p);setScreen('menu');}}/>;
-  const map={shopping:<ShoppingList player={player} onBack={()=>setScreen('menu')}/>,odd:<FindOdd player={player} onBack={()=>setScreen('menu')}/>,yesterday:<WhatWasYesterday player={player} onBack={()=>setScreen('menu')}/>,chain:<NumberChain player={player} onBack={()=>setScreen('menu')}/>,pairs:<MatchingPairs player={player} onBack={()=>setScreen('menu')}/>,route:<TheRoute player={player} onBack={()=>setScreen('menu')}/>};
-  return map[screen]||<Menu player={player} onPlay={id=>setScreen(id)}/>;
+
+  const games={
+    shopping:<ShoppingList player={player} onBack={()=>setScreen('menu')}/>,
+    odd:     <FindOdd      player={player} onBack={()=>setScreen('menu')}/>,
+    yesterday:<WhatWasYesterday player={player} onBack={()=>setScreen('menu')}/>,
+    chain:   <NumberChain  player={player} onBack={()=>setScreen('menu')}/>,
+    pairs:   <MatchingPairs player={player} onBack={()=>setScreen('menu')}/>,
+    route:   <TheRoute     player={player} onBack={()=>setScreen('menu')}/>,
+  };
+  return games[screen]||<Menu player={player} onPlay={id=>setScreen(id)}/>;
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
