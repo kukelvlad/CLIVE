@@ -43,6 +43,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
     /* ═══════════════════════════════════════════════════════════════════
        CLIVE — 55+ Design System
@@ -198,6 +199,22 @@ const T = {
 };
 
 function shuffle(arr){return [...arr].sort(()=>Math.random()-0.5);}
+
+/* ─────────────────────────────────────────────────────────────────
+   SUPABASE — auth (anonymous → linked) + progress persistence
+───────────────────────────────────────────────────────────────── */
+const SUPABASE_URL = 'https://zksoexscmazqngryjade.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inprc29leHNjbWF6cW5ncnlqYWRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjQ0MzAsImV4cCI6MjEwMDkwMDQzMH0.BW2o2ssOQr0H1DfAxz6uyd6wpxFwaApQxB9YUTAvLhM';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function logSession(exerciseId, level, score, total){
+  try{
+    const { data:{ user } } = await supabase.auth.getUser();
+    if(!user) return;
+    await supabase.from('sessions').insert({user_id:user.id, exercise_id:exerciseId, level:level||1, score, total});
+    localStorage.setItem('clive_sessions_done','1');
+  }catch(e){ console.log('CLIVE: logSession failed', e); }
+}
 
 /* ─────────────────────────────────────────────────────────────────
    SHARED: PRIMARY BUTTON
@@ -693,7 +710,58 @@ const GAMES=[
   {id:'route',    e:'🧭', title:'The Route',        domain:'Executive Function',        color:T.mint,  desc:'Plan a route on a map while following the rules.'},
 ];
 
-function Menu({player,onPlay}){
+function SaveProgressCard({authUser}){
+  const [email,setEmail]=useState('');
+  const [status,setStatus]=useState('idle'); // idle | sending | sent | error
+  const [dismissed,setDismissed]=useState(()=>localStorage.getItem('clive_save_prompt_dismissed')==='1');
+  const doneBefore = localStorage.getItem('clive_sessions_done')==='1';
+  if(!authUser||!authUser.is_anonymous||!doneBefore||dismissed) return null;
+
+  async function send(){
+    if(!email.trim()) return;
+    setStatus('sending');
+    const { error } = await supabase.auth.updateUser({email:email.trim()});
+    setStatus(error?'error':'sent');
+  }
+  function dismiss(){ localStorage.setItem('clive_save_prompt_dismissed','1'); setDismissed(true); }
+
+  return(
+    <Card accent={T.gold} style={{marginBottom:24}}>
+      <div style={{padding:'20px 22px'}}>
+        {status==='sent' ? (
+          <div style={{textAlign:'center'}}>
+            <div style={{fontSize:'2rem',marginBottom:8}} aria-hidden="true">📬</div>
+            <div style={{fontWeight:800,color:T.navy,fontSize:'1.1rem',marginBottom:6,fontFamily:'Nunito,sans-serif'}}>Check your email</div>
+            <div style={{color:T.textM,fontSize:'0.98rem'}}>We sent a link to {email.trim()} — tap it to save your progress.</div>
+          </div>
+        ) : (
+          <>
+            <div style={{display:'flex',gap:12,alignItems:'flex-start',marginBottom:14}}>
+              <span style={{fontSize:'1.8rem'}} aria-hidden="true">💾</span>
+              <div>
+                <div style={{fontWeight:800,color:T.navy,fontSize:'1.1rem',marginBottom:4,fontFamily:'Nunito,sans-serif'}}>Save your progress</div>
+                <div style={{color:T.textM,fontSize:'0.95rem',lineHeight:1.5}}>Get a link by email so your results and daily streak are never lost.</div>
+              </div>
+            </div>
+            <div style={{marginBottom:10}}>
+              <input type="email" placeholder="you@example.com" value={email}
+                aria-label="Email address"
+                onChange={e=>setEmail(e.target.value)}
+                style={{width:'100%',padding:'14px 16px',border:`2px solid ${T.border}`,borderRadius:12,fontSize:'1.1rem',color:T.text,fontFamily:'Atkinson Hyperlegible,sans-serif',outline:'none'}}/>
+            </div>
+            {status==='error'&&<div style={{color:T.error,fontSize:'0.9rem',marginBottom:10,fontWeight:600}}>Something went wrong — please try again.</div>}
+            <div style={{display:'flex',gap:10}}>
+              <SecondaryBtn onClick={dismiss} style={{flex:'0 0 auto',width:'auto',minWidth:110}}>Later</SecondaryBtn>
+              <PrimaryBtn color={T.gold} onClick={send} disabled={status==='sending'}>{status==='sending'?'Sending…':'Send link'}</PrimaryBtn>
+            </div>
+          </>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function Menu({player,authUser,onPlay}){
   const hour=new Date().getHours();
   const greeting=hour<12?'Good morning':'hour<18'?'Good afternoon':'Good evening';
   const time=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
@@ -732,6 +800,8 @@ function Menu({player,onPlay}){
             Choose an exercise to begin your daily session.
           </p>
         </div>
+
+        <SaveProgressCard authUser={authUser}/>
 
         {/* Game cards */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:16,marginBottom:32}}>
@@ -872,6 +942,8 @@ function ShoppingList({player,onBack}){
     if(last&&last.c===last.tot) setLvl(l=>Math.min(l+1,SL_LEVELS.length-1));
     setRound(r=>r+1);startRound();
   }
+
+  useEffect(()=>{ if(phase==='complete') logSession('shopping', cfg.n, score.c, score.tot); },[phase]);
 
   if(phase==='intro') return(
     <Screen player={player} title="Shopping List" subtitle="Working Memory" onBack={onBack} headerColor={T.teal}>
@@ -1158,6 +1230,8 @@ function FindOdd({player,onBack}){
 
   const score=results.filter(r=>r.correct).length;
 
+  useEffect(()=>{ if(phase==='complete') logSession('odd', null, score, TOTAL); },[phase]);
+
   if(phase==='intro') return(
     <Screen player={player} title="Find the Odd One" subtitle="Attention & Speed" onBack={onBack} headerColor={T.mint}>
       <Card accent={T.mint}>
@@ -1342,6 +1416,8 @@ function WhatWasYesterday({player,onBack}){
 
   const score=answers.filter(a=>a.correct).length;
 
+  useEffect(()=>{ if(phase==='complete') logSession('yesterday', null, score, S.qs.length); },[phase]);
+
   if(phase==='intro') return(
     <Screen player={player} title="Story & Recall" subtitle="Episodic Memory" onBack={onBack} headerColor={T.teal}>
       <Card accent={T.teal}>
@@ -1522,6 +1598,8 @@ function NumberChain({player,onBack}){
   }
 
   const score=results.filter(r=>r.correct).length;
+
+  useEffect(()=>{ if(phase==='complete') logSession('chain', null, score, TOTAL); },[phase]);
 
   if(phase==='intro') return(
     <Screen player={player} title="Number Chain" subtitle="Working Memory" onBack={onBack} headerColor={T.mint}>
@@ -1739,6 +1817,8 @@ function MatchingPairs({player,onBack}){
     }
   }
 
+  useEffect(()=>{ if(phase==='complete') logSession('pairs', null, PAIRS, PAIRS); },[phase]);
+
   if(phase==='intro') return(
     <Screen player={player} title="Matching Pairs" subtitle="Visual Memory" onBack={onBack} headerColor={T.teal}>
       <Card accent={T.teal}>
@@ -1893,6 +1973,8 @@ function TheRoute({player,onBack}){
     else{setMsg('❌ That route doesn\'t follow all the instructions. Try again!');setMsgType('error');setPath([]);}
   }
 
+  useEffect(()=>{ if(phase==='complete') logSession('route', null, 1, 1); },[phase]);
+
   if(phase==='intro') return(
     <Screen player={player} title="The Route" subtitle="Executive Function" onBack={onBack} headerColor={T.mint}>
       <Card accent={T.mint}>
@@ -2024,8 +2106,52 @@ function TheRoute({player,onBack}){
 function App(){
   const [player,setPlayer]=useState(null);
   const [screen,setScreen]=useState('onboarding');
+  const [authUser,setAuthUser]=useState(null);
+  const [authReady,setAuthReady]=useState(false);
 
-  if(screen==='onboarding') return <Onboarding onDone={p=>{setPlayer(p);setScreen('menu');}}/>;
+  /* Bootstrap: resume existing session, or sign in anonymously so
+     progress can be saved from the very first tap — no form, no password. */
+  useEffect(()=>{
+    let mounted=true;
+    (async()=>{
+      const { data:{ session } } = await supabase.auth.getSession();
+      let user = session&&session.user ? session.user : null;
+      if(!user){
+        const { data, error } = await supabase.auth.signInAnonymously();
+        if(!error) user = data.user;
+      }
+      if(mounted){ setAuthUser(user); setAuthReady(true); }
+    })();
+    const { data:sub } = supabase.auth.onAuthStateChange((_evt,session)=>{
+      setAuthUser(session&&session.user ? session.user : null);
+    });
+    return ()=>{ mounted=false; sub.subscription.unsubscribe(); };
+  },[]);
+
+  /* Returning user with a saved profile — skip onboarding */
+  useEffect(()=>{
+    if(!authReady||!authUser||player) return;
+    (async()=>{
+      const { data } = await supabase.from('profiles').select('*').eq('id',authUser.id).maybeSingle();
+      if(data){
+        setPlayer({name:data.name,gender:data.gender,age:data.age_group||String(data.age),ageNum:data.age});
+        setScreen('menu');
+      }
+    })();
+  },[authReady,authUser]);
+
+  if(!authReady) return(
+    <div style={{minHeight:'100vh',background:T.navy,display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{color:'#fff',fontWeight:800,fontSize:'1.6rem',fontFamily:'Nunito,sans-serif',letterSpacing:2}}>🧠 CLIVE</div>
+    </div>
+  );
+
+  if(screen==='onboarding') return <Onboarding onDone={async p=>{
+    setPlayer(p);setScreen('menu');
+    if(authUser){
+      await supabase.from('profiles').upsert({id:authUser.id,name:p.name,gender:p.gender,age:p.ageNum,age_group:p.age});
+    }
+  }}/>;
 
   const games={
     shopping:<ShoppingList player={player} onBack={()=>setScreen('menu')}/>,
@@ -2035,7 +2161,7 @@ function App(){
     pairs:   <MatchingPairs player={player} onBack={()=>setScreen('menu')}/>,
     route:   <TheRoute     player={player} onBack={()=>setScreen('menu')}/>,
   };
-  return games[screen]||<Menu player={player} onPlay={id=>setScreen(id)}/>;
+  return games[screen]||<Menu player={player} authUser={authUser} onPlay={id=>setScreen(id)}/>;
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
