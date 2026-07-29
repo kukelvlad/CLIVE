@@ -216,6 +216,15 @@ async function logSession(exerciseId, level, score, total){
   }catch(e){ console.log('CLIVE: logSession failed', e); }
 }
 
+async function logCognitiveTest(cognitiveAge, domainScores){
+  try{
+    const { data:{ user } } = await supabase.auth.getUser();
+    if(!user) return;
+    await supabase.from('cognitive_age_tests').insert({user_id:user.id, cognitive_age:cognitiveAge, domain_scores:domainScores});
+    localStorage.setItem('clive_sessions_done','1');
+  }catch(e){ console.log('CLIVE: logCognitiveTest failed', e); }
+}
+
 /* ─────────────────────────────────────────────────────────────────
    SHARED: PRIMARY BUTTON
    56px min height, 20px font, full-width, high contrast
@@ -461,6 +470,37 @@ const AGE_GROUPS=[
   {label:'55–59',num:57},{label:'60–64',num:62},{label:'65–69',num:67},
   {label:'70–74',num:72},{label:'75–79',num:77},{label:'80+',num:82},
 ];
+
+/* ─────────────────────────────────────────────────────────────────
+   COGNITIVE AGE NORMS
+   Illustrative reference curve (not a clinical diagnostic instrument).
+   Composite = avg(reactionScore, workingMemAcc, episodicAcc), where
+   reactionScore = clamp((10 - avgReactionSeconds)/6, 0, 1).
+───────────────────────────────────────────────────────────────── */
+const AGE_NORMS=[
+  {age:57,c:0.800},{age:62,c:0.739},{age:67,c:0.678},
+  {age:72,c:0.603},{age:77,c:0.522},{age:82,c:0.428},
+];
+function computeCognitiveAge(composite){
+  const norms=AGE_NORMS;
+  if(composite>=norms[0].c){
+    const extra=(composite-norms[0].c)/norms[0].c*10;
+    return Math.max(50,Math.round(norms[0].age-Math.min(extra,15)));
+  }
+  const last=norms[norms.length-1];
+  if(composite<=last.c){
+    const extra=(last.c-composite)/last.c*10;
+    return Math.min(95,Math.round(last.age+Math.min(extra,15)));
+  }
+  for(let i=0;i<norms.length-1;i++){
+    const a=norms[i],b=norms[i+1];
+    if(composite<=a.c&&composite>=b.c){
+      const frac=(a.c-composite)/(a.c-b.c);
+      return Math.round(a.age+frac*(b.age-a.age));
+    }
+  }
+  return 70;
+}
 
 function Onboarding({onDone}){
   const [step,setStep]=useState(0);
@@ -802,6 +842,23 @@ function Menu({player,authUser,onPlay}){
         </div>
 
         <SaveProgressCard authUser={authUser}/>
+
+        {/* Cognitive age test CTA */}
+        <button onClick={()=>onPlay('cogtest')} style={{
+          width:'100%', textAlign:'left', border:'none', cursor:'pointer', padding:0,
+          borderRadius:18, overflow:'hidden', marginBottom:24,
+          background:`linear-gradient(135deg, ${T.navy} 0%, ${T.teal} 100%)`,
+          boxShadow:'0 4px 16px rgba(13,43,78,0.22)', fontFamily:'inherit',
+        }}>
+          <div style={{padding:'20px 22px',display:'flex',gap:16,alignItems:'center',color:'#fff'}}>
+            <span style={{fontSize:'2.4rem'}} aria-hidden="true">🧠</span>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:800,fontSize:'1.15rem',fontFamily:'Nunito,sans-serif',marginBottom:2}}>Test Your Cognitive Age</div>
+              <div style={{fontSize:'0.92rem',color:'rgba(255,255,255,0.8)'}}>A ~60-second check-in across memory, attention, and recall</div>
+            </div>
+            <span style={{fontSize:'1.4rem'}} aria-hidden="true">→</span>
+          </div>
+        </button>
 
         {/* Game cards */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:16,marginBottom:32}}>
@@ -2101,6 +2158,348 @@ function TheRoute({player,onBack}){
 }
 
 /* ─────────────────────────────────────────────────────────────────
+   COGNITIVE AGE TEST (Этап 1) — ~60 second composite check-in
+   3 micro-rounds: Number Chain (working memory), Find the Odd ×2
+   (attention/speed), Shopping List (episodic memory).
+───────────────────────────────────────────────────────────────── */
+function CognitiveAgeTest({player,onBack}){
+  const [phase,setPhase]=useState('intro');
+
+  const CHAIN_LEN=3;
+  const [chainSeq,setChainSeq]=useState([]);
+  const [chainShowIdx,setChainShowIdx]=useState(0);
+  const [chainInput,setChainInput]=useState([]);
+  const [chainCorrect,setChainCorrect]=useState(0);
+
+  const ODD_TIME=8;
+  const [oddRound,setOddRound]=useState(1);
+  const [oddCurrent,setOddCurrent]=useState(null);
+  const [oddGrid,setOddGrid]=useState([]);
+  const [oddT,setOddT]=useState(0);
+  const [oddAnswered,setOddAnswered]=useState(false);
+  const [oddResults,setOddResults]=useState([]);
+  const oddTimer=useRef(null);
+
+  const SHOP_ITEMS=4, SHOP_SECS=6;
+  const [shopTarget,setShopTarget]=useState([]);
+  const [shopPool,setShopPool]=useState([]);
+  const [shopSel,setShopSel]=useState([]);
+  const [shopT,setShopT]=useState(0);
+  const shopTimer=useRef(null);
+
+  const [cogAge,setCogAge]=useState(null);
+  const [domainScores,setDomainScores]=useState(null);
+
+  function startChain(){
+    const s=Array.from({length:CHAIN_LEN},()=>Math.floor(Math.random()*9)+1);
+    setChainSeq(s);setChainShowIdx(0);setChainInput([]);setPhase('chain-show');
+  }
+  useEffect(()=>{
+    if(phase!=='chain-show') return;
+    if(chainShowIdx>=chainSeq.length){const ti=setTimeout(()=>setPhase('chain-recall'),600);return()=>clearTimeout(ti);}
+    const ti=setTimeout(()=>setChainShowIdx(i=>i+1),900);
+    return()=>clearTimeout(ti);
+  },[phase,chainShowIdx,chainSeq.length]);
+
+  function chainTap(n){
+    if(chainInput.length>=chainSeq.length) return;
+    const ni=[...chainInput,n];setChainInput(ni);
+    if(ni.length===chainSeq.length){
+      const rev=[...chainSeq].reverse();
+      const c=ni.filter((v,i)=>v===rev[i]).length;
+      setChainCorrect(c);
+      setTimeout(()=>startOdd(1),500);
+    }
+  }
+
+  function startOdd(r){
+    const set=ODD_SETS[Math.floor(Math.random()*ODD_SETS.length)];
+    setOddCurrent(set);setOddGrid(shuffle([...set.items]));setOddT(ODD_TIME);setOddAnswered(false);setOddRound(r);setPhase('odd');
+  }
+  useEffect(()=>{
+    if(phase!=='odd'||oddAnswered) return;
+    oddTimer.current=setInterval(()=>setOddT(prev=>{
+      if(prev<=1){clearInterval(oddTimer.current);oddAnswer(null);return 0;}
+      return prev-1;
+    }),1000);
+    return()=>clearInterval(oddTimer.current);
+  },[phase,oddRound,oddAnswered]);
+
+  function oddAnswer(item){
+    clearInterval(oddTimer.current);
+    if(oddAnswered) return;
+    const correct=item!==null&&item===oddCurrent.odd;
+    const timeUsed=correct?ODD_TIME-oddT:ODD_TIME;
+    setOddAnswered(true);
+    setOddResults(p=>[...p,{correct,timeUsed}]);
+    setTimeout(()=>{ if(oddRound>=2) startShopping(); else startOdd(2); },500);
+  }
+
+  function startShopping(){
+    const its=shuffle(ITEMS).slice(0,SHOP_ITEMS);
+    const dist=shuffle(ITEMS.filter(p=>!its.find(i=>i.id===p.id))).slice(0,SHOP_ITEMS);
+    setShopTarget(its);setShopPool(shuffle([...its,...dist]));setShopSel([]);setShopT(SHOP_SECS);setPhase('shop-study');
+  }
+  useEffect(()=>{
+    if(phase!=='shop-study') return;
+    shopTimer.current=setInterval(()=>setShopT(prev=>{
+      if(prev<=1){clearInterval(shopTimer.current);setPhase('shop-recall');return 0;}
+      return prev-1;
+    }),1000);
+    return()=>clearInterval(shopTimer.current);
+  },[phase]);
+
+  function shopToggle(item){
+    setShopSel(p=>p.find(s=>s.id===item.id)?p.filter(s=>s.id!==item.id):p.length<SHOP_ITEMS?[...p,item]:p);
+  }
+
+  function finishShopping(){
+    const c=shopSel.filter(s=>shopTarget.find(t=>t.id===s.id)).length;
+    finalize(c);
+  }
+
+  function finalize(shopCorrect){
+    const workingMemAcc=chainCorrect/CHAIN_LEN;
+    const episodicAcc=shopCorrect/SHOP_ITEMS;
+    const avgReaction=oddResults.length
+      ? oddResults.reduce((a,b)=>a+b.timeUsed,0)/oddResults.length
+      : ODD_TIME;
+    const reactionScore=Math.max(0,Math.min(1,(10-avgReaction)/6));
+    const composite=(reactionScore+workingMemAcc+episodicAcc)/3;
+    const age=computeCognitiveAge(composite);
+    const scores={
+      reactionTimeSec:Math.round(avgReaction*10)/10,
+      workingMemAcc:Math.round(workingMemAcc*100)/100,
+      episodicAcc:Math.round(episodicAcc*100)/100,
+      composite:Math.round(composite*100)/100,
+    };
+    setCogAge(age);setDomainScores(scores);
+    logCognitiveTest(age,scores);
+    setPhase('result');
+  }
+
+  if(phase==='intro') return(
+    <Screen player={player} title="Cognitive Age Test" subtitle="~60 seconds" onBack={onBack} headerColor={T.navy}>
+      <Card accent={T.gold}>
+        <div style={{padding:'28px 24px'}}>
+          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🧠</div>
+          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Test Your Cognitive Age</h2>
+          <div style={{background:'#FCEFCB',borderRadius:100,padding:'6px 18px',textAlign:'center',color:'#9A7B1E',fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>3 quick rounds</div>
+          <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
+            A short check-in combining memory, attention, and recall — done in about a minute.
+          </p>
+          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+            {[['🔢','Remember 3 digits, then type them backwards'],['🔦','Spot the odd item — twice, against the clock'],['🛒','Study a short list, then recall it']].map(([e,t])=>(
+              <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
+                <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
+              </div>
+            ))}
+          </div>
+          <PrimaryBtn color={T.navy} icon="▶" onClick={startChain}>Start test</PrimaryBtn>
+          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>An informal check-in for training purposes — not a medical diagnosis.</p>
+        </div>
+      </Card>
+    </Screen>
+  );
+
+  if(phase==='chain-show') return(
+    <Screen player={player} title="Round 1 of 3 — Watch" onBack={onBack} headerColor={T.navy}>
+      <Card>
+        <div style={{padding:'22px 20px',textAlign:'center'}}>
+          <p style={{fontSize:'1.1rem',color:T.textM,marginBottom:22,fontWeight:600}}>
+            Watch the numbers — you will type them in <strong style={{color:T.mint}}>reverse order</strong>
+          </p>
+          <div style={{minHeight:140,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:24}}>
+            {chainShowIdx<chainSeq.length
+              ?<div style={{
+                  fontSize:'clamp(5rem,15vw,7rem)',fontWeight:800,color:T.navy,
+                  fontFamily:'Nunito,sans-serif',lineHeight:1,
+                  animation:'fadeUp 0.3s ease',
+                  width:120,height:120,borderRadius:24,
+                  background:T.mintL,border:`4px solid ${T.mint}`,
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                }} aria-live="polite" aria-atomic="true">
+                  {chainSeq[chainShowIdx]}
+                </div>
+              :<div style={{fontSize:'2rem',color:T.mint,fontWeight:700}}>Get ready...</div>
+            }
+          </div>
+          <div style={{display:'flex',justifyContent:'center',gap:10}}>
+            {chainSeq.map((_,i)=>(
+              <div key={i} style={{width:16,height:16,borderRadius:'50%',background:i<chainShowIdx?T.mint:'#DDE8EE',transition:'background 0.3s'}}/>
+            ))}
+          </div>
+        </div>
+      </Card>
+    </Screen>
+  );
+
+  if(phase==='chain-recall') return(
+    <Screen player={player} title="Round 1 of 3 — Your turn" onBack={onBack} headerColor={T.navy}>
+      <Card>
+        <div style={{padding:'22px 20px'}}>
+          <p style={{textAlign:'center',fontSize:'1.1rem',fontWeight:700,color:T.navy,marginBottom:16}}>
+            Type the {chainSeq.length} digits in <span style={{color:T.mint}}>reverse order</span>
+          </p>
+          <div style={{display:'flex',justifyContent:'center',gap:10,marginBottom:22,flexWrap:'wrap'}}>
+            {Array.from({length:chainSeq.length}).map((_,i)=>(
+              <div key={i} style={{
+                width:54,height:54,borderRadius:12,
+                border:`3px solid ${chainInput[i]!==undefined?T.mint:T.border}`,
+                background:chainInput[i]!==undefined?T.mintL:'#fff',
+                display:'flex',alignItems:'center',justifyContent:'center',
+                fontSize:'1.6rem',fontWeight:800,color:T.navy,fontFamily:'Nunito,sans-serif',
+              }} aria-label={`Position ${i+1}: ${chainInput[i]!==undefined?chainInput[i]:'empty'}`}>
+                {chainInput[i]!==undefined?chainInput[i]:''}
+              </div>
+            ))}
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:12}}>
+            {[1,2,3,4,5,6,7,8,9].map(n=>(
+              <button key={n}
+                aria-label={String(n)}
+                onClick={()=>chainTap(n)}
+                style={{
+                  height:66,fontSize:'1.6rem',fontWeight:800,color:T.navy,
+                  background:T.mintL,border:`2.5px solid ${T.border}`,
+                  borderRadius:14,cursor:'pointer',fontFamily:'Nunito,sans-serif',
+                }}>
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+      </Card>
+    </Screen>
+  );
+
+  if(phase==='odd') return(
+    <Screen player={player} title={`Round 2 of 3 — ${oddRound}/2`} onBack={onBack} headerColor={T.mint}>
+      <Card>
+        <div style={{padding:'22px 20px'}}>
+          <div style={{marginBottom:16}}>
+            <TimerBar fraction={oddT/ODD_TIME} label={`${oddT} seconds`}/>
+          </div>
+          <div style={{background:T.mintL,borderRadius:12,padding:'12px 16px',marginBottom:18,textAlign:'center'}}>
+            <span style={{fontSize:'1.05rem',fontWeight:700,color:T.mint}}>Tap the item that is different from all others</span>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}} role="group" aria-label="Find the odd item">
+            {oddGrid.map((item,i)=>(
+              <button key={i}
+                aria-label={`Item ${i+1}`}
+                onClick={()=>!oddAnswered&&oddAnswer(item)}
+                disabled={oddAnswered}
+                style={{
+                  aspectRatio:'1', fontSize:'clamp(2rem,7vw,2.8rem)',
+                  background:'#fff',
+                  border:`3px solid ${T.border}`,
+                  borderRadius:16, cursor:oddAnswered?'default':'pointer',
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                  transition:'all 0.15s',fontFamily:'inherit',
+                }}>
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
+      </Card>
+    </Screen>
+  );
+
+  if(phase==='shop-study') return(
+    <Screen player={player} title="Round 3 of 3 — Study" onBack={onBack} headerColor={T.teal}>
+      <Card>
+        <div style={{padding:'22px 20px'}}>
+          <div style={{marginBottom:16}}>
+            <TimerBar fraction={shopT/SHOP_SECS} label={`${shopT} seconds`}/>
+          </div>
+          <p style={{textAlign:'center',fontSize:'1.05rem',fontWeight:700,color:T.navy,marginBottom:18}}>Remember these items</p>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}}>
+            {shopTarget.map(it=>(
+              <div key={it.id} style={{background:T.tealL,borderRadius:14,padding:'16px 10px',textAlign:'center'}}>
+                <div style={{fontSize:'2rem',marginBottom:6}} aria-hidden="true">{it.e}</div>
+                <div style={{fontWeight:700,color:T.navy}}>{it.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+    </Screen>
+  );
+
+  if(phase==='shop-recall') return(
+    <Screen player={player} title="Round 3 of 3 — Recall" onBack={onBack} headerColor={T.teal}>
+      <Card>
+        <div style={{padding:'22px 20px'}}>
+          <p style={{textAlign:'center',fontSize:'1.05rem',fontWeight:700,color:T.navy,marginBottom:16}}>Tap the {SHOP_ITEMS} items you remember</p>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:18}} role="group" aria-label="Recall items">
+            {shopPool.map(item=>{
+              const picked=!!shopSel.find(s=>s.id===item.id);
+              return(
+                <button key={item.id}
+                  onClick={()=>shopToggle(item)}
+                  aria-pressed={picked}
+                  style={{
+                    padding:'14px 6px',borderRadius:14,
+                    border:`2.5px solid ${picked?T.teal:T.border}`,
+                    background:picked?T.tealL:'#fff',
+                    cursor:'pointer',textAlign:'center',fontFamily:'inherit',
+                  }}>
+                  <div style={{fontSize:'1.7rem',marginBottom:4}} aria-hidden="true">{item.e}</div>
+                  <div style={{fontSize:'0.85rem',fontWeight:700,color:T.navy}}>{item.l}</div>
+                </button>
+              );
+            })}
+          </div>
+          <PrimaryBtn color={T.teal} icon="✓" onClick={finishShopping} disabled={shopSel.length===0}>See my result</PrimaryBtn>
+        </div>
+      </Card>
+    </Screen>
+  );
+
+  if(phase==='result'){
+    return(
+      <Screen player={player} title="Your Result" onBack={onBack} headerColor={T.navy}>
+        <Card>
+          <div style={{padding:'28px 22px'}}>
+            <div style={{
+              background:`linear-gradient(135deg, ${T.navy} 0%, ${T.teal} 100%)`,
+              borderRadius:18, padding:'24px 22px', marginBottom:22, color:'#fff',textAlign:'center',
+            }} role="region" aria-label="Cognitive Age result">
+              <div style={{fontSize:'2.4rem',marginBottom:6}} aria-hidden="true">🧠</div>
+              <div style={{fontSize:'1.1rem',color:'rgba(255,255,255,0.8)',marginBottom:4}}>Your cognitive age is approximately</div>
+              <div style={{fontSize:'3.6rem',fontWeight:800,color:'#6EE7DF',lineHeight:1,fontFamily:'Nunito,sans-serif'}}>{cogAge}</div>
+              <div style={{fontSize:'0.95rem',color:'rgba(255,255,255,0.75)'}}>years</div>
+            </div>
+            <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:22,flexWrap:'wrap'}}>
+              {domainScores&&[
+                ['Working memory',`${Math.round(domainScores.workingMemAcc*100)}%`,T.mint],
+                ['Attention',`${domainScores.reactionTimeSec}s avg`,T.teal],
+                ['Recall',`${Math.round(domainScores.episodicAcc*100)}%`,T.gold],
+              ].map(([l,v,c])=>(
+                <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 12px',textAlign:'center',flex:'1 1 90px'}}>
+                  <div style={{fontSize:'1.2rem',fontWeight:800,color:c,fontFamily:'Nunito,sans-serif'}}>{v}</div>
+                  <div style={{fontSize:'0.8rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:'14px 18px',fontSize:'0.92rem',color:T.textM,lineHeight:1.6,marginBottom:22}}>
+              This is an informal, self-comparison estimate against typical scores for your age group — not a clinical or diagnostic result. Keep training daily to track your trend over time.
+            </div>
+            <div style={{display:'flex',gap:12}}>
+              <SecondaryBtn icon="↺" onClick={()=>{setOddResults([]);setChainCorrect(0);setPhase('intro');}}>Test again</SecondaryBtn>
+              <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+            </div>
+          </div>
+        </Card>
+      </Screen>
+    );
+  }
+  return null;
+}
+
+/* ─────────────────────────────────────────────────────────────────
    APP ROUTER
 ───────────────────────────────────────────────────────────────── */
 function App(){
@@ -2160,6 +2559,7 @@ function App(){
     chain:   <NumberChain  player={player} onBack={()=>setScreen('menu')}/>,
     pairs:   <MatchingPairs player={player} onBack={()=>setScreen('menu')}/>,
     route:   <TheRoute     player={player} onBack={()=>setScreen('menu')}/>,
+    cogtest: <CognitiveAgeTest player={player} onBack={()=>setScreen('menu')}/>,
   };
   return games[screen]||<Menu player={player} authUser={authUser} onPlay={id=>setScreen(id)}/>;
 }
