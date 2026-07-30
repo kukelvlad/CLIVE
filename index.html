@@ -259,7 +259,6 @@ async function logCognitiveTest(cognitiveAge, domainScores){
 function PrimaryBtn({children,onClick,disabled,color,icon,style={}}){
   const [pressed,setPressed]=useState(false);
   const bg = disabled ? T.disabled : (color||T.navy);
-  const hovered = pressed && !disabled;
   return(
     <button
       onClick={!disabled?onClick:undefined}
@@ -269,20 +268,20 @@ function PrimaryBtn({children,onClick,disabled,color,icon,style={}}){
       onTouchEnd={()=>setPressed(false)}
       aria-disabled={disabled}
       style={{
-        display:'flex', alignItems:'center', justifyContent:'center', gap:10,
-        width:'100%', minHeight:60, padding:'14px 24px',
-        background: hovered ? T.navyL : bg,
-        color:'#fff', fontSize:'1.2rem', fontWeight:700,
-        borderRadius:14, border:'none', cursor:disabled?'not-allowed':'pointer',
-        fontFamily:'Fraunces,Georgia,serif',
+        display:'flex', alignItems:'center', justifyContent:'center', gap:12,
+        width:'100%', minHeight:64, padding:'0 32px',
+        background: bg,
+        color:'#fff', fontSize:'1.1rem', fontWeight:600,
+        borderRadius:T.rXl, border:'none', cursor:disabled?'not-allowed':'pointer',
+        fontFamily:'Atkinson Hyperlegible,sans-serif',
         transform: pressed&&!disabled ? 'scale(0.98)' : 'scale(1)',
-        transition:'background 0.15s, transform 0.1s',
-        boxShadow: disabled ? 'none' : '0 3px 8px rgba(0,0,0,0.18)',
+        transition:'transform 0.12s, box-shadow 0.2s',
+        boxShadow: disabled ? 'none' : T.shadow1,
         opacity: disabled ? 0.65 : 1,
-        letterSpacing: 0.3,
+        letterSpacing: 0,
         ...style
       }}>
-      {icon&&<span aria-hidden="true" style={{fontSize:'1.4rem'}}>{icon}</span>}
+      {icon&&<span aria-hidden="true" style={{fontSize:'1.3rem'}}>{icon}</span>}
       {children}
     </button>
   );
@@ -297,17 +296,17 @@ function SecondaryBtn({children,onClick,icon,style={}}){
       onMouseDown={()=>setPressed(true)} onMouseUp={()=>setPressed(false)}
       onTouchStart={()=>setPressed(true)} onTouchEnd={()=>setPressed(false)}
       style={{
-        display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-        width:'100%', minHeight:56, padding:'12px 20px',
+        display:'flex', alignItems:'center', justifyContent:'center', gap:10,
+        width:'100%', minHeight:64, padding:'0 32px',
         background: pressed ? T.tealL : T.surface,
-        color: T.teal, fontSize:'1.15rem', fontWeight:700,
-        borderRadius:14, border:`2.5px solid ${T.teal}`, cursor:'pointer',
-        fontFamily:'Fraunces,Georgia,serif',
+        color: T.navy, fontSize:'1.05rem', fontWeight:600,
+        borderRadius:T.rXl, border:`1.5px solid ${T.border}`, cursor:'pointer',
+        fontFamily:'Atkinson Hyperlegible,sans-serif',
         transform: pressed ? 'scale(0.98)' : 'scale(1)',
         transition:'all 0.12s',
         ...style
       }}>
-      {icon&&<span aria-hidden="true" style={{fontSize:'1.3rem'}}>{icon}</span>}
+      {icon&&<span aria-hidden="true" style={{fontSize:'1.2rem'}}>{icon}</span>}
       {children}
     </button>
   );
@@ -317,53 +316,56 @@ function SecondaryBtn({children,onClick,icon,style={}}){
    SHARED: SCREEN WRAPPER — sticky header with large back button
 ───────────────────────────────────────────────────────────────── */
 function Screen({player,title,subtitle,onBack,children,headerColor}){
+  const accent = headerColor||T.navy;
   return(
     <div style={{minHeight:'100vh',background:T.bg,display:'flex',flexDirection:'column'}}>
-      {/* Header — 72px tall, sticky */}
+      {/* Header — light top app bar, sticky */}
       <header
         role="banner"
         style={{
-          background: headerColor||T.navy,
-          minHeight:72, padding:'0 20px',
+          background: T.surface,
+          minHeight:64, padding:'0 20px',
           display:'flex', alignItems:'center', justifyContent:'space-between',
           position:'sticky', top:0, zIndex:100,
-          boxShadow:'0 2px 8px rgba(0,0,0,0.2)',
+          borderBottom:`1px solid ${T.borderLight}`,
+          boxShadow:T.shadow1,
           flexShrink:0,
         }}>
-        {/* Back button — minimum 56px touch target */}
+        {/* Back button — minimum 52px touch target */}
         <button
           onClick={onBack}
           aria-label="Back to menu"
           style={{
-            minWidth:56, minHeight:56, padding:'10px 14px',
-            background:'rgba(255,255,255,0.12)',
-            border:'2px solid rgba(255,255,255,0.3)',
-            borderRadius:12, color:'#fff',
-            fontSize:'1rem', fontWeight:700,
-            cursor:'pointer', fontFamily:'Fraunces,Georgia,serif',
+            minWidth:52, minHeight:52, padding:'8px 12px',
+            background:'transparent',
+            border:'none',
+            borderRadius:T.rMd, color:T.navy,
+            fontSize:'0.95rem', fontWeight:600,
+            cursor:'pointer', fontFamily:'Atkinson Hyperlegible,sans-serif',
             display:'flex', alignItems:'center', gap:6,
           }}>
-          <span aria-hidden="true" style={{fontSize:'1.3rem'}}>←</span>
-          <span style={{fontSize:'0.95rem'}}>Menu</span>
+          <span aria-hidden="true" style={{fontSize:'1.3rem',color:accent}}>←</span>
+          <span>Menu</span>
         </button>
 
         {/* Title block */}
         <div style={{textAlign:'center',flex:1,padding:'0 8px'}}>
-          <div style={{color:'#fff',fontWeight:800,fontSize:'1.05rem',fontFamily:'Fraunces,Georgia,serif',lineHeight:1.2}}>
+          <div style={{color:T.navy,fontWeight:600,fontSize:'1.05rem',fontFamily:'Fraunces,Georgia,serif',lineHeight:1.2}}>
             {title}
           </div>
-          {subtitle&&<div style={{color:'rgba(255,255,255,0.75)',fontSize:'0.85rem',marginTop:2}}>{subtitle}</div>}
+          {subtitle&&<div style={{color:accent,fontSize:'0.78rem',fontWeight:700,textTransform:'uppercase',letterSpacing:0.5,marginTop:2}}>{subtitle}</div>}
         </div>
 
         {/* Player badge */}
         <div style={{
-          minWidth:56, minHeight:56, display:'flex', flexDirection:'column',
+          minWidth:52, minHeight:52, display:'flex', flexDirection:'column',
           alignItems:'center', justifyContent:'center',
         }}>
-          <div style={{fontSize:'1.6rem',lineHeight:1}}>{player.gender==='female'?'👩':'👨'}</div>
-          <div style={{color:'rgba(255,255,255,0.8)',fontSize:'0.72rem',fontWeight:600,marginTop:2,maxWidth:52,textAlign:'center',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>
-            {player.name}
-          </div>
+          <div style={{
+            width:34,height:34,borderRadius:'50%',background:accent+'22',
+            display:'flex',alignItems:'center',justifyContent:'center',
+            fontWeight:700,color:accent,fontSize:'0.9rem',fontFamily:'Fraunces,Georgia,serif',
+          }} aria-hidden="true">{(player.name||'?').trim()[0]?.toUpperCase()}</div>
         </div>
       </header>
 
@@ -381,13 +383,13 @@ function Screen({player,title,subtitle,onBack,children,headerColor}){
 function Card({children,style={},accent}){
   return(
     <div style={{
-      background:T.surface, borderRadius:20, overflow:'hidden',
-      boxShadow:'0 3px 14px rgba(13,43,78,0.11)',
-      border:`1px solid rgba(155,180,197,0.4)`,
+      background:T.surface, borderRadius:T.rLg, overflow:'hidden',
+      boxShadow:T.shadow1,
+      border:`1px solid ${T.borderLight}`,
       animation:'fadeUp 0.4s ease both',
       ...style
     }}>
-      {accent&&<div style={{height:6,background:accent,width:'100%'}}/>}
+      {accent&&<div style={{height:4,background:accent,width:'100%'}}/>}
       {children}
     </div>
   );
@@ -865,10 +867,10 @@ function Menu({player,authUser,onPlay}){
         {/* Today's session — hero card */}
         <div style={{
           background:T.surface,borderRadius:T.rXl,overflow:'hidden',marginBottom:20,
-          boxShadow:T.shadow1,border:`1px solid ${T.borderLight}`,
+          boxShadow:T.shadow2,border:`1px solid ${T.borderLight}`,
         }}>
           <div style={{padding:'22px 24px 0'}}>
-            <div style={{fontSize:'0.78rem',fontWeight:700,color:T.textS,textTransform:'uppercase',letterSpacing:1,marginBottom:8}}>Today's session</div>
+            <div style={{fontSize:'0.78rem',fontWeight:700,color:T.textS,letterSpacing:0.5,marginBottom:8}}>Today's session</div>
             <div style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:600,fontSize:'1.4rem',color:T.navy,marginBottom:4}}>{today.title}</div>
             <div style={{fontSize:'0.85rem',fontWeight:700,color:today.color,textTransform:'uppercase',letterSpacing:0.5,marginBottom:16}}>{today.domain}</div>
           </div>
