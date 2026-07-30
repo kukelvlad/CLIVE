@@ -175,6 +175,19 @@
     @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
     @keyframes timerShrink { from{width:100%} to{width:0%} }
     @keyframes correctPop { 0%{transform:scale(1)} 50%{transform:scale(1.1)} 100%{transform:scale(1)} }
+    /* Screen-to-screen transition — calm fade + 8px slide, per Motion & Animation System (Ch.7) */
+    @keyframes screenEnter {
+      from { opacity: 0; transform: translateX(8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    /* Incorrect-answer feedback — small 6px shake, never combined with rotation */
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%     { transform: translateX(-6px); }
+      75%     { transform: translateX(6px); }
+    }
+    /* Critical timer state — opacity-only pulse (no scale, per Motion Accessibility) */
+    @keyframes pulseOpacity { 0%,100%{opacity:1} 50%{opacity:0.55} }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -244,6 +257,14 @@ const T = {
   shadow3:'0 16px 48px rgba(33,74,87,0.14)',
 };
 
+/* Motion tokens — see CLIVE Master Design Spec Ch.7 (Motion & Animation System).
+   Calm, predictable timing; ease-out primary, ease-in-out secondary, linear
+   reserved for progress indicators. No bounce/elastic/back easing anywhere. */
+const MOTION = {
+  instant:100, fast:150, normal:250, slow:400, extended:600, max:800,
+  easeOut:'cubic-bezier(0.16,1,0.3,1)', easeInOut:'ease-in-out', linear:'linear',
+};
+
 function shuffle(arr){return [...arr].sort(()=>Math.random()-0.5);}
 
 /* ─────────────────────────────────────────────────────────────────
@@ -253,6 +274,8 @@ function shuffle(arr){return [...arr].sort(()=>Math.random()-0.5);}
 const ICON_PATHS = {
   // people / gender — identical neutral silhouette, colour differentiates
   person: 'M12 12.5a4.5 4.5 0 100-9 4.5 4.5 0 000 9zm0 1.8c-4.4 0-8 2.3-8 5.2v1.3a1 1 0 001 1h14a1 1 0 001-1v-1.3c0-2.9-3.6-5.2-8-5.2z',
+  // UI / system glyphs
+  alert: 'M12,2a10,10 0 1,0 0,20a10,10 0 1,0 0,-20 M10.9,6.5h2.2v9h-2.2z M10.9,17.3h2.2v2.2h-2.2z',
   // groceries
   milk: 'M9.3 2.2h5.4l1.4 3.3-1.4 1.4V20a1.3 1.3 0 01-1.3 1.3h-2.8A1.3 1.3 0 019.3 20V6.9L7.9 5.5zM8.6 12h6.8v1.6H8.6z',
   bread: 'M4 13.2C4 8.7 7.4 5.5 12 5.5s8 3.2 8 7.7v4.6a1.4 1.4 0 01-1.4 1.4H5.4A1.4 1.4 0 014 17.8zm5-3.6v8M12 8.6v10M15 9.6v8',
@@ -421,7 +444,7 @@ function SecondaryBtn({children,onClick,icon,style={}}){
 function Screen({player,title,subtitle,onBack,children,headerColor}){
   const accent = headerColor||T.navy;
   return(
-    <div style={{height:'100vh',background:T.bg,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+    <div style={{height:'100vh',background:T.bg,display:'flex',flexDirection:'column',overflow:'hidden',animation:`screenEnter ${MOTION.normal}ms ${MOTION.easeOut}`}}>
       {/* Header — light top app bar, sticky */}
       <header
         role="banner"
@@ -501,9 +524,10 @@ function Card({children,style={},accent}){
    SHARED: PROGRESS BAR — large, animated, colour-coded
 ───────────────────────────────────────────────────────────────── */
 function TimerBar({fraction,label}){
+  const critical = fraction<=0.05;
   const color = fraction>0.5?T.teal:fraction>0.25?T.gold:'#C0392B';
   return(
-    <div>
+    <div style={critical?{animation:'pulseOpacity 1s ease-in-out infinite'}:undefined}>
       <div style={{
         height:14, background:'#DDE8EE', borderRadius:8,
         overflow:'hidden', marginBottom:6,
@@ -511,7 +535,7 @@ function TimerBar({fraction,label}){
         <div style={{
           height:'100%', width:`${fraction*100}%`,
           background:color, borderRadius:8,
-          transition:'width 1s linear, background 0.5s',
+          transition:`width 1s ${MOTION.linear}, background 0.5s`,
         }}/>
       </div>
       {label&&<div style={{textAlign:'right',fontSize:'0.9rem',color:T.textS,fontWeight:600}}>{label}</div>}
@@ -544,9 +568,9 @@ function RoundDots({total,current,correct=[]}){
 function ResultHeader({correct,total}){
   const pct=Math.round((correct/total)*100);
   const [msg,color]=
-    pct===100 ? ['Perfect!',T.success] :
-    pct>=70   ? ['Well done!',T.teal] :
-                ['Good effort!',T.gold];
+    pct===100 ? ['Excellent accuracy',T.success] :
+    pct>=70   ? ['Well done',T.teal] :
+                ['Good effort',T.gold];
   return(
     <div style={{textAlign:'center',marginBottom:24}}>
       <div style={{
@@ -678,6 +702,7 @@ function Onboarding({onDone}){
       height:'100vh', background:T.bg,
       display:'flex', alignItems:'center', justifyContent:'center',
       padding:'16px', overflowY:'auto',
+      animation:`screenEnter ${MOTION.normal}ms ${MOTION.easeOut}`,
     }}>
       <div style={{
         background:T.surface, borderRadius:T.rXl, padding:'clamp(18px,3.5vw,32px)',
@@ -736,7 +761,7 @@ function Onboarding({onDone}){
   /* ── Confirmation screen ── */
   if(step===2){
     return(
-      <div style={{height:'100vh',background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px',overflowY:'auto'}}>
+      <div style={{height:'100vh',background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px',overflowY:'auto',animation:`screenEnter ${MOTION.normal}ms ${MOTION.easeOut}`}}>
         <div style={{background:T.surface,borderRadius:T.rXl,padding:'clamp(24px,5vw,40px)',width:'100%',maxWidth:460,boxShadow:T.shadow2,animation:'fadeUp 0.5s ease',textAlign:'center'}}>
           <div style={{width:76,height:76,borderRadius:'50%',background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontWeight:700,color:T.teal,fontSize:'1.9rem',fontFamily:'Fraunces,Georgia,serif'}} aria-hidden="true">
             {name.trim()[0]?.toUpperCase()}
@@ -791,6 +816,8 @@ function Onboarding({onDone}){
               placeholder="e.g. Margaret"
               value={name}
               autoComplete="given-name"
+              aria-invalid={!!errors.name}
+              aria-describedby={errors.name?'name-error':undefined}
               onChange={e=>{setName(e.target.value);setErrors(ev=>({...ev,name:''}));}}
               style={{
                 width:'100%', minHeight:56, padding:'12px 16px',
@@ -802,18 +829,18 @@ function Onboarding({onDone}){
               }}
             />
             {errors.name&&(
-              <div role="alert" style={{marginTop:6,fontSize:'0.92rem',color:T.error,fontWeight:600,display:'flex',gap:6,alignItems:'center'}}>
-                <span aria-hidden="true">⚠️</span> {errors.name}
+              <div id="name-error" role="alert" style={{marginTop:6,fontSize:'0.92rem',color:T.error,fontWeight:600,display:'flex',gap:6,alignItems:'center'}}>
+                <Icon name="alert" size={16} color={T.error} style={{flexShrink:0}}/> {errors.name}
               </div>
             )}
           </div>
 
           {/* GENDER */}
           <div>
-            <div style={{fontSize:'0.95rem',fontWeight:700,color:T.navy,marginBottom:8,textTransform:'uppercase',letterSpacing:0.8}}>
+            <div id="gender-label" style={{fontSize:'0.95rem',fontWeight:700,color:T.navy,marginBottom:8,textTransform:'uppercase',letterSpacing:0.8}}>
               Gender
             </div>
-            <div style={{display:'flex',gap:10}} role="group" aria-label="Gender">
+            <div style={{display:'flex',gap:10}} role="group" aria-labelledby="gender-label" aria-describedby={errors.gender?'gender-error':undefined}>
               {[{v:'female',l:'Female'},{v:'male',l:'Male'}].map(opt=>(
                 <button key={opt.v} type="button"
                   aria-pressed={gender===opt.v}
@@ -831,17 +858,17 @@ function Onboarding({onDone}){
                 </button>
               ))}
             </div>
-            {errors.gender&&<div role="alert" style={{marginTop:6,fontSize:'0.92rem',color:T.error,fontWeight:600,display:'flex',gap:6}}><span aria-hidden="true">⚠️</span>{errors.gender}</div>}
+            {errors.gender&&<div id="gender-error" role="alert" style={{marginTop:6,fontSize:'0.92rem',color:T.error,fontWeight:600,display:'flex',gap:6}}><Icon name="alert" size={16} color={T.error} style={{flexShrink:0}}/>{errors.gender}</div>}
           </div>
         </div>
 
         {/* AGE */}
         <div style={{marginBottom:20}}>
-          <div style={{fontSize:'1rem',fontWeight:700,color:T.navy,marginBottom:10,textTransform:'uppercase',letterSpacing:0.8}}>
+          <div id="age-label" style={{fontSize:'1rem',fontWeight:700,color:T.navy,marginBottom:10,textTransform:'uppercase',letterSpacing:0.8}}>
             Age group
           </div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:8,marginBottom:10}}
-               role="group" aria-label="Age group">
+               role="group" aria-labelledby="age-label" aria-describedby={errors.age?'age-error':undefined}>
             {AGE_GROUPS.map(ag=>(
               <button key={ag.label} type="button"
                 aria-pressed={ageGroup===ag.label&&!ageCustom}
@@ -863,6 +890,8 @@ function Onboarding({onDone}){
             <input type="number" placeholder="e.g. 68" min="18" max="120"
               value={ageCustom}
               aria-label="Enter exact age"
+              aria-invalid={!!errors.age}
+              aria-describedby={errors.age?'age-error':undefined}
               onChange={e=>{setAgeCustom(e.target.value);if(e.target.value)setAgeGroup('');setErrors(ev=>({...ev,age:''}));}}
               style={{
                 flex:1, minHeight:48, padding:'10px 16px',
@@ -872,7 +901,7 @@ function Onboarding({onDone}){
               }}
             />
           </div>
-          {errors.age&&<div role="alert" style={{marginTop:6,fontSize:'0.92rem',color:T.error,fontWeight:600,display:'flex',gap:6}}><span aria-hidden="true">⚠️</span>{errors.age}</div>}
+          {errors.age&&<div id="age-error" role="alert" style={{marginTop:6,fontSize:'0.92rem',color:T.error,fontWeight:600,display:'flex',gap:6}}><Icon name="alert" size={16} color={T.error} style={{flexShrink:0}}/>{errors.age}</div>}
         </div>
 
         <PrimaryBtn icon="→" onClick={()=>{if(validate())setStep(2);}}>Continue</PrimaryBtn>
@@ -958,7 +987,7 @@ function Menu({player,authUser,onPlay}){
   const today = GAMES[new Date().getDate()%GAMES.length];
 
   return(
-    <div style={{height:'100vh',background:T.bg,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+    <div style={{height:'100vh',background:T.bg,display:'flex',flexDirection:'column',overflow:'hidden',animation:`screenEnter ${MOTION.normal}ms ${MOTION.easeOut}`}}>
       {/* Header */}
       <header style={{
         background:T.surface,padding:'0 24px',minHeight:68,
@@ -1092,18 +1121,18 @@ function GameCard({game,index,onPlay}){
    Clinical: Cicerone et al. 2019 — Practice Standard
 ───────────────────────────────────────────────────────────────── */
 const ITEMS=[
-  {id:'milk',   l:'Milk',        e:'🥛'},{id:'bread',  l:'Bread',       e:'🍞'},
-  {id:'eggs',   l:'Eggs',        e:'🥚'},{id:'butter', l:'Butter',      e:'🧈'},
-  {id:'apples', l:'Apples',      e:'🍎'},{id:'tomato', l:'Tomatoes',    e:'🍅'},
-  {id:'cheese', l:'Cheese',      e:'🧀'},{id:'chicken',l:'Chicken',     e:'🍗'},
-  {id:'carrots',l:'Carrots',     e:'🥕'},{id:'potato', l:'Potatoes',    e:'🥔'},
-  {id:'onions', l:'Onions',      e:'🧅'},{id:'yogurt', l:'Yogurt',      e:'🫙'},
-  {id:'coffee', l:'Coffee',      e:'☕'},{id:'tea',    l:'Tea',         e:'🍵'},
-  {id:'sugar',  l:'Sugar',       e:'🍬'},{id:'flour',  l:'Flour',       e:'🌾'},
-  {id:'rice',   l:'Rice',        e:'🍚'},{id:'pasta',  l:'Pasta',       e:'🍝'},
-  {id:'fish',   l:'Fish',        e:'🐟'},{id:'lemons', l:'Lemons',      e:'🍋'},
-  {id:'berry',  l:'Strawberries',e:'🍓'},{id:'banana', l:'Bananas',     e:'🍌'},
-  {id:'orange', l:'Oranges',     e:'🍊'},{id:'grapes', l:'Grapes',      e:'🍇'},
+  {id:'milk',   l:'Milk'},        {id:'bread',  l:'Bread'},
+  {id:'eggs',   l:'Eggs'},        {id:'butter', l:'Butter'},
+  {id:'apples', l:'Apples'},      {id:'tomato', l:'Tomatoes'},
+  {id:'cheese', l:'Cheese'},      {id:'chicken',l:'Chicken'},
+  {id:'carrots',l:'Carrots'},     {id:'potato', l:'Potatoes'},
+  {id:'onions', l:'Onions'},      {id:'yogurt', l:'Yogurt'},
+  {id:'coffee', l:'Coffee'},      {id:'tea',    l:'Tea'},
+  {id:'sugar',  l:'Sugar'},       {id:'flour',  l:'Flour'},
+  {id:'rice',   l:'Rice'},        {id:'pasta',  l:'Pasta'},
+  {id:'fish',   l:'Fish'},        {id:'lemons', l:'Lemons'},
+  {id:'berry',  l:'Strawberries'},{id:'banana', l:'Bananas'},
+  {id:'orange', l:'Oranges'},     {id:'grapes', l:'Grapes'},
 ];
 const SL_LEVELS=[
   {n:1,items:4,secs:10,label:'Warm-up'},
@@ -1174,11 +1203,11 @@ function ShoppingList({player,onBack}){
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
             <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem',marginBottom:14}}>How to play:</div>
             {[
-              ['📋','A shopping list appears on screen'],
-              ['👀',`Study it carefully for ${cfg.secs} seconds`],
-              ['🙈','The list disappears automatically'],
-              ['☑️','Tap all the items you remember'],
-            ].map(([e,t],i)=>(
+              'A shopping list appears on screen',
+              `Study it carefully for ${cfg.secs} seconds`,
+              'The list disappears automatically',
+              'Tap all the items you remember',
+            ].map((t,i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
@@ -1346,7 +1375,7 @@ function ShoppingList({player,onBack}){
             <div style={{textAlign:'center',marginBottom:20}}>
               <div style={{marginBottom:8}}><StarRating stars={stars}/></div>
               <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>
-                Great work, {player.name}!
+                Great work, {player.name}
               </h2>
               <p style={{fontSize:'1.1rem',color:T.textM}}>Shopping List session complete.</p>
             </div>
@@ -1467,10 +1496,10 @@ function FindOdd({player,onBack}){
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Find the Odd One</h2>
           <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Attention & Speed</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
-            A grid of items appears. One item is <strong>different</strong> from all the others. Tap it as quickly as you can!
+            A grid of items appears. One item is <strong>different</strong> from all the others. Tap it when you find it.
           </p>
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
-            {[['👀','Look carefully at every item in the grid'],['⚡','Tap the one that is different'],['⏱','The faster you answer, the better']].map(([e,t],i)=>(
+            {['Look carefully at every item in the grid','Tap the one that is different','Take the time you need'].map((t,i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.mint,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
@@ -1528,18 +1557,20 @@ function FindOdd({player,onBack}){
 
           {answered&&(
             <div style={{animation:'fadeUp 0.3s ease'}}>
-              <div style={{
+              <div role="status" aria-live="polite" style={{
                 background:wasCorrect?T.successL:T.errorL,
                 border:`2px solid ${wasCorrect?T.success:T.error}`,
                 borderRadius:T.rMd,padding:'16px 20px',textAlign:'center',marginBottom:16,
+                animation: wasCorrect?undefined:`shake 0.24s ${MOTION.easeOut}`,
               }}>
                 <div style={{
                   width:40,height:40,borderRadius:'50%',margin:'0 auto 8px',
                   background:wasCorrect?T.success:T.error,
                   display:'flex',alignItems:'center',justifyContent:'center',
+                  animation: wasCorrect?'correctPop 0.35s ease':undefined,
                 }}><span aria-hidden="true" style={{color:'#fff',fontSize:'1.2rem',fontWeight:800}}>{wasCorrect?'✓':'✕'}</span></div>
                 <div style={{fontSize:'1.2rem',fontWeight:700,color:wasCorrect?T.success:T.error}}>
-                  {wasCorrect?`Found it in ${results[results.length-1].timeUsed}s!`:'Not quite'}
+                  {wasCorrect?`Found it in ${results[results.length-1].timeUsed}s`:'Not quite'}
                 </div>
                 {!wasCorrect&&<div style={{fontSize:'1rem',color:T.textS,marginTop:4}}>{current.hint}</div>}
               </div>
@@ -1564,7 +1595,7 @@ function FindOdd({player,onBack}){
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
               <div style={{marginBottom:8}}><StarRating stars={stars}/></div>
-              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}!</h2>
+              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}</h2>
             </div>
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Correct',`${score}/${TOTAL}`,T.navy],['Accuracy',`${pct}%`,T.mint],['Avg time',avgT?`${avgT}s`:'—',T.navy]].map(([l,v,c])=>(
@@ -1658,7 +1689,7 @@ function WhatWasYesterday({player,onBack}){
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Episodic Memory</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Read a short story carefully, then answer questions about what you read from memory.</p>
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
-            {[['📖','Read the story — take your time'],['🙈','Story disappears after 35 seconds'],['❓','Answer questions from memory']].map(([e,t],i)=>(
+            {['Read the story — take your time','Story disappears after 35 seconds','Answer questions from memory'].map((t,i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
@@ -1742,7 +1773,7 @@ function WhatWasYesterday({player,onBack}){
                     }}>
                     <span>{opt}</span>
                     {chosen!==null&&isCorrect&&(
-                      <div aria-label="Correct" style={{width:26,height:26,borderRadius:'50%',background:T.success,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                      <div aria-label="Correct" style={{width:26,height:26,borderRadius:'50%',background:T.success,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,animation:'correctPop 0.35s ease'}}>
                         <span aria-hidden="true" style={{color:'#fff',fontSize:'0.85rem',fontWeight:800}}>✓</span>
                       </div>
                     )}
@@ -1770,7 +1801,7 @@ function WhatWasYesterday({player,onBack}){
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
               <div style={{marginBottom:8}}><StarRating stars={stars}/></div>
-              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}!</h2>
+              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}</h2>
             </div>
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Correct',`${score}/${S.qs.length}`,T.navy],['Score',`${pct}%`,T.teal]].map(([l,v,c])=>(
@@ -1851,7 +1882,7 @@ function NumberChain({player,onBack}){
             Digits will flash one at a time. Remember them in order, then type them back in <strong>reverse order</strong>.
           </p>
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
-            {[['📺','Digits appear one at a time on screen'],['🔄','Enter them in REVERSE order'],['📈','Sequences get longer each round']].map(([e,t],i)=>(
+            {['Digits appear one at a time on screen','Enter them in reverse order','Sequences get longer each round'].map((t,i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.mint,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
@@ -1923,19 +1954,20 @@ function NumberChain({player,onBack}){
           </div>
 
           {feedback&&(
-            <div style={{
+            <div role="status" aria-live="polite" style={{
               background:feedback==='correct'?T.successL:T.errorL,
               border:`2px solid ${feedback==='correct'?T.success:T.error}`,
               borderRadius:T.rMd,padding:'16px 20px',textAlign:'center',marginBottom:16,
-              animation:'fadeUp 0.3s ease',
+              animation: feedback==='correct'?'fadeUp 0.3s ease':`shake 0.24s ${MOTION.easeOut}`,
             }}>
               <div style={{
                 width:40,height:40,borderRadius:'50%',margin:'0 auto 8px',
                 background:feedback==='correct'?T.success:T.error,
                 display:'flex',alignItems:'center',justifyContent:'center',
+                animation: feedback==='correct'?'correctPop 0.35s ease':undefined,
               }}><span aria-hidden="true" style={{color:'#fff',fontSize:'1.2rem',fontWeight:800}}>{feedback==='correct'?'✓':'✕'}</span></div>
               <div style={{fontSize:'1.1rem',fontWeight:700,color:feedback==='correct'?T.success:T.error}}>
-                {feedback==='correct'?'Correct!':'Incorrect'}
+                {feedback==='correct'?'Correct':'Not quite'}
               </div>
               <div style={{fontSize:'0.95rem',color:T.textS,marginTop:4}}>
                 Sequence: {seq.join(' ')} → Reverse: {[...seq].reverse().join(' ')}
@@ -1984,7 +2016,7 @@ function NumberChain({player,onBack}){
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
               <div style={{marginBottom:8}}><StarRating stars={stars}/></div>
-              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}!</h2>
+              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}</h2>
             </div>
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Correct',`${score}/${TOTAL}`,T.navy],['Accuracy',`${pct}%`,T.mint]].map(([l,v,c])=>(
@@ -2071,7 +2103,7 @@ function MatchingPairs({player,onBack}){
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Visual Memory</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>All cards are face down. Flip two at a time and find all {PAIRS} matching pairs using your memory.</p>
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
-            {[['👆','Tap a card to flip it face up'],['🔍','Remember where each image is'],['✅','Match all pairs to finish']].map(([e,t],i)=>(
+            {['Tap a card to flip it face up','Remember where each image is','Match all pairs to finish'].map((t,i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
@@ -2114,6 +2146,7 @@ function MatchingPairs({player,onBack}){
             {cards.map(c=>{
               const isFl=flipped.includes(c.uid)||matched.includes(c.uid);
               const isMa=matched.includes(c.uid);
+              const isMismatch=blocked&&isFl&&!isMa;
               return(
                 <button key={c.uid}
                   aria-label={isFl?c.e:'Hidden card'}
@@ -2121,13 +2154,14 @@ function MatchingPairs({player,onBack}){
                   style={{
                     aspectRatio:'1',
                     borderRadius:T.rMd,
-                    border:`3px solid ${isMa?T.success:isFl?T.teal:T.border}`,
-                    background:isMa?T.successL:isFl?T.tealL:T.navy,
+                    border:`3px solid ${isMismatch?T.error:isMa?T.success:isFl?T.teal:T.border}`,
+                    background:isMismatch?T.errorL:isMa?T.successL:isFl?T.tealL:T.navy,
                     cursor:isFl?'default':'pointer',
                     display:'flex',alignItems:'center',justifyContent:'center',
                     transition:'all 0.2s',fontFamily:'inherit',
+                    animation: isMismatch?`shake 0.24s ${MOTION.easeOut}`:isMa?'correctPop 0.35s ease':undefined,
                   }}>
-                  {isFl&&<Icon name={c.e} size={48} color={isMa?T.success:T.teal}/>}
+                  {isFl&&<Icon name={c.e} size={48} color={isMismatch?T.error:isMa?T.success:T.teal}/>}
                 </button>
               );
             })}
@@ -2145,8 +2179,8 @@ function MatchingPairs({player,onBack}){
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
               <div style={{marginBottom:8}}><StarRating stars={stars}/></div>
-              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}!</h2>
-              <p style={{fontSize:'1.1rem',color:T.textM}}>All {PAIRS} pairs matched!</p>
+              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}</h2>
+              <p style={{fontSize:'1.1rem',color:T.textM}}>All {PAIRS} pairs matched.</p>
             </div>
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Moves',moves,T.navy],['Time',`${elapsed}s`,T.navy],['Pairs',`${PAIRS}/${PAIRS}`,T.teal]].map(([l,v,c])=>(
@@ -2212,8 +2246,8 @@ function TheRoute({player,onBack}){
   function check(){
     const c=T2.correct;
     const ok=path.length===c.length&&path.every((p,i)=>p===c[i]);
-    if(ok){setMsg('Perfect route! You followed all the instructions correctly.');setMsgType('success');setDone(true);}
-    else{setMsg('That route doesn\'t follow all the instructions. Try again!');setMsgType('error');setPath([]);}
+    if(ok){setMsg('You followed all the instructions correctly.');setMsgType('success');setDone(true);}
+    else{setMsg('That route doesn\'t follow all the instructions. Try again.');setMsgType('error');setPath([]);}
   }
 
   useEffect(()=>{ if(phase==='complete') logSession('route', null, 1, 1); },[phase]);
@@ -2225,9 +2259,9 @@ function TheRoute({player,onBack}){
           <div style={{width:80,height:80,borderRadius:'50%',background:T.mint+'1A',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}><Icon name="compass" size={40} color={T.mint}/></div>
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>The Route</h2>
           <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Executive Function</div>
-          <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Plan the correct route on the map, following all the given rules. Think carefully before you tap!</p>
+          <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Plan the correct route on the map, following all the given rules. Take your time before each tap.</p>
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
-            {[['📋','Read all the instructions carefully'],['🗺','Tap locations on the map in order'],['🚫','Avoid any forbidden locations']].map(([e,t],i)=>(
+            {['Read all the instructions carefully','Tap locations on the map in order','Avoid any forbidden locations'].map((t,i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.mint,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
@@ -2328,7 +2362,7 @@ function TheRoute({player,onBack}){
       <Card>
         <div style={{padding:'28px 22px',textAlign:'center'}}>
           <div style={{marginBottom:14}}><StarRating stars={3}/></div>
-          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}!</h2>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}</h2>
           <p style={{fontSize:'1.1rem',color:T.textM,marginBottom:22}}>You planned the correct route successfully.</p>
           <CognitiveAge player={player}/>
           <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`,textAlign:'left'}}>
@@ -2727,8 +2761,10 @@ function App(){
   },[authReady,authUser]);
 
   if(!authReady) return(
-    <div style={{minHeight:'100vh',background:T.navy,display:'flex',alignItems:'center',justifyContent:'center'}}>
-      <div style={{color:'#fff',fontWeight:800,fontSize:'1.6rem',fontFamily:'Fraunces,Georgia,serif',letterSpacing:2}}>🧠 CLIVE</div>
+    <div style={{minHeight:'100vh',background:T.navy,display:'flex',alignItems:'center',justifyContent:'center',animation:`fadeIn ${MOTION.slow}ms ${MOTION.easeOut}`}}
+      role="status" aria-live="polite">
+      <div style={{color:'#fff',fontWeight:600,fontSize:'1.4rem',fontFamily:'Fraunces,Georgia,serif',letterSpacing:4,textTransform:'uppercase'}}>CLIVE</div>
+      <span className="sr-only">Loading CLIVE</span>
     </div>
   );
 
