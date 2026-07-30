@@ -194,6 +194,18 @@
       padding: 0; margin: -1px; overflow: hidden;
       clip: rect(0,0,0,0); border: 0;
     }
+
+    /* Dashboard — single column on narrow screens, two columns on desktop
+       so the whole screen (hero + exercises) fits in one viewport. */
+    .dash-grid { display:flex; flex-direction:column; gap:16px; }
+    .dash-exercises-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; }
+    @media (min-width: 900px) {
+      .dash-grid { display:grid; grid-template-columns: 340px 1fr; gap:22px; align-items:start; }
+      .dash-exercises-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 1200px) {
+      .dash-exercises-grid { grid-template-columns: repeat(3, 1fr); }
+    }
   </style>
 </head>
 <body>
@@ -226,6 +238,57 @@ const T = {
 };
 
 function shuffle(arr){return [...arr].sort(()=>Math.random()-0.5);}
+
+/* ─────────────────────────────────────────────────────────────────
+   SHARED: FLAT ICON SET — replaces emoji throughout the app
+   Single-colour, filled, minimal glyphs (currentColor-driven).
+───────────────────────────────────────────────────────────────── */
+const ICON_PATHS = {
+  // people / gender — identical neutral silhouette, colour differentiates
+  person: 'M12 12.5a4.5 4.5 0 100-9 4.5 4.5 0 000 9zm0 1.8c-4.4 0-8 2.3-8 5.2v1.3a1 1 0 001 1h14a1 1 0 001-1v-1.3c0-2.9-3.6-5.2-8-5.2z',
+  // groceries
+  milk: 'M9.3 2.2h5.4l1.4 3.3-1.4 1.4V20a1.3 1.3 0 01-1.3 1.3h-2.8A1.3 1.3 0 019.3 20V6.9L7.9 5.5zM8.6 12h6.8v1.6H8.6z',
+  bread: 'M4 13.2C4 8.7 7.4 5.5 12 5.5s8 3.2 8 7.7v4.6a1.4 1.4 0 01-1.4 1.4H5.4A1.4 1.4 0 014 17.8zm5-3.6v8M12 8.6v10M15 9.6v8',
+  eggs: 'M9.2 20c-2.5 0-4.5-2.5-4.5-6.2S7 6.5 9.2 6.5s4.5 3.9 4.5 7.3-2 6.2-4.5 6.2zM15.4 17.7c-2 0-3.7-2.2-3.7-5.3s1.9-6.2 3.7-6.2 3.7 2.9 3.7 6.2-1.7 5.3-3.7 5.3z',
+  butter: 'M4 9.5h16a1 1 0 011 1V17a1 1 0 01-1 1H4a1 1 0 01-1-1v-6.5a1 1 0 011-1zM4 13.2h16v1.4H4z',
+  apples: 'M12.4 7.4c.2-1.6 1.3-2.6 2.3-3.1-.3 1.4-.7 2.2-1.6 2.9 3.4.4 5.6 3.2 5.6 6.9 0 4.2-2.9 7.6-6.6 7.6S5.5 18.3 5.5 14.1c0-3.9 2.4-6.8 5.9-6.9z',
+  tomato: 'M12 21c-4 0-6.8-3.3-6.8-7.4S8.3 6.5 12 6.5s6.8 3 6.8 7.1S16 21 12 21zM9 6.9L10.3 9M12 6l0 2.6M15 6.9L13.7 9',
+  cheese: 'M2.8 18.6L12.5 4.3 21.2 18.6a1 1 0 01-.9 1.5H3.7a1 1 0 01-.9-1.5zM9.8 14.8a1 1 0 100-2 1 1 0 000 2zm4.4-1.6a.8.8 0 100-1.6.8.8 0 000 1.6z',
+  chicken: 'M15.6 3.4c2.4 0 4.7 2.2 4.7 5 0 2.3-1.7 4-3.4 4.6l-6.4 7.4a2.3 2.3 0 11-3.4-3.1l6.6-6.9c-1.6-.7-2.3-2.3-1.1-3.9.9-1.3 2.2-3.1 3-3.1z',
+  carrots: 'M10 8.2h4l-1.6 12.4a.7.7 0 01-1.4 0zM12 8V2.6M9.6 8L7.8 4.2M14.4 8l1.8-3.8',
+  potato: 'M12 8.2c3.9 0 6.6 2.6 6.6 5.9s-2.7 5.7-6.6 5.7-6.6-2.4-6.6-5.7S8.1 8.2 12 8.2zm-1.8 3.7a.8.8 0 100 1.6.8.8 0 000-1.6zm4 2a.8.8 0 100 1.6.8.8 0 000-1.6z',
+  onions: 'M12 20.6c-3.9 0-6.5-3.1-6.5-7s2.9-6.9 6.5-6.9 6.5 3 6.5 6.9-2.6 7-6.5 7zM12 6.7c-.6-1.7 0-3.3 1-4.2M9 10.5c.7 1.6.7 5.2 0 7M15 10.5c-.7 1.6-.7 5.2 0 7',
+  yogurt: 'M7.5 7.8h9V9h-9zM6.9 9.6h10.2l-.8 10.6a1.4 1.4 0 01-1.4 1.3H9.1a1.4 1.4 0 01-1.4-1.3z',
+  coffee: 'M4.5 8h12.2v6a6.1 6.1 0 01-6.1 6.1A6.1 6.1 0 014.5 14zM16.7 9.6H18a2.7 2.7 0 010 5.4h-1.3zM9 5.2c0-1 .8-1.2.8-2.1M12.6 5.2c0-1 .8-1.2.8-2.1',
+  tea: 'M4.5 9.2h12.2V14a6.1 6.1 0 01-6.1 6.1A6.1 6.1 0 014.5 14zM10.6 3v6.2M9.2 1.6h2.8v2H9.2z',
+  sugar: 'M4.6 12.5h5.6v5.6H4.6zM13.8 12.5h5.6v5.6h-5.6zM9.2 5.8h5.6v5.6H9.2z',
+  flour: 'M7.3 5h9.4l1 14.4A2 2 0 0115.7 21H8.3a2 2 0 01-2-2.1zM6.6 9.4h10.8v1.5H6.6z',
+  rice: 'M4 12.3h16a8 6.1 0 01-16 0zM9 9.5l1 1.4M12 8.8v1.9M15 9.5l-1 1.4',
+  pasta: 'M4 13.3h16a8 6.1 0 01-16 0zM8 10.4c.9-1.7 2.6-1.7 3.4 0 .9 1.7 2.6 1.7 3.4 0 .9-1.7 2.6-1.7 3.4 0',
+  fish: 'M3.5 12.4c3-3.6 7.6-5.6 12.3-4.3l3.4-2.3v9l-3.4-2.3c-4.7 1.3-9.3-.7-12.3-4.1zM16.3 11.6a.9.9 0 100-1.8.9.9 0 000 1.8z',
+  lemons: 'M12 18.6c-4.4 0-7.4-2.3-7.4-5.6s3-5.6 7.4-5.6 7.4 2.3 7.4 5.6-3 5.6-7.4 5.6zM4 12.6c-.9.2-1.6.5-1.6.8s.7.6 1.6.8M20 12.6c.9.2 1.6.5 1.6.8s-.7.6-1.6.8',
+  berry: 'M12 4.4c2.7 0 4.9 1.4 4.9 3.7 0 5.3-2.5 13-4.9 13S7.1 13.4 7.1 8.1c0-2.3 2.2-3.7 4.9-3.7zM9 4.2l1.6 2.2M15 4.2l-1.6 2.2M9.6 10.4a.6.6 0 100-1.2.6.6 0 000 1.2zM12 12.4a.6.6 0 100-1.2.6.6 0 000 1.2zM14.4 10.4a.6.6 0 100-1.2.6.6 0 000 1.2z',
+  banana: 'M5.2 16.6c2.2 2.3 10.1 3.2 13.1-3.8 1-2.3.9-5-1-6.2.4 3-1.2 6.1-4.3 8.1-3 2-6.2 2.1-7.8 1.9z',
+  orange: 'M12 20.4c-4.1 0-6.9-3.1-6.9-7s3-6.9 6.9-6.9 6.9 3 6.9 6.9-2.8 7-6.9 7zM12 6.5V4.7M10.7 5.4c1-.9 2.1-.9 2.6 0',
+  grapes: 'M12 4.4c-.4-1.1.2-2 1.1-2.5M8.6 8.4a2 2 0 110-4 2 2 0 010 4zM12.6 8.4a2 2 0 110-4 2 2 0 010 4zM7 12a2 2 0 110-4 2 2 0 010 4zM11 12a2 2 0 110-4 2 2 0 010 4zM15 12a2 2 0 110-4 2 2 0 010 4zM9 15.8a2 2 0 110-4 2 2 0 010 4zM13 15.8a2 2 0 110-4 2 2 0 010 4zM11 19.4a2 2 0 110-4 2 2 0 010 4z',
+  // exercise category glyphs
+  cart: 'M2.5 3.5h2.3l.7 3 1.4 7.3a2 2 0 002 1.6h7.7a2 2 0 001.9-1.5l1.6-6a1 1 0 00-1-1.3H6.2M8.7 19.8a1.4 1.4 0 100-2.8 1.4 1.4 0 000 2.8zM16.2 19.8a1.4 1.4 0 100-2.8 1.4 1.4 0 000 2.8z',
+  flashlight: 'M9.3 2h5.4l1 3.2L14 6.7v4.6l1.7 2.3v6.6a1.8 1.8 0 01-1.8 1.8h-3.8a1.8 1.8 0 01-1.8-1.8v-6.6L10 11.3V6.7L8.3 5.2z',
+  notebook: 'M3 5.6C5.3 4.3 8.4 4 12 5.3c3.6-1.3 6.7-1 9 .3v13.1c-2.3-1.3-5.4-1.6-9-.3-3.6-1.3-6.7-1-9 .3zM12 5.3v13.1',
+  numbers: 'M4 9h4v6H4zM10 9h4v6h-4zM16 9h4v6h-4z',
+  palette: 'M12 3C6.9 3 2.8 6.9 2.8 11.7c0 3.6 2.8 5 5 5h1.4a1.6 1.6 0 011.6 1.6c0 .5-.2.9-.5 1.3-.4.5-.1 1.4 1 1.4 5.6 0 9.9-4.4 9.9-9.6C21.2 6.7 17.1 3 12 3zM7 11a1.4 1.4 0 110-2.8A1.4 1.4 0 017 11zm3.4-4a1.4 1.4 0 110-2.8 1.4 1.4 0 010 2.8zm5.2 0a1.4 1.4 0 110-2.8 1.4 1.4 0 010 2.8zm3.4 4a1.4 1.4 0 110-2.8 1.4 1.4 0 010 2.8z',
+  compass: 'M12 2.5a9.5 9.5 0 100 19 9.5 9.5 0 000-19zm3.3 5.9l-2.1 5.4-5.4 2.1 2.1-5.4z',
+  mind: 'M12 3a4.2 4.2 0 00-4 5.6A4.6 4.6 0 006 13a4.6 4.6 0 004.5 4.6v2.4a1.5 1.5 0 003 0v-2.4A4.6 4.6 0 0018 13a4.6 4.6 0 00-2-3.8A4.2 4.2 0 0012 3zM9 12a1 1 0 112 0 1 1 0 01-2 0zm4 0a1 1 0 112 0 1 1 0 01-2 0z',
+};
+function Icon({name,size=28,color='currentColor',style={}}){
+  const d=ICON_PATHS[name];
+  if(!d) return null;
+  return(
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true" style={style}>
+      <path d={d} fillRule="evenodd" clipRule="evenodd"/>
+    </svg>
+  );
+}
 
 /* ─────────────────────────────────────────────────────────────────
    SUPABASE — auth (anonymous → linked) + progress persistence
@@ -318,15 +381,14 @@ function SecondaryBtn({children,onClick,icon,style={}}){
 function Screen({player,title,subtitle,onBack,children,headerColor}){
   const accent = headerColor||T.navy;
   return(
-    <div style={{minHeight:'100vh',background:T.bg,display:'flex',flexDirection:'column'}}>
+    <div style={{height:'100vh',background:T.bg,display:'flex',flexDirection:'column',overflow:'hidden'}}>
       {/* Header — light top app bar, sticky */}
       <header
         role="banner"
         style={{
           background: T.surface,
-          minHeight:64, padding:'0 20px',
+          minHeight:56, padding:'0 20px',
           display:'flex', alignItems:'center', justifyContent:'space-between',
-          position:'sticky', top:0, zIndex:100,
           borderBottom:`1px solid ${T.borderLight}`,
           boxShadow:T.shadow1,
           flexShrink:0,
@@ -370,7 +432,7 @@ function Screen({player,title,subtitle,onBack,children,headerColor}){
       </header>
 
       {/* Content */}
-      <main role="main" style={{flex:1,maxWidth:680,margin:'0 auto',padding:'24px 16px 80px',width:'100%'}}>
+      <main role="main" style={{flex:1,maxWidth:820,margin:'0 auto',padding:'18px 16px 20px',width:'100%',overflowY:'auto'}}>
         {children}
       </main>
     </div>
@@ -557,48 +619,48 @@ function Onboarding({onDone}){
   /* ── Welcome screen ── */
   if(step===0) return(
     <div style={{
-      minHeight:'100vh', background:T.bg,
+      height:'100vh', background:T.bg,
       display:'flex', alignItems:'center', justifyContent:'center',
-      padding:'24px 16px',
+      padding:'16px', overflowY:'auto',
     }}>
       <div style={{
-        background:T.surface, borderRadius:T.rXl, padding:'clamp(24px,5vw,40px)',
-        width:'100%', maxWidth:480,
+        background:T.surface, borderRadius:T.rXl, padding:'clamp(18px,3.5vw,32px)',
+        width:'100%', maxWidth:460,
         boxShadow:T.shadow2, animation:'fadeUp 0.6s ease',
       }}>
         {/* Wordmark */}
-        <div style={{textAlign:'center',marginBottom:20}}>
-          <span style={{color:T.navy,fontWeight:600,fontSize:'1.3rem',fontFamily:'Fraunces,Georgia,serif',letterSpacing:4,textTransform:'uppercase'}}>CLIVE</span>
+        <div style={{textAlign:'center',marginBottom:12}}>
+          <span style={{color:T.navy,fontWeight:600,fontSize:'1.2rem',fontFamily:'Fraunces,Georgia,serif',letterSpacing:4,textTransform:'uppercase'}}>CLIVE</span>
         </div>
 
         {/* Hero illustration */}
-        <div style={{borderRadius:T.rLg,overflow:'hidden',marginBottom:24,background:T.tealL}}>
+        <div style={{borderRadius:T.rLg,overflow:'hidden',marginBottom:16,background:T.tealL,maxHeight:140}}>
           <img src="/assets/illustrations/hero_still_life.webp" alt="" aria-hidden="true"
-            style={{width:'100%',display:'block',objectFit:'cover'}}/>
+            style={{width:'100%',display:'block',objectFit:'cover',maxHeight:140}}/>
         </div>
 
         <h1 style={{
           fontFamily:'Fraunces,Georgia,serif', fontWeight:600,
-          fontSize:'clamp(1.9rem,5vw,2.5rem)', color:T.navy,
-          lineHeight:1.2, marginBottom:14, textAlign:'center',
+          fontSize:'clamp(1.5rem,4vw,2rem)', color:T.navy,
+          lineHeight:1.2, marginBottom:8, textAlign:'center',
         }}>
           Your mind deserves<br/>
           <span style={{color:T.teal}}>daily care.</span>
         </h1>
 
-        <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.75,textAlign:'center',marginBottom:26}}>
+        <p style={{fontSize:'1rem',color:T.textM,lineHeight:1.5,textAlign:'center',marginBottom:16}}>
           CLIVE is a calm, ad-free cognitive training app built for adults 55+,
           grounded in clinically validated methods — not games.
         </p>
 
         {/* Feature pills — no emoji, alternating brand accents */}
-        <div style={{display:'flex',flexWrap:'wrap',gap:10,justifyContent:'center',marginBottom:32}}>
+        <div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center',marginBottom:18}}>
           {['Working Memory','Attention','Executive Function','Episodic Memory'].map((t,i)=>(
             <div key={t} style={{
-              fontSize:'0.95rem',fontWeight:600,
+              fontSize:'0.85rem',fontWeight:600,
               color:i%2===0?T.teal:T.navy,
               background:i%2===0?T.tealL:T.mintL,
-              padding:'8px 16px', borderRadius:T.rFull,
+              padding:'6px 14px', borderRadius:T.rFull,
               border:`1.5px solid ${i%2===0?T.teal:T.mint}33`,
             }}>
               {t}
@@ -608,7 +670,7 @@ function Onboarding({onDone}){
 
         <PrimaryBtn onClick={()=>setStep(1)} icon="→">Get started</PrimaryBtn>
 
-        <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14,lineHeight:1.5}}>
+        <p style={{textAlign:'center',fontSize:'0.78rem',color:T.textS,marginTop:10,lineHeight:1.4}}>
           NICE NG236 (2023) · Cicerone et al. (2019) · CST/NICE · EBRSR
         </p>
       </div>
@@ -618,10 +680,12 @@ function Onboarding({onDone}){
   /* ── Confirmation screen ── */
   if(step===2){
     return(
-      <div style={{minHeight:'100vh',background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px 16px'}}>
-        <div style={{background:T.surface,borderRadius:T.rXl,padding:'clamp(28px,6vw,48px)',width:'100%',maxWidth:480,boxShadow:T.shadow2,animation:'fadeUp 0.5s ease',textAlign:'center'}}>
-          <div style={{fontSize:'4.5rem',marginBottom:14}} aria-hidden="true">{gender==='female'?'👩':'👨'}</div>
-          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'2rem',color:T.navy,marginBottom:10}}>
+      <div style={{height:'100vh',background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px',overflowY:'auto'}}>
+        <div style={{background:T.surface,borderRadius:T.rXl,padding:'clamp(24px,5vw,40px)',width:'100%',maxWidth:460,boxShadow:T.shadow2,animation:'fadeUp 0.5s ease',textAlign:'center'}}>
+          <div style={{width:76,height:76,borderRadius:'50%',background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontWeight:700,color:T.teal,fontSize:'1.9rem',fontFamily:'Fraunces,Georgia,serif'}} aria-hidden="true">
+            {name.trim()[0]?.toUpperCase()}
+          </div>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:600,fontSize:'1.9rem',color:T.navy,marginBottom:10}}>
             Welcome, {name.trim()}!
           </h2>
           <p style={{fontSize:'1.15rem',color:T.textM,lineHeight:1.7,marginBottom:26}}>
@@ -646,89 +710,91 @@ function Onboarding({onDone}){
 
   /* ── Form screen ── */
   return(
-    <div style={{minHeight:'100vh',background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px 16px'}}>
-      <div style={{background:T.surface,borderRadius:T.rXl,padding:'clamp(24px,5vw,44px)',width:'100%',maxWidth:520,boxShadow:T.shadow2,animation:'fadeUp 0.5s ease'}}>
+    <div style={{height:'100vh',background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px',overflowY:'auto'}}>
+      <div style={{background:T.surface,borderRadius:T.rXl,padding:'clamp(20px,4vw,36px)',width:'100%',maxWidth:660,boxShadow:T.shadow2,animation:'fadeUp 0.5s ease'}}>
 
-        <SecondaryBtn onClick={()=>setStep(0)} icon="←" style={{width:'auto',minWidth:120,marginBottom:24}}>Back</SecondaryBtn>
+        <SecondaryBtn onClick={()=>setStep(0)} icon="←" style={{width:'auto',minWidth:110,minHeight:44,marginBottom:14}}>Back</SecondaryBtn>
 
-        <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,marginBottom:6}}>
+        <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:600,fontSize:'1.6rem',color:T.navy,marginBottom:4}}>
           About you
         </h2>
-        <p style={{fontSize:'1rem',color:T.textS,marginBottom:28,lineHeight:1.6}}>
+        <p style={{fontSize:'0.95rem',color:T.textS,marginBottom:16,lineHeight:1.4}}>
           This personalises your training. Your data stays on your device and is never shared.
         </p>
 
-        {/* NAME */}
-        <div style={{marginBottom:26}}>
-          <label htmlFor="name-input" style={{display:'block',fontSize:'1rem',fontWeight:700,color:T.navy,marginBottom:10,textTransform:'uppercase',letterSpacing:0.8}}>
-            Your first name
-          </label>
-          <input
-            id="name-input"
-            ref={nameRef}
-            type="text"
-            placeholder="e.g. Margaret"
-            value={name}
-            autoComplete="given-name"
-            onChange={e=>{setName(e.target.value);setErrors(ev=>({...ev,name:''}));}}
-            style={{
-              width:'100%', padding:'16px 18px',
-              border:`2.5px solid ${errors.name?T.error:T.border}`,
-              borderRadius:T.rMd, fontSize:'1.25rem', color:T.text, outline:'none',
-              fontFamily:'Atkinson Hyperlegible,sans-serif',
-              transition:'border-color 0.2s',
-              background: errors.name ? T.errorL : '#fff',
-            }}
-          />
-          {errors.name&&(
-            <div role="alert" style={{marginTop:8,fontSize:'1rem',color:T.error,fontWeight:600,display:'flex',gap:6,alignItems:'center'}}>
-              <span aria-hidden="true">⚠️</span> {errors.name}
-            </div>
-          )}
-        </div>
+        <div style={{display:'grid',gridTemplateColumns:'1.1fr 1fr',gap:20,marginBottom:16}}>
+          {/* NAME */}
+          <div>
+            <label htmlFor="name-input" style={{display:'block',fontSize:'0.95rem',fontWeight:700,color:T.navy,marginBottom:8,textTransform:'uppercase',letterSpacing:0.8}}>
+              Your first name
+            </label>
+            <input
+              id="name-input"
+              ref={nameRef}
+              type="text"
+              placeholder="e.g. Margaret"
+              value={name}
+              autoComplete="given-name"
+              onChange={e=>{setName(e.target.value);setErrors(ev=>({...ev,name:''}));}}
+              style={{
+                width:'100%', minHeight:56, padding:'12px 16px',
+                border:`2.5px solid ${errors.name?T.error:T.border}`,
+                borderRadius:T.rMd, fontSize:'1.2rem', color:T.text, outline:'none',
+                fontFamily:'Atkinson Hyperlegible,sans-serif',
+                transition:'border-color 0.2s',
+                background: errors.name ? T.errorL : '#fff',
+              }}
+            />
+            {errors.name&&(
+              <div role="alert" style={{marginTop:6,fontSize:'0.92rem',color:T.error,fontWeight:600,display:'flex',gap:6,alignItems:'center'}}>
+                <span aria-hidden="true">⚠️</span> {errors.name}
+              </div>
+            )}
+          </div>
 
-        {/* GENDER */}
-        <div style={{marginBottom:26}}>
-          <div style={{fontSize:'1rem',fontWeight:700,color:T.navy,marginBottom:12,textTransform:'uppercase',letterSpacing:0.8}}>
-            Gender
+          {/* GENDER */}
+          <div>
+            <div style={{fontSize:'0.95rem',fontWeight:700,color:T.navy,marginBottom:8,textTransform:'uppercase',letterSpacing:0.8}}>
+              Gender
+            </div>
+            <div style={{display:'flex',gap:10}} role="group" aria-label="Gender">
+              {[{v:'female',l:'Female'},{v:'male',l:'Male'}].map(opt=>(
+                <button key={opt.v} type="button"
+                  aria-pressed={gender===opt.v}
+                  onClick={()=>{setGender(opt.v);setErrors(ev=>({...ev,gender:''}));}}
+                  style={{
+                    flex:1, minHeight:56, padding:'8px 6px',
+                    border:`2.5px solid ${errors.gender&&!gender?T.error:gender===opt.v?T.teal:T.border}`,
+                    borderRadius:T.rMd, background:gender===opt.v?T.tealL:'#fff',
+                    display:'flex',flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,
+                    cursor:'pointer', color:gender===opt.v?T.teal:T.textM,
+                    transition:'all 0.15s', fontFamily:'Fraunces,Georgia,serif',
+                  }}>
+                  <Icon name="person" size={20} color={gender===opt.v?T.teal:T.textM}/>
+                  <span style={{fontSize:'1rem',fontWeight:700}}>{opt.l}</span>
+                </button>
+              ))}
+            </div>
+            {errors.gender&&<div role="alert" style={{marginTop:6,fontSize:'0.92rem',color:T.error,fontWeight:600,display:'flex',gap:6}}><span aria-hidden="true">⚠️</span>{errors.gender}</div>}
           </div>
-          <div style={{display:'flex',gap:14}} role="group" aria-label="Gender">
-            {[{v:'female',l:'Female',e:'👩'},{v:'male',l:'Male',e:'👨'}].map(opt=>(
-              <button key={opt.v} type="button"
-                aria-pressed={gender===opt.v}
-                onClick={()=>{setGender(opt.v);setErrors(ev=>({...ev,gender:''}));}}
-                style={{
-                  flex:1, minHeight:72, padding:'14px 8px',
-                  border:`2.5px solid ${errors.gender&&!gender?T.error:gender===opt.v?T.teal:T.border}`,
-                  borderRadius:T.rMd, background:gender===opt.v?T.tealL:'#fff',
-                  display:'flex',flexDirection:'column',alignItems:'center',gap:6,
-                  cursor:'pointer', color:gender===opt.v?T.teal:T.textM,
-                  transition:'all 0.15s', fontFamily:'Fraunces,Georgia,serif',
-                }}>
-                <span style={{fontSize:'2rem'}} aria-hidden="true">{opt.e}</span>
-                <span style={{fontSize:'1.05rem',fontWeight:700}}>{opt.l}</span>
-              </button>
-            ))}
-          </div>
-          {errors.gender&&<div role="alert" style={{marginTop:8,fontSize:'1rem',color:T.error,fontWeight:600,display:'flex',gap:6}}><span aria-hidden="true">⚠️</span>{errors.gender}</div>}
         </div>
 
         {/* AGE */}
-        <div style={{marginBottom:32}}>
-          <div style={{fontSize:'1rem',fontWeight:700,color:T.navy,marginBottom:12,textTransform:'uppercase',letterSpacing:0.8}}>
+        <div style={{marginBottom:20}}>
+          <div style={{fontSize:'1rem',fontWeight:700,color:T.navy,marginBottom:10,textTransform:'uppercase',letterSpacing:0.8}}>
             Age group
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:14}}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:8,marginBottom:10}}
                role="group" aria-label="Age group">
             {AGE_GROUPS.map(ag=>(
               <button key={ag.label} type="button"
                 aria-pressed={ageGroup===ag.label&&!ageCustom}
                 onClick={()=>{setAgeGroup(ag.label);setAgeCustom('');setErrors(ev=>({...ev,age:''}));}}
                 style={{
-                  minHeight:56, padding:'12px 6px',
+                  minHeight:48, padding:'8px 4px',
                   border:`2.5px solid ${errors.age&&!finalAge?T.error:ageGroup===ag.label&&!ageCustom?T.teal:T.border}`,
                   borderRadius:12, background:ageGroup===ag.label&&!ageCustom?T.tealL:'#fff',
-                  fontSize:'1.1rem',fontWeight:700,
+                  fontSize:'0.95rem',fontWeight:700,
                   color:ageGroup===ag.label&&!ageCustom?T.teal:T.textM,
                   cursor:'pointer', transition:'all 0.15s',fontFamily:'Fraunces,Georgia,serif',
                 }}>
@@ -737,20 +803,20 @@ function Onboarding({onDone}){
             ))}
           </div>
           <div style={{display:'flex',alignItems:'center',gap:12}}>
-            <span style={{fontSize:'1rem',color:T.textS,whiteSpace:'nowrap',fontWeight:600}}>Exact age:</span>
+            <span style={{fontSize:'0.95rem',color:T.textS,whiteSpace:'nowrap',fontWeight:600}}>Exact age:</span>
             <input type="number" placeholder="e.g. 68" min="18" max="120"
               value={ageCustom}
               aria-label="Enter exact age"
               onChange={e=>{setAgeCustom(e.target.value);if(e.target.value)setAgeGroup('');setErrors(ev=>({...ev,age:''}));}}
               style={{
-                flex:1, padding:'14px 16px',
+                flex:1, minHeight:48, padding:'10px 16px',
                 border:`2.5px solid ${ageCustom?T.teal:T.border}`,
-                borderRadius:12, fontSize:'1.2rem', color:T.text, outline:'none',
+                borderRadius:12, fontSize:'1.1rem', color:T.text, outline:'none',
                 textAlign:'center', fontFamily:'Atkinson Hyperlegible,sans-serif',
               }}
             />
           </div>
-          {errors.age&&<div role="alert" style={{marginTop:8,fontSize:'1rem',color:T.error,fontWeight:600,display:'flex',gap:6}}><span aria-hidden="true">⚠️</span>{errors.age}</div>}
+          {errors.age&&<div role="alert" style={{marginTop:6,fontSize:'0.92rem',color:T.error,fontWeight:600,display:'flex',gap:6}}><span aria-hidden="true">⚠️</span>{errors.age}</div>}
         </div>
 
         <PrimaryBtn icon="→" onClick={()=>{if(validate())setStep(2);}}>Continue</PrimaryBtn>
@@ -763,12 +829,12 @@ function Onboarding({onDone}){
    MENU / DASHBOARD
 ───────────────────────────────────────────────────────────────── */
 const GAMES=[
-  {id:'shopping', e:'🛒', title:'Shopping List',    domain:'Working Memory',          color:T.teal,  desc:'Study a list, then recall the items from memory.'},
-  {id:'odd',      e:'🔦', title:'Find the Odd One', domain:'Attention & Speed',        color:T.mint,  desc:'Spot the one item that is different from the rest.'},
-  {id:'yesterday',e:'🗓️', title:'Story & Recall',   domain:'Episodic Memory',          color:T.teal,  desc:'Read a short story, then answer questions about it.'},
-  {id:'chain',    e:'🔢', title:'Number Chain',     domain:'Working Memory + Processing',color:T.mint,desc:'See digits one by one, then type them in reverse.'},
-  {id:'pairs',    e:'🎨', title:'Matching Pairs',   domain:'Visual Memory',            color:T.teal,  desc:'Flip cards face-up to find all matching pairs.'},
-  {id:'route',    e:'🧭', title:'The Route',        domain:'Executive Function',        color:T.mint,  desc:'Plan a route on a map while following the rules.'},
+  {id:'shopping', e:'cart',       title:'Shopping List',    domain:'Working Memory',          color:T.teal,  desc:'Study a list, then recall the items from memory.'},
+  {id:'odd',      e:'flashlight', title:'Find the Odd One', domain:'Attention & Speed',        color:T.mint,  desc:'Spot the one item that is different from the rest.'},
+  {id:'yesterday',e:'notebook',   title:'Story & Recall',   domain:'Episodic Memory',          color:T.teal,  desc:'Read a short story, then answer questions about it.'},
+  {id:'chain',    e:'numbers',    title:'Number Chain',     domain:'Working Memory + Processing',color:T.mint,desc:'See digits one by one, then type them in reverse.'},
+  {id:'pairs',    e:'palette',    title:'Matching Pairs',   domain:'Visual Memory',            color:T.teal,  desc:'Flip cards face-up to find all matching pairs.'},
+  {id:'route',    e:'compass',    title:'The Route',        domain:'Executive Function',        color:T.mint,  desc:'Plan a route on a map while following the rules.'},
 ];
 
 function SaveProgressCard({authUser}){
@@ -836,7 +902,7 @@ function Menu({player,authUser,onPlay}){
   const today = GAMES[new Date().getDate()%GAMES.length];
 
   return(
-    <div style={{minHeight:'100vh',background:T.bg,display:'flex',flexDirection:'column'}}>
+    <div style={{height:'100vh',background:T.bg,display:'flex',flexDirection:'column',overflow:'hidden'}}>
       {/* Header */}
       <header style={{
         background:T.surface,padding:'0 24px',minHeight:68,
@@ -851,78 +917,84 @@ function Menu({player,authUser,onPlay}){
         }} aria-hidden="true">{(player.name||'?').trim()[0]?.toUpperCase()}</div>
       </header>
 
-      <main style={{maxWidth:720,margin:'0 auto',padding:'28px 16px 80px',width:'100%'}}>
-        {/* Greeting */}
-        <div style={{marginBottom:24,animation:'fadeUp 0.5s ease'}}>
-          <h1 style={{
-            fontFamily:'Fraunces,Georgia,serif',fontWeight:600,
-            fontSize:'clamp(1.7rem,4vw,2.3rem)',color:T.navy,lineHeight:1.2,marginBottom:6,
-          }}>
-            {time}, {player.name}
-          </h1>
-          <p style={{fontSize:'1.05rem',color:T.textM}}>Consistency today. Confidence tomorrow.</p>
-        </div>
+      <main style={{maxWidth:1160,margin:'0 auto',padding:'18px 16px 20px',width:'100%',flex:1,overflowY:'auto'}}>
+        <div className="dash-grid">
+          {/* LEFT: greeting + today's session + progress + cogtest */}
+          <div>
+            <div style={{marginBottom:14,animation:'fadeUp 0.5s ease'}}>
+              <h1 style={{
+                fontFamily:'Fraunces,Georgia,serif',fontWeight:600,
+                fontSize:'clamp(1.4rem,2.6vw,1.9rem)',color:T.navy,lineHeight:1.2,marginBottom:4,
+              }}>
+                {time}, {player.name}
+              </h1>
+              <p style={{fontSize:'0.95rem',color:T.textM}}>Consistency today. Confidence tomorrow.</p>
+            </div>
 
-        {/* Today's session — hero card */}
-        <div style={{
-          background:T.surface,borderRadius:T.rXl,overflow:'hidden',marginBottom:20,
-          boxShadow:T.shadow2,border:`1px solid ${T.borderLight}`,
-        }}>
-          <div style={{padding:'22px 24px 0'}}>
-            <div style={{fontSize:'0.78rem',fontWeight:700,color:T.textS,letterSpacing:0.5,marginBottom:8}}>Today's session</div>
-            <div style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:600,fontSize:'1.4rem',color:T.navy,marginBottom:4}}>{today.title}</div>
-            <div style={{fontSize:'0.85rem',fontWeight:700,color:today.color,textTransform:'uppercase',letterSpacing:0.5,marginBottom:16}}>{today.domain}</div>
+            {/* Today's session — hero card */}
+            <div style={{
+              background:T.surface,borderRadius:T.rXl,overflow:'hidden',marginBottom:14,
+              boxShadow:T.shadow2,border:`1px solid ${T.borderLight}`,
+            }}>
+              <div style={{padding:'16px 18px 0'}}>
+                <div style={{fontSize:'0.74rem',fontWeight:700,color:T.textS,letterSpacing:0.5,marginBottom:6}}>Today's session</div>
+                <div style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:600,fontSize:'1.2rem',color:T.navy,marginBottom:3}}>{today.title}</div>
+                <div style={{fontSize:'0.78rem',fontWeight:700,color:today.color,textTransform:'uppercase',letterSpacing:0.5,marginBottom:10}}>{today.domain}</div>
+              </div>
+              <img src="/assets/illustrations/dashboard_coastal_path.webp" alt="" aria-hidden="true"
+                style={{width:'100%',display:'block',maxHeight:110,objectFit:'cover'}}/>
+              <div style={{padding:'12px 18px 16px'}}>
+                <PrimaryBtn color={T.navy} icon="→" onClick={()=>onPlay(today.id)} style={{minHeight:52,fontSize:'1rem'}}>Continue session</PrimaryBtn>
+              </div>
+            </div>
+
+            {sessionCount!==null && sessionCount>0 && (
+              <div style={{
+                background:T.surface,borderRadius:T.rLg,padding:'10px 16px',marginBottom:12,
+                border:`1px solid ${T.borderLight}`,display:'flex',alignItems:'center',gap:12,
+              }}>
+                <div style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:600,fontSize:'1.25rem',color:T.navy}}>{sessionCount}</div>
+                <div style={{fontSize:'0.85rem',color:T.textM,fontWeight:600}}>session{sessionCount===1?'':'s'} completed so far</div>
+              </div>
+            )}
+
+            <SaveProgressCard authUser={authUser}/>
+
+            {/* Cognitive age test CTA */}
+            <button onClick={()=>onPlay('cogtest')} style={{
+              width:'100%', textAlign:'left', border:`1.5px solid ${T.mint}55`, cursor:'pointer',
+              padding:'14px 16px', borderRadius:T.rLg,
+              background:T.mintL, display:'flex', gap:12, alignItems:'center', fontFamily:'inherit',
+            }}>
+              <img src="/assets/illustrations/leaf_symbol.webp" alt="" aria-hidden="true" style={{width:30,height:30,objectFit:'contain',flexShrink:0}}/>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:'0.98rem',color:T.navy,fontFamily:'Fraunces,Georgia,serif',marginBottom:1}}>Test Your Cognitive Age</div>
+                <div style={{fontSize:'0.8rem',color:T.textM}}>A ~60-second check-in</div>
+              </div>
+              <span style={{fontSize:'1.2rem',color:T.teal}} aria-hidden="true">→</span>
+            </button>
           </div>
-          <img src="/assets/illustrations/dashboard_coastal_path.webp" alt="" aria-hidden="true"
-            style={{width:'100%',display:'block',maxHeight:180,objectFit:'cover'}}/>
-          <div style={{padding:'18px 24px 22px'}}>
-            <PrimaryBtn color={T.navy} icon="→" onClick={()=>onPlay(today.id)}>Continue session</PrimaryBtn>
+
+          {/* RIGHT: exercises + citation */}
+          <div>
+            <div style={{marginBottom:10,fontFamily:'Fraunces,Georgia,serif',fontWeight:600,fontSize:'1.05rem',color:T.navy}}>Exercises</div>
+            <div className="dash-exercises-grid" style={{marginBottom:14}}>
+              {GAMES.map((g,i)=>(
+                <GameCard key={g.id} game={g} index={i} onPlay={onPlay}/>
+              ))}
+            </div>
+
+            {/* Clinical note */}
+            <div style={{
+              background:T.surface,borderRadius:T.rMd,padding:'12px 16px',
+              border:`1px solid ${T.borderLight}`,textAlign:'center',
+            }}>
+              <p style={{fontSize:'0.78rem',color:T.textS,lineHeight:1.5}}>
+                Grounded in clinically validated cognitive rehabilitation methods.{' '}
+                <strong style={{color:T.textM}}>NICE NG236 · Cicerone et al. (2019) · CST/NICE · EBRSR</strong>
+              </p>
+            </div>
           </div>
-        </div>
-
-        {sessionCount!==null && sessionCount>0 && (
-          <div style={{
-            background:T.surface,borderRadius:T.rLg,padding:'14px 18px',marginBottom:20,
-            border:`1px solid ${T.borderLight}`,display:'flex',alignItems:'center',gap:14,
-          }}>
-            <div style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:600,fontSize:'1.5rem',color:T.navy}}>{sessionCount}</div>
-            <div style={{fontSize:'0.9rem',color:T.textM,fontWeight:600}}>session{sessionCount===1?'':'s'} completed so far</div>
-          </div>
-        )}
-
-        <SaveProgressCard authUser={authUser}/>
-
-        {/* Cognitive age test CTA */}
-        <button onClick={()=>onPlay('cogtest')} style={{
-          width:'100%', textAlign:'left', border:`1.5px solid ${T.mint}55`, cursor:'pointer',
-          padding:'18px 20px', borderRadius:T.rLg, marginBottom:24,
-          background:T.mintL, display:'flex', gap:14, alignItems:'center', fontFamily:'inherit',
-        }}>
-          <img src="/assets/illustrations/leaf_symbol.webp" alt="" aria-hidden="true" style={{width:36,height:36,objectFit:'contain',flexShrink:0}}/>
-          <div style={{flex:1}}>
-            <div style={{fontWeight:700,fontSize:'1.05rem',color:T.navy,fontFamily:'Fraunces,Georgia,serif',marginBottom:2}}>Test Your Cognitive Age</div>
-            <div style={{fontSize:'0.88rem',color:T.textM}}>A ~60-second check-in across memory, attention, and recall</div>
-          </div>
-          <span style={{fontSize:'1.3rem',color:T.teal}} aria-hidden="true">→</span>
-        </button>
-
-        {/* Exercises */}
-        <div style={{marginBottom:14,fontFamily:'Fraunces,Georgia,serif',fontWeight:600,fontSize:'1.15rem',color:T.navy}}>Exercises</div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:14,marginBottom:32}}>
-          {GAMES.map((g,i)=>(
-            <GameCard key={g.id} game={g} index={i} onPlay={onPlay}/>
-          ))}
-        </div>
-
-        {/* Clinical note */}
-        <div style={{
-          background:T.surface,borderRadius:T.rMd,padding:'16px 20px',
-          border:`1px solid ${T.borderLight}`,textAlign:'center',
-        }}>
-          <p style={{fontSize:'0.88rem',color:T.textS,lineHeight:1.6}}>
-            All exercises are grounded in clinically validated cognitive rehabilitation methods.<br/>
-            <strong style={{color:T.textM}}>NICE NG236 (2023) · Cicerone et al. (2019) · CST/NICE · EBRSR 19th Ed.</strong>
-          </p>
         </div>
       </main>
     </div>
@@ -940,20 +1012,20 @@ function GameCard({game,index,onPlay}){
         background:T.surface, borderRadius:T.rLg, overflow:'hidden',
         boxShadow: hov ? T.shadow2 : T.shadow1,
         border:`1px solid ${T.borderLight}`,
-        cursor:'pointer', textAlign:'left', padding:'20px',
+        cursor:'pointer', textAlign:'left', padding:'14px',
         transform: hov ? 'translateY(-2px)' : 'none',
         transition:'all 0.2s', animation:`fadeUp 0.5s ease ${index*60}ms both`,
-        fontFamily:'inherit', display:'flex', gap:14, alignItems:'flex-start',
+        fontFamily:'inherit', display:'flex', gap:10, alignItems:'flex-start',
       }}>
       <div style={{
-        width:52,height:52,borderRadius:T.rMd,
+        width:40,height:40,borderRadius:T.rSm,
         background:game.color+'1A',display:'flex',alignItems:'center',justifyContent:'center',
-        fontSize:'1.6rem',flexShrink:0,
-      }} aria-hidden="true">{game.e}</div>
-      <div style={{flex:1}}>
-        <div style={{fontWeight:600,fontSize:'1.05rem',color:T.navy,marginBottom:2,fontFamily:'Fraunces,Georgia,serif'}}>{game.title}</div>
-        <div style={{fontSize:'0.78rem',fontWeight:700,color:game.color,textTransform:'uppercase',letterSpacing:0.5,marginBottom:6}}>{game.domain}</div>
-        <div style={{fontSize:'0.92rem',color:T.textM,lineHeight:1.5}}>{game.desc}</div>
+        flexShrink:0,
+      }}><Icon name={game.e} size={20} color={game.color}/></div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontWeight:600,fontSize:'0.95rem',color:T.navy,marginBottom:1,fontFamily:'Fraunces,Georgia,serif'}}>{game.title}</div>
+        <div style={{fontSize:'0.7rem',fontWeight:700,color:game.color,textTransform:'uppercase',letterSpacing:0.4,marginBottom:4}}>{game.domain}</div>
+        <div style={{fontSize:'0.82rem',color:T.textM,lineHeight:1.4,display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{game.desc}</div>
       </div>
     </button>
   );
@@ -1038,7 +1110,7 @@ function ShoppingList({player,onBack}){
     <Screen player={player} title="Shopping List" subtitle="Working Memory" onBack={onBack} headerColor={T.teal}>
       <Card accent={T.teal}>
         <div style={{padding:'28px 24px'}}>
-          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🛒</div>
+          <div style={{width:80,height:80,borderRadius:'50%',background:T.teal+'1A',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}><Icon name="cart" size={40} color={T.teal}/></div>
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Shopping List</h2>
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',display:'inline-block',margin:'0 auto 18px',letterSpacing:1,textTransform:'uppercase',width:'100%'}}>Working Memory</div>
 
@@ -1097,7 +1169,7 @@ function ShoppingList({player,onBack}){
                 border:`2px solid ${T.teal}`,
                 animation:`fadeUp 0.4s ease ${i*60}ms both`,
               }}>
-                <span style={{fontSize:'2.4rem'}} aria-hidden="true">{item.e}</span>
+                <Icon name={item.id} size={40} color={T.teal}/>
                 <span style={{fontSize:'1.05rem',fontWeight:700,color:T.navy,textAlign:'center'}}>{item.l}</span>
               </div>
             ))}
@@ -1144,7 +1216,7 @@ function ShoppingList({player,onBack}){
                     cursor:'pointer', position:'relative', transition:'all 0.15s',
                     fontFamily:'inherit',
                   }}>
-                  <span style={{fontSize:'2.2rem'}} aria-hidden="true">{item.e}</span>
+                  <Icon name={item.id} size={36} color={s?T.teal:T.textM}/>
                   <span style={{fontSize:'0.95rem',fontWeight:700,color:T.navy,textAlign:'center'}}>{item.l}</span>
                   {s&&<div style={{position:'absolute',top:6,right:8,width:24,height:24,borderRadius:'50%',background:T.teal,display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <span style={{color:'#fff',fontSize:'0.8rem',fontWeight:800}}>✓</span>
@@ -1182,7 +1254,7 @@ function ShoppingList({player,onBack}){
                       padding:'12px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:5,
                       background:was?T.successL:T.errorL,
                     }}>
-                      <span style={{fontSize:'2rem'}} aria-hidden="true">{item.e}</span>
+                      <Icon name={item.id} size={30} color={was?T.success:T.error}/>
                       <span style={{fontSize:'0.88rem',fontWeight:700,color:T.text,textAlign:'center'}}>{item.l}</span>
                       <div aria-label={was?'Correct':'Missed'} style={{
                         width:22,height:22,borderRadius:'50%',
@@ -1331,7 +1403,7 @@ function FindOdd({player,onBack}){
     <Screen player={player} title="Find the Odd One" subtitle="Attention & Speed" onBack={onBack} headerColor={T.mint}>
       <Card accent={T.mint}>
         <div style={{padding:'28px 24px'}}>
-          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🔦</div>
+          <div style={{width:80,height:80,borderRadius:'50%',background:T.mint+'1A',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}><Icon name="flashlight" size={40} color={T.mint}/></div>
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Find the Odd One</h2>
           <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Attention & Speed</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
@@ -1521,7 +1593,7 @@ function WhatWasYesterday({player,onBack}){
     <Screen player={player} title="Story & Recall" subtitle="Episodic Memory" onBack={onBack} headerColor={T.teal}>
       <Card accent={T.teal}>
         <div style={{padding:'28px 24px'}}>
-          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🗓️</div>
+          <div style={{width:80,height:80,borderRadius:'50%',background:T.teal+'1A',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}><Icon name="notebook" size={40} color={T.teal}/></div>
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Story &amp; Recall</h2>
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Episodic Memory</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Read a short story carefully, then answer questions about what you read from memory.</p>
@@ -1712,7 +1784,7 @@ function NumberChain({player,onBack}){
     <Screen player={player} title="Number Chain" subtitle="Working Memory" onBack={onBack} headerColor={T.mint}>
       <Card accent={T.mint}>
         <div style={{padding:'28px 24px'}}>
-          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🔢</div>
+          <div style={{width:80,height:80,borderRadius:'50%',background:T.mint+'1A',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}><Icon name="numbers" size={40} color={T.mint}/></div>
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Number Chain</h2>
           <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Working Memory + Processing Speed</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
@@ -1934,7 +2006,7 @@ function MatchingPairs({player,onBack}){
     <Screen player={player} title="Matching Pairs" subtitle="Visual Memory" onBack={onBack} headerColor={T.teal}>
       <Card accent={T.teal}>
         <div style={{padding:'28px 24px'}}>
-          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🎨</div>
+          <div style={{width:80,height:80,borderRadius:'50%',background:T.teal+'1A',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}><Icon name="palette" size={40} color={T.teal}/></div>
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Matching Pairs</h2>
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Visual Memory</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>All cards are face down. Flip two at a time and find all {PAIRS} matching pairs using your memory.</p>
@@ -2090,7 +2162,7 @@ function TheRoute({player,onBack}){
     <Screen player={player} title="The Route" subtitle="Executive Function" onBack={onBack} headerColor={T.mint}>
       <Card accent={T.mint}>
         <div style={{padding:'28px 24px'}}>
-          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🧭</div>
+          <div style={{width:80,height:80,borderRadius:'50%',background:T.mint+'1A',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}><Icon name="compass" size={40} color={T.mint}/></div>
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>The Route</h2>
           <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Executive Function</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Plan the correct route on the map, following all the given rules. Think carefully before you tap!</p>
@@ -2336,7 +2408,7 @@ function CognitiveAgeTest({player,onBack}){
     <Screen player={player} title="Cognitive Age Test" subtitle="~60 seconds" onBack={onBack} headerColor={T.navy}>
       <Card accent={T.gold}>
         <div style={{padding:'28px 24px'}}>
-          <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🧠</div>
+          <div style={{width:80,height:80,borderRadius:'50%',background:T.navy+'1A',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}><Icon name="mind" size={40} color={T.navy}/></div>
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Test Your Cognitive Age</h2>
           <div style={{background:'#FCEFCB',borderRadius:100,padding:'6px 18px',textAlign:'center',color:'#9A7B1E',fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>3 quick rounds</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
@@ -2500,7 +2572,7 @@ function CognitiveAgeTest({player,onBack}){
                     background:picked?T.tealL:'#fff',
                     cursor:'pointer',textAlign:'center',fontFamily:'inherit',
                   }}>
-                  <div style={{fontSize:'1.7rem',marginBottom:4}} aria-hidden="true">{item.e}</div>
+                  <div style={{marginBottom:4,display:'flex',justifyContent:'center'}}><Icon name={item.id} size={24} color={picked?T.teal:T.textM}/></div>
                   <div style={{fontSize:'0.85rem',fontWeight:700,color:T.navy}}>{item.l}</div>
                 </button>
               );
