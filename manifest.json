@@ -5,8 +5,8 @@
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0D2B4E",
-  "theme_color": "#0D2B4E",
+  "background_color": "#F8F5EF",
+  "theme_color": "#214A57",
   "lang": "en",
   "categories": ["health", "education", "lifestyle"],
   "icons": [

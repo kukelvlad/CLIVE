@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/((?!manifest.json|sw.js|icon-.*\\.png).*)", "destination": "/index.html" }
+    { "source": "/((?!manifest.json|sw.js|icon-.*\\.png|assets/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {

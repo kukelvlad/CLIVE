@@ -11,7 +11,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes"/>
 
   <!-- Android Chrome theme colour -->
-  <meta name="theme-color" content="#0D2B4E"/>
+  <meta name="theme-color" content="#214A57"/>
 
   <!-- PWA Manifest -->
   <link rel="manifest" href="/manifest.json"/>
@@ -39,7 +39,7 @@
        ═══════════════════════════════════════════════ -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
@@ -54,29 +54,48 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* Colours — WCAG AA contrast ≥4.5:1 on all backgrounds */
-      --navy:        #0D2B4E;   /* primary dark */
-      --navy-light:  #1A3D62;
-      --teal:        #006B7A;   /* darkened for AA contrast on white */
-      --teal-light:  #EAF5F7;
-      --mint:        #00857A;
-      --mint-light:  #E8F7F5;
-      --gold:        #B8620A;   /* darkened amber for contrast */
-      --gold-light:  #FDF3DC;
+      /* Colours — CLIVE Design System v1.0 palette (warm editorial, WCAG AA) */
+      --navy:        #214A57;   /* brand primary */
+      --navy-light:  #2C5A69;   /* primary hover step */
+      --teal:        #6D8A73;   /* brand secondary — muted sage */
+      --teal-light:  #EEF2EA;
+      --mint:        #C5A26C;   /* brand accent — warm gold */
+      --mint-light:  #FBF3E6;
+      --gold:        #C5A26C;   /* alias of accent, kept for compatibility */
+      --gold-light:  #FBF3E6;
       --white:       #FFFFFF;
-      --bg:          #F0F4F8;   /* soft grey-blue, less glare than pure white */
-      --surface:     #FFFFFF;
-      --text:        #1A2B3C;   /* near-black, max legibility */
-      --text-med:    #2D4057;
-      --text-soft:   #4A5E72;
-      --border:      #9BB4C5;   /* high enough contrast to see clearly */
-      --error:       #C0392B;
-      --success:     #1A7A3A;
-      --disabled:    #7A8E9E;
+      --bg:          #F8F5EF;   /* canvas — never pure white */
+      --surface:     #FFFCF8;
+      --text:        #1F2A32;   /* text-primary */
+      --text-med:    #5E6973;   /* text-secondary */
+      --text-soft:   #8B949D;   /* text-tertiary */
+      --border:      #DDD4C8;   /* border-default */
+      --border-light:#ECE4D8;
+      --error:       #C56A62;
+      --success:     #5E8F66;
+      --warning:     #D0A24A;
+      --info:        #6B92C7;
+      --focus:       #8AB9FF;
+      --disabled:    #B8C0C8;
 
-      /* Typography — Atkinson Hyperlegible designed for low vision */
+      /* Radius scale */
+      --radius-xs:   8px;
+      --radius-sm:   12px;
+      --radius-md:   16px;
+      --radius-lg:   24px;
+      --radius-xl:   32px;
+      --radius-2xl:  40px;
+      --radius-full: 999px;
+
+      /* Elevation */
+      --shadow-1:    0 2px 8px rgba(33,74,87,0.06);
+      --shadow-2:    0 8px 24px rgba(33,74,87,0.10);
+      --shadow-3:    0 16px 48px rgba(33,74,87,0.14);
+
+      /* Typography — Atkinson Hyperlegible (body, low-vision friendly) + Fraunces (editorial display) */
       --font:        'Atkinson Hyperlegible', 'Trebuchet MS', sans-serif;
-      --font-ui:     'Nunito', 'Arial Rounded MT Bold', sans-serif;
+      --font-ui:     'Atkinson Hyperlegible', 'Trebuchet MS', sans-serif;
+      --font-display:'Fraunces', Georgia, serif;
 
       /* Sizing — minimum 18px body, 20px+ for interactive elements */
       --text-sm:     1rem;       /* 16px min */
@@ -186,16 +205,24 @@ const { useState, useEffect, useCallback, useRef } = React;
    DESIGN TOKENS (inline styles mirror CSS vars)
 ───────────────────────────────────────────────────────────────── */
 const T = {
-  navy:'#0D2B4E', navyL:'#1A3D62',
-  teal:'#006B7A', tealL:'#EAF5F7',
-  mint:'#00857A', mintL:'#E8F7F5',
-  gold:'#B8620A', goldL:'#FDF3DC',
-  bg:'#F0F4F8', surface:'#FFFFFF',
-  text:'#1A2B3C', textM:'#2D4057', textS:'#4A5E72',
-  border:'#9BB4C5',
-  error:'#C0392B', errorL:'#FDECEA',
-  success:'#1A7A3A', successL:'#E8F7EE',
-  disabled:'#7A8E9E',
+  // CLIVE Design System v1.0 — see design/CLIVE_Master_Design_Specification.md
+  navy:'#214A57', navyL:'#2C5A69',       // brand primary / hover step
+  teal:'#6D8A73', tealL:'#EEF2EA',       // brand secondary — muted sage
+  mint:'#C5A26C', mintL:'#FBF3E6',       // brand accent — warm gold
+  gold:'#C5A26C', goldL:'#FBF3E6',       // alias of accent, kept for compatibility
+  bg:'#F8F5EF', surface:'#FFFCF8',       // canvas / surface (never pure white)
+  text:'#1F2A32', textM:'#5E6973', textS:'#8B949D',
+  border:'#DDD4C8', borderLight:'#ECE4D8',
+  error:'#C56A62', errorL:'#F8EBE9',
+  success:'#5E8F66', successL:'#EAF0E9',
+  warning:'#D0A24A', info:'#6B92C7', focus:'#8AB9FF',
+  disabled:'#B8C0C8',
+  // radius scale
+  rXs:8, rSm:12, rMd:16, rLg:24, rXl:32, r2xl:40, rFull:999,
+  // elevation
+  shadow1:'0 2px 8px rgba(33,74,87,0.06)',
+  shadow2:'0 8px 24px rgba(33,74,87,0.10)',
+  shadow3:'0 16px 48px rgba(33,74,87,0.14)',
 };
 
 function shuffle(arr){return [...arr].sort(()=>Math.random()-0.5);}
@@ -247,7 +274,7 @@ function PrimaryBtn({children,onClick,disabled,color,icon,style={}}){
         background: hovered ? T.navyL : bg,
         color:'#fff', fontSize:'1.2rem', fontWeight:700,
         borderRadius:14, border:'none', cursor:disabled?'not-allowed':'pointer',
-        fontFamily:'Nunito,sans-serif',
+        fontFamily:'Fraunces,Georgia,serif',
         transform: pressed&&!disabled ? 'scale(0.98)' : 'scale(1)',
         transition:'background 0.15s, transform 0.1s',
         boxShadow: disabled ? 'none' : '0 3px 8px rgba(0,0,0,0.18)',
@@ -275,7 +302,7 @@ function SecondaryBtn({children,onClick,icon,style={}}){
         background: pressed ? T.tealL : T.surface,
         color: T.teal, fontSize:'1.15rem', fontWeight:700,
         borderRadius:14, border:`2.5px solid ${T.teal}`, cursor:'pointer',
-        fontFamily:'Nunito,sans-serif',
+        fontFamily:'Fraunces,Georgia,serif',
         transform: pressed ? 'scale(0.98)' : 'scale(1)',
         transition:'all 0.12s',
         ...style
@@ -313,7 +340,7 @@ function Screen({player,title,subtitle,onBack,children,headerColor}){
             border:'2px solid rgba(255,255,255,0.3)',
             borderRadius:12, color:'#fff',
             fontSize:'1rem', fontWeight:700,
-            cursor:'pointer', fontFamily:'Nunito,sans-serif',
+            cursor:'pointer', fontFamily:'Fraunces,Georgia,serif',
             display:'flex', alignItems:'center', gap:6,
           }}>
           <span aria-hidden="true" style={{fontSize:'1.3rem'}}>←</span>
@@ -322,7 +349,7 @@ function Screen({player,title,subtitle,onBack,children,headerColor}){
 
         {/* Title block */}
         <div style={{textAlign:'center',flex:1,padding:'0 8px'}}>
-          <div style={{color:'#fff',fontWeight:800,fontSize:'1.05rem',fontFamily:'Nunito,sans-serif',lineHeight:1.2}}>
+          <div style={{color:'#fff',fontWeight:800,fontSize:'1.05rem',fontFamily:'Fraunces,Georgia,serif',lineHeight:1.2}}>
             {title}
           </div>
           {subtitle&&<div style={{color:'rgba(255,255,255,0.75)',fontSize:'0.85rem',marginTop:2}}>{subtitle}</div>}
@@ -419,11 +446,11 @@ function ResultHeader({correct,total}){
   return(
     <div style={{textAlign:'center',marginBottom:24}}>
       <div style={{fontSize:'4rem',marginBottom:8,animation:'correctPop 0.5s ease'}}>{emoji}</div>
-      <div style={{fontSize:'2rem',fontWeight:800,color,fontFamily:'Nunito,sans-serif',marginBottom:6}}>{msg}</div>
+      <div style={{fontSize:'2rem',fontWeight:800,color,fontFamily:'Fraunces,Georgia,serif',marginBottom:6}}>{msg}</div>
       <div style={{
         display:'inline-flex',alignItems:'center',gap:6,
         background:color,color:'#fff',borderRadius:100,
-        padding:'8px 24px',fontSize:'1.4rem',fontWeight:700,fontFamily:'Nunito,sans-serif'
+        padding:'8px 24px',fontSize:'1.4rem',fontWeight:700,fontFamily:'Fraunces,Georgia,serif'
       }}>
         {correct}/{total} correct — {pct}%
       </div>
@@ -445,11 +472,11 @@ function CognitiveAge({player}){
       <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:12}}>
         <span style={{fontSize:'2.4rem'}} aria-hidden="true">🧠</span>
         <div style={{flex:1}}>
-          <div style={{fontWeight:800,fontSize:'1.25rem',fontFamily:'Nunito,sans-serif'}}>Your Cognitive Age</div>
+          <div style={{fontWeight:800,fontSize:'1.25rem',fontFamily:'Fraunces,Georgia,serif'}}>Your Cognitive Age</div>
           <div style={{fontSize:'0.9rem',color:'rgba(255,255,255,0.75)'}}>Based on this session</div>
         </div>
         <div style={{textAlign:'right'}}>
-          <div style={{fontSize:'3.2rem',fontWeight:800,color:'#6EE7DF',lineHeight:1,fontFamily:'Nunito,sans-serif'}}>{cogAge}</div>
+          <div style={{fontSize:'3.2rem',fontWeight:800,color:'#6EE7DF',lineHeight:1,fontFamily:'Fraunces,Georgia,serif'}}>{cogAge}</div>
           <div style={{fontSize:'0.85rem',color:'rgba(255,255,255,0.7)'}}>years</div>
         </div>
       </div>
@@ -529,58 +556,51 @@ function Onboarding({onDone}){
   /* ── Welcome screen ── */
   if(step===0) return(
     <div style={{
-      minHeight:'100vh', background:T.navy,
+      minHeight:'100vh', background:T.bg,
       display:'flex', alignItems:'center', justifyContent:'center',
-      padding:'24px 16px', position:'relative', overflow:'hidden',
+      padding:'24px 16px',
     }}>
-      {/* Decorative circles */}
-      <div style={{position:'absolute',top:-80,right:-60,width:300,height:300,borderRadius:'50%',background:'rgba(0,180,166,0.15)',pointerEvents:'none'}}/>
-      <div style={{position:'absolute',bottom:-60,left:-40,width:220,height:220,borderRadius:'50%',background:'rgba(10,126,140,0.2)',pointerEvents:'none'}}/>
-
       <div style={{
-        background:T.surface, borderRadius:28, padding:'clamp(28px,6vw,52px)',
-        width:'100%', maxWidth:500, position:'relative',
-        boxShadow:'0 20px 60px rgba(0,0,0,0.3)', animation:'fadeUp 0.6s ease',
+        background:T.surface, borderRadius:T.rXl, padding:'clamp(24px,5vw,40px)',
+        width:'100%', maxWidth:480,
+        boxShadow:T.shadow2, animation:'fadeUp 0.6s ease',
       }}>
-        {/* Logo */}
-        <div style={{textAlign:'center',marginBottom:28}}>
-          <div style={{
-            display:'inline-flex',alignItems:'center',gap:10,
-            background:T.navy,borderRadius:100,padding:'10px 28px',
-          }}>
-            <span style={{fontSize:'1.8rem'}} aria-hidden="true">🧠</span>
-            <span style={{color:'#fff',fontWeight:800,fontSize:'1.8rem',fontFamily:'Nunito,sans-serif',letterSpacing:3}}>CLIVE</span>
-          </div>
+        {/* Wordmark */}
+        <div style={{textAlign:'center',marginBottom:20}}>
+          <span style={{color:T.navy,fontWeight:600,fontSize:'1.3rem',fontFamily:'Fraunces,Georgia,serif',letterSpacing:4,textTransform:'uppercase'}}>CLIVE</span>
+        </div>
+
+        {/* Hero illustration */}
+        <div style={{borderRadius:T.rLg,overflow:'hidden',marginBottom:24,background:T.tealL}}>
+          <img src="/assets/illustrations/hero_still_life.webp" alt="" aria-hidden="true"
+            style={{width:'100%',display:'block',objectFit:'cover'}}/>
         </div>
 
         <h1 style={{
-          fontFamily:'Nunito,sans-serif', fontWeight:800,
-          fontSize:'clamp(1.8rem,5vw,2.4rem)', color:T.navy,
+          fontFamily:'Fraunces,Georgia,serif', fontWeight:600,
+          fontSize:'clamp(1.9rem,5vw,2.5rem)', color:T.navy,
           lineHeight:1.2, marginBottom:14, textAlign:'center',
         }}>
           Your mind deserves<br/>
           <span style={{color:T.teal}}>daily care.</span>
         </h1>
 
-        <p style={{fontSize:'1.15rem',color:T.textM,lineHeight:1.75,textAlign:'center',marginBottom:26}}>
+        <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.75,textAlign:'center',marginBottom:26}}>
           CLIVE is a calm, ad-free cognitive training app built for adults 55+,
           grounded in clinically validated methods — not games.
         </p>
 
-        {/* Feature pills */}
+        {/* Feature pills — no emoji, alternating brand accents */}
         <div style={{display:'flex',flexWrap:'wrap',gap:10,justifyContent:'center',marginBottom:32}}>
-          {[
-            {e:'🧠','t':'Working Memory'},
-            {e:'👁','t':'Attention'},
-            {e:'🗂','t':'Executive Function'},
-            {e:'🎯','t':'Episodic Memory'},
-          ].map(({e,t})=>(
+          {['Working Memory','Attention','Executive Function','Episodic Memory'].map((t,i)=>(
             <div key={t} style={{
-              display:'flex',alignItems:'center',gap:6,
-              background:T.tealL, color:T.teal, fontSize:'1rem',fontWeight:700,
-              padding:'8px 16px', borderRadius:100, border:`2px solid ${T.teal}`,
+              fontSize:'0.95rem',fontWeight:600,
+              color:i%2===0?T.teal:T.navy,
+              background:i%2===0?T.tealL:T.mintL,
+              padding:'8px 16px', borderRadius:T.rFull,
+              border:`1.5px solid ${i%2===0?T.teal:T.mint}33`,
             }}>
-              <span aria-hidden="true">{e}</span>{t}
+              {t}
             </div>
           ))}
         </div>
@@ -597,10 +617,10 @@ function Onboarding({onDone}){
   /* ── Confirmation screen ── */
   if(step===2){
     return(
-      <div style={{minHeight:'100vh',background:T.navy,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px 16px'}}>
-        <div style={{background:T.surface,borderRadius:28,padding:'clamp(28px,6vw,48px)',width:'100%',maxWidth:480,boxShadow:'0 20px 60px rgba(0,0,0,0.3)',animation:'fadeUp 0.5s ease',textAlign:'center'}}>
+      <div style={{minHeight:'100vh',background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px 16px'}}>
+        <div style={{background:T.surface,borderRadius:T.rXl,padding:'clamp(28px,6vw,48px)',width:'100%',maxWidth:480,boxShadow:T.shadow2,animation:'fadeUp 0.5s ease',textAlign:'center'}}>
           <div style={{fontSize:'4.5rem',marginBottom:14}} aria-hidden="true">{gender==='female'?'👩':'👨'}</div>
-          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'2rem',color:T.navy,marginBottom:10}}>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'2rem',color:T.navy,marginBottom:10}}>
             Welcome, {name.trim()}!
           </h2>
           <p style={{fontSize:'1.15rem',color:T.textM,lineHeight:1.7,marginBottom:26}}>
@@ -625,12 +645,12 @@ function Onboarding({onDone}){
 
   /* ── Form screen ── */
   return(
-    <div style={{minHeight:'100vh',background:T.navy,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px 16px'}}>
-      <div style={{background:T.surface,borderRadius:28,padding:'clamp(24px,5vw,44px)',width:'100%',maxWidth:520,boxShadow:'0 20px 60px rgba(0,0,0,0.3)',animation:'fadeUp 0.5s ease'}}>
+    <div style={{minHeight:'100vh',background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px 16px'}}>
+      <div style={{background:T.surface,borderRadius:T.rXl,padding:'clamp(24px,5vw,44px)',width:'100%',maxWidth:520,boxShadow:T.shadow2,animation:'fadeUp 0.5s ease'}}>
 
         <SecondaryBtn onClick={()=>setStep(0)} icon="←" style={{width:'auto',minWidth:120,marginBottom:24}}>Back</SecondaryBtn>
 
-        <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,marginBottom:6}}>
+        <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,marginBottom:6}}>
           About you
         </h2>
         <p style={{fontSize:'1rem',color:T.textS,marginBottom:28,lineHeight:1.6}}>
@@ -682,7 +702,7 @@ function Onboarding({onDone}){
                   borderRadius:14, background:gender===opt.v?T.tealL:'#fff',
                   display:'flex',flexDirection:'column',alignItems:'center',gap:6,
                   cursor:'pointer', color:gender===opt.v?T.teal:T.textM,
-                  transition:'all 0.15s', fontFamily:'Nunito,sans-serif',
+                  transition:'all 0.15s', fontFamily:'Fraunces,Georgia,serif',
                 }}>
                 <span style={{fontSize:'2rem'}} aria-hidden="true">{opt.e}</span>
                 <span style={{fontSize:'1.05rem',fontWeight:700}}>{opt.l}</span>
@@ -709,7 +729,7 @@ function Onboarding({onDone}){
                   borderRadius:12, background:ageGroup===ag.label&&!ageCustom?T.tealL:'#fff',
                   fontSize:'1.1rem',fontWeight:700,
                   color:ageGroup===ag.label&&!ageCustom?T.teal:T.textM,
-                  cursor:'pointer', transition:'all 0.15s',fontFamily:'Nunito,sans-serif',
+                  cursor:'pointer', transition:'all 0.15s',fontFamily:'Fraunces,Georgia,serif',
                 }}>
                 {ag.label}
               </button>
@@ -771,7 +791,7 @@ function SaveProgressCard({authUser}){
         {status==='sent' ? (
           <div style={{textAlign:'center'}}>
             <div style={{fontSize:'2rem',marginBottom:8}} aria-hidden="true">📬</div>
-            <div style={{fontWeight:800,color:T.navy,fontSize:'1.1rem',marginBottom:6,fontFamily:'Nunito,sans-serif'}}>Check your email</div>
+            <div style={{fontWeight:800,color:T.navy,fontSize:'1.1rem',marginBottom:6,fontFamily:'Fraunces,Georgia,serif'}}>Check your email</div>
             <div style={{color:T.textM,fontSize:'0.98rem'}}>We sent a link to {email.trim()} — tap it to save your progress.</div>
           </div>
         ) : (
@@ -779,7 +799,7 @@ function SaveProgressCard({authUser}){
             <div style={{display:'flex',gap:12,alignItems:'flex-start',marginBottom:14}}>
               <span style={{fontSize:'1.8rem'}} aria-hidden="true">💾</span>
               <div>
-                <div style={{fontWeight:800,color:T.navy,fontSize:'1.1rem',marginBottom:4,fontFamily:'Nunito,sans-serif'}}>Save your progress</div>
+                <div style={{fontWeight:800,color:T.navy,fontSize:'1.1rem',marginBottom:4,fontFamily:'Fraunces,Georgia,serif'}}>Save your progress</div>
                 <div style={{color:T.textM,fontSize:'0.95rem',lineHeight:1.5}}>Get a link by email so your results and daily streak are never lost.</div>
               </div>
             </div>
@@ -816,7 +836,7 @@ function Menu({player,authUser,onPlay}){
       }}>
         <div style={{display:'flex',alignItems:'center',gap:10}}>
           <span style={{fontSize:'1.6rem'}} aria-hidden="true">🧠</span>
-          <span style={{color:'#fff',fontWeight:800,fontSize:'1.4rem',fontFamily:'Nunito,sans-serif',letterSpacing:2}}>CLIVE</span>
+          <span style={{color:'#fff',fontWeight:800,fontSize:'1.4rem',fontFamily:'Fraunces,Georgia,serif',letterSpacing:2}}>CLIVE</span>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:10}}>
           <span style={{fontSize:'1.8rem'}} aria-hidden="true">{player.gender==='female'?'👩':'👨'}</span>
@@ -831,7 +851,7 @@ function Menu({player,authUser,onPlay}){
         {/* Greeting */}
         <div style={{marginBottom:32,animation:'fadeUp 0.5s ease'}}>
           <h1 style={{
-            fontFamily:'Nunito,sans-serif',fontWeight:800,
+            fontFamily:'Fraunces,Georgia,serif',fontWeight:800,
             fontSize:'clamp(1.7rem,4vw,2.4rem)',color:T.navy,lineHeight:1.2,marginBottom:8,
           }}>
             {time}, <span style={{color:T.teal}}>{player.name}.</span>
@@ -853,7 +873,7 @@ function Menu({player,authUser,onPlay}){
           <div style={{padding:'20px 22px',display:'flex',gap:16,alignItems:'center',color:'#fff'}}>
             <span style={{fontSize:'2.4rem'}} aria-hidden="true">🧠</span>
             <div style={{flex:1}}>
-              <div style={{fontWeight:800,fontSize:'1.15rem',fontFamily:'Nunito,sans-serif',marginBottom:2}}>Test Your Cognitive Age</div>
+              <div style={{fontWeight:800,fontSize:'1.15rem',fontFamily:'Fraunces,Georgia,serif',marginBottom:2}}>Test Your Cognitive Age</div>
               <div style={{fontSize:'0.92rem',color:'rgba(255,255,255,0.8)'}}>A ~60-second check-in across memory, attention, and recall</div>
             </div>
             <span style={{fontSize:'1.4rem'}} aria-hidden="true">→</span>
@@ -908,7 +928,7 @@ function GameCard({game,index,onPlay}){
           fontSize:'1.8rem',flexShrink:0,
         }} aria-hidden="true">{game.e}</div>
         <div style={{flex:1}}>
-          <div style={{fontWeight:800,fontSize:'1.1rem',color:T.navy,marginBottom:2,fontFamily:'Nunito,sans-serif'}}>{game.title}</div>
+          <div style={{fontWeight:800,fontSize:'1.1rem',color:T.navy,marginBottom:2,fontFamily:'Fraunces,Georgia,serif'}}>{game.title}</div>
           <div style={{fontSize:'0.85rem',fontWeight:700,color:game.color,textTransform:'uppercase',letterSpacing:0.5,marginBottom:6}}>{game.domain}</div>
           <div style={{fontSize:'0.97rem',color:T.textM,lineHeight:1.5}}>{game.desc}</div>
         </div>
@@ -918,7 +938,7 @@ function GameCard({game,index,onPlay}){
         margin:'0 20px 18px',
         background:game.color,color:'#fff',
         borderRadius:100,padding:'9px 20px',
-        fontSize:'0.95rem',fontWeight:700,fontFamily:'Nunito,sans-serif',
+        fontSize:'0.95rem',fontWeight:700,fontFamily:'Fraunces,Georgia,serif',
         display:'inline-flex',alignItems:'center',gap:6,
       }}>
         <span aria-hidden="true">▶</span> Play
@@ -1007,7 +1027,7 @@ function ShoppingList({player,onBack}){
       <Card accent={T.teal}>
         <div style={{padding:'28px 24px'}}>
           <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🛒</div>
-          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Shopping List</h2>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Shopping List</h2>
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',display:'inline-block',margin:'0 auto 18px',letterSpacing:1,textTransform:'uppercase',width:'100%'}}>Working Memory</div>
 
           {/* How to play — clear step-by-step */}
@@ -1052,7 +1072,7 @@ function ShoppingList({player,onBack}){
             <TimerBar fraction={t/cfg.secs} label={`${t} seconds left`}/>
           </div>
 
-          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.5rem',color:T.navy,textAlign:'center',marginBottom:20}}>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.5rem',color:T.navy,textAlign:'center',marginBottom:20}}>
             Remember these {cfg.items} items:
           </h2>
 
@@ -1083,14 +1103,14 @@ function ShoppingList({player,onBack}){
     <Screen player={player} title={`Round ${round}/${TOTAL} — Recall`} onBack={onBack} headerColor={T.teal}>
       <Card>
         <div style={{padding:'22px 20px'}}>
-          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.5rem',color:T.navy,textAlign:'center',marginBottom:8}}>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.5rem',color:T.navy,textAlign:'center',marginBottom:8}}>
             Which items were on the list?
           </h2>
           {/* Large clear counter */}
           <div style={{textAlign:'center',marginBottom:20}}>
             <div style={{display:'inline-flex',alignItems:'center',gap:8,background:T.bg,borderRadius:100,padding:'8px 22px'}}>
               <span style={{fontSize:'1rem',color:T.textS,fontWeight:600}}>Selected:</span>
-              <span style={{fontSize:'1.3rem',fontWeight:800,color:T.teal,fontFamily:'Nunito,sans-serif'}}>{sel.length} / {cfg.items}</span>
+              <span style={{fontSize:'1.3rem',fontWeight:800,color:T.teal,fontFamily:'Fraunces,Georgia,serif'}}>{sel.length} / {cfg.items}</span>
             </div>
           </div>
 
@@ -1181,7 +1201,7 @@ function ShoppingList({player,onBack}){
               <div style={{fontSize:'2.2rem',marginBottom:8}} aria-label={`${stars} stars`}>
                 {'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}
               </div>
-              <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>
+              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>
                 Great work, {player.name}!
               </h2>
               <p style={{fontSize:'1.1rem',color:T.textM}}>Shopping List session complete.</p>
@@ -1191,7 +1211,7 @@ function ShoppingList({player,onBack}){
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Recalled',score.c,T.navy],['Total',score.tot,T.navy],['Accuracy',`${tp}%`,T.teal]].map(([l,v,c])=>(
                 <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 18px',textAlign:'center',flex:1}}>
-                  <div style={{fontSize:'1.8rem',fontWeight:800,color:c,fontFamily:'Nunito,sans-serif'}}>{v}</div>
+                  <div style={{fontSize:'1.8rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
                   <div style={{fontSize:'0.9rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
                 </div>
               ))}
@@ -1294,7 +1314,7 @@ function FindOdd({player,onBack}){
       <Card accent={T.mint}>
         <div style={{padding:'28px 24px'}}>
           <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🔦</div>
-          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Find the Odd One</h2>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Find the Odd One</h2>
           <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Attention & Speed</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
             A grid of items appears. One item is <strong>different</strong> from all the others. Tap it as quickly as you can!
@@ -1390,12 +1410,12 @@ function FindOdd({player,onBack}){
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
               <div style={{fontSize:'2.2rem',marginBottom:8}} aria-label={`${stars} stars`}>{'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}</div>
-              <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}!</h2>
+              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}!</h2>
             </div>
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Correct',`${score}/${TOTAL}`,T.navy],['Accuracy',`${pct}%`,T.mint],['Avg time',avgT?`${avgT}s`:'—',T.navy]].map(([l,v,c])=>(
                 <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 16px',textAlign:'center',flex:1}}>
-                  <div style={{fontSize:'1.7rem',fontWeight:800,color:c,fontFamily:'Nunito,sans-serif'}}>{v}</div>
+                  <div style={{fontSize:'1.7rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
                   <div style={{fontSize:'0.88rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
                 </div>
               ))}
@@ -1480,7 +1500,7 @@ function WhatWasYesterday({player,onBack}){
       <Card accent={T.teal}>
         <div style={{padding:'28px 24px'}}>
           <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🗓️</div>
-          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Story &amp; Recall</h2>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Story &amp; Recall</h2>
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Episodic Memory</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Read a short story carefully, then answer questions about what you read from memory.</p>
           <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
@@ -1542,7 +1562,7 @@ function WhatWasYesterday({player,onBack}){
               ))}
             </div>
 
-            <h3 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.4rem',color:T.navy,marginBottom:22,lineHeight:1.4}}>
+            <h3 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.4rem',color:T.navy,marginBottom:22,lineHeight:1.4}}>
               {q.q}
             </h3>
 
@@ -1588,12 +1608,12 @@ function WhatWasYesterday({player,onBack}){
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
               <div style={{fontSize:'2.2rem',marginBottom:8}}>{'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}</div>
-              <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}!</h2>
+              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}!</h2>
             </div>
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Correct',`${score}/${S.qs.length}`,T.navy],['Score',`${pct}%`,T.teal]].map(([l,v,c])=>(
                 <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 22px',textAlign:'center',flex:1}}>
-                  <div style={{fontSize:'1.8rem',fontWeight:800,color:c,fontFamily:'Nunito,sans-serif'}}>{v}</div>
+                  <div style={{fontSize:'1.8rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
                   <div style={{fontSize:'0.9rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
                 </div>
               ))}
@@ -1663,7 +1683,7 @@ function NumberChain({player,onBack}){
       <Card accent={T.mint}>
         <div style={{padding:'28px 24px'}}>
           <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🔢</div>
-          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Number Chain</h2>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Number Chain</h2>
           <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Working Memory + Processing Speed</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
             Digits will flash one at a time. Remember them in order, then type them back in <strong>reverse order</strong>.
@@ -1695,7 +1715,7 @@ function NumberChain({player,onBack}){
             {showIdx<seq.length
               ?<div style={{
                   fontSize:'clamp(5rem,15vw,7rem)',fontWeight:800,color:T.navy,
-                  fontFamily:'Nunito,sans-serif',lineHeight:1,
+                  fontFamily:'Fraunces,Georgia,serif',lineHeight:1,
                   animation:'fadeUp 0.3s ease',
                   width:120,height:120,borderRadius:24,
                   background:T.mintL,border:`4px solid ${T.mint}`,
@@ -1733,7 +1753,7 @@ function NumberChain({player,onBack}){
                 border:`3px solid ${input[i]!==undefined?T.mint:T.border}`,
                 background:input[i]!==undefined?T.mintL:'#fff',
                 display:'flex',alignItems:'center',justifyContent:'center',
-                fontSize:'1.6rem',fontWeight:800,color:T.navy,fontFamily:'Nunito,sans-serif',
+                fontSize:'1.6rem',fontWeight:800,color:T.navy,fontFamily:'Fraunces,Georgia,serif',
               }} aria-label={`Position ${i+1}: ${input[i]!==undefined?input[i]:'empty'}`}>
                 {input[i]!==undefined?input[i]:''}
               </div>
@@ -1768,7 +1788,7 @@ function NumberChain({player,onBack}){
                     style={{
                       height:66,fontSize:'1.6rem',fontWeight:800,color:T.navy,
                       background:T.mintL,border:`2.5px solid ${T.border}`,
-                      borderRadius:14,cursor:'pointer',fontFamily:'Nunito,sans-serif',
+                      borderRadius:14,cursor:'pointer',fontFamily:'Fraunces,Georgia,serif',
                       transition:'all 0.1s',
                     }}>
                     {n}
@@ -1777,9 +1797,9 @@ function NumberChain({player,onBack}){
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
                 <button aria-label="0" onClick={()=>tap(0)}
-                  style={{height:66,fontSize:'1.6rem',fontWeight:800,color:T.navy,background:T.mintL,border:`2.5px solid ${T.border}`,borderRadius:14,cursor:'pointer',fontFamily:'Nunito,sans-serif'}}>0</button>
+                  style={{height:66,fontSize:'1.6rem',fontWeight:800,color:T.navy,background:T.mintL,border:`2.5px solid ${T.border}`,borderRadius:14,cursor:'pointer',fontFamily:'Fraunces,Georgia,serif'}}>0</button>
                 <button aria-label="Delete last digit" onClick={()=>setInput(p=>p.slice(0,-1))}
-                  style={{height:66,fontSize:'1.4rem',fontWeight:700,color:T.error,background:'#FDECEA',border:`2.5px solid ${T.error}44`,borderRadius:14,cursor:'pointer',fontFamily:'Nunito,sans-serif'}}>
+                  style={{height:66,fontSize:'1.4rem',fontWeight:700,color:T.error,background:'#FDECEA',border:`2.5px solid ${T.error}44`,borderRadius:14,cursor:'pointer',fontFamily:'Fraunces,Georgia,serif'}}>
                   ⌫ Delete
                 </button>
               </div>
@@ -1798,12 +1818,12 @@ function NumberChain({player,onBack}){
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
               <div style={{fontSize:'2.2rem',marginBottom:8}}>{'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}</div>
-              <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}!</h2>
+              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Well done, {player.name}!</h2>
             </div>
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Correct',`${score}/${TOTAL}`,T.navy],['Accuracy',`${pct}%`,T.mint]].map(([l,v,c])=>(
                 <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 22px',textAlign:'center',flex:1}}>
-                  <div style={{fontSize:'1.8rem',fontWeight:800,color:c,fontFamily:'Nunito,sans-serif'}}>{v}</div>
+                  <div style={{fontSize:'1.8rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
                   <div style={{fontSize:'0.9rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
                 </div>
               ))}
@@ -1881,7 +1901,7 @@ function MatchingPairs({player,onBack}){
       <Card accent={T.teal}>
         <div style={{padding:'28px 24px'}}>
           <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🎨</div>
-          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Matching Pairs</h2>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Matching Pairs</h2>
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Visual Memory</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>All cards are face down. Flip two at a time and find all {PAIRS} matching pairs using your memory.</p>
           <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
@@ -1910,15 +1930,15 @@ function MatchingPairs({player,onBack}){
           {/* Stats bar */}
           <div style={{display:'flex',justifyContent:'space-between',marginBottom:16,background:T.bg,borderRadius:12,padding:'12px 16px'}}>
             <div style={{textAlign:'center'}}>
-              <div style={{fontSize:'1.3rem',fontWeight:800,color:T.teal,fontFamily:'Nunito,sans-serif'}}>{matched.length/2}/{PAIRS}</div>
+              <div style={{fontSize:'1.3rem',fontWeight:800,color:T.teal,fontFamily:'Fraunces,Georgia,serif'}}>{matched.length/2}/{PAIRS}</div>
               <div style={{fontSize:'0.8rem',color:T.textS,fontWeight:600}}>Pairs found</div>
             </div>
             <div style={{textAlign:'center'}}>
-              <div style={{fontSize:'1.3rem',fontWeight:800,color:T.navy,fontFamily:'Nunito,sans-serif'}}>{moves}</div>
+              <div style={{fontSize:'1.3rem',fontWeight:800,color:T.navy,fontFamily:'Fraunces,Georgia,serif'}}>{moves}</div>
               <div style={{fontSize:'0.8rem',color:T.textS,fontWeight:600}}>Moves</div>
             </div>
             <div style={{textAlign:'center'}}>
-              <div style={{fontSize:'1.3rem',fontWeight:800,color:T.navy,fontFamily:'Nunito,sans-serif'}}>{elapsed}s</div>
+              <div style={{fontSize:'1.3rem',fontWeight:800,color:T.navy,fontFamily:'Fraunces,Georgia,serif'}}>{elapsed}s</div>
               <div style={{fontSize:'0.8rem',color:T.textS,fontWeight:600}}>Time</div>
             </div>
           </div>
@@ -1959,13 +1979,13 @@ function MatchingPairs({player,onBack}){
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
               <div style={{fontSize:'2.2rem',marginBottom:8}}>{'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}</div>
-              <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}!</h2>
+              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}!</h2>
               <p style={{fontSize:'1.1rem',color:T.textM}}>All {PAIRS} pairs matched!</p>
             </div>
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Moves',moves,T.navy],['Time',`${elapsed}s`,T.navy],['Pairs',`${PAIRS}/${PAIRS}`,T.teal]].map(([l,v,c])=>(
                 <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 16px',textAlign:'center',flex:1}}>
-                  <div style={{fontSize:'1.7rem',fontWeight:800,color:c,fontFamily:'Nunito,sans-serif'}}>{v}</div>
+                  <div style={{fontSize:'1.7rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
                   <div style={{fontSize:'0.88rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
                 </div>
               ))}
@@ -2037,7 +2057,7 @@ function TheRoute({player,onBack}){
       <Card accent={T.mint}>
         <div style={{padding:'28px 24px'}}>
           <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🧭</div>
-          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>The Route</h2>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>The Route</h2>
           <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Executive Function</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Plan the correct route on the map, following all the given rules. Think carefully before you tap!</p>
           <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
@@ -2061,7 +2081,7 @@ function TheRoute({player,onBack}){
         <div style={{padding:'20px 18px'}}>
           {/* Instructions — clear numbered list */}
           <div style={{background:T.bg,borderRadius:14,padding:'16px 18px',marginBottom:16}}>
-            <div style={{fontWeight:800,fontSize:'1.05rem',color:T.navy,marginBottom:12,fontFamily:'Nunito,sans-serif'}}>Your instructions:</div>
+            <div style={{fontWeight:800,fontSize:'1.05rem',color:T.navy,marginBottom:12,fontFamily:'Fraunces,Georgia,serif'}}>Your instructions:</div>
             {T2.instructions.map((inst,i)=>(
               <div key={i} style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:10}}>
                 <div style={{
@@ -2140,7 +2160,7 @@ function TheRoute({player,onBack}){
       <Card>
         <div style={{padding:'28px 22px',textAlign:'center'}}>
           <div style={{fontSize:'2.2rem',marginBottom:14}}>⭐⭐⭐</div>
-          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}!</h2>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}!</h2>
           <p style={{fontSize:'1.1rem',color:T.textM,marginBottom:22}}>You planned the correct route successfully.</p>
           <CognitiveAge player={player}/>
           <div style={{background:T.mintL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`,textAlign:'left'}}>
@@ -2283,7 +2303,7 @@ function CognitiveAgeTest({player,onBack}){
       <Card accent={T.gold}>
         <div style={{padding:'28px 24px'}}>
           <div style={{fontSize:'4rem',textAlign:'center',marginBottom:12}} aria-hidden="true">🧠</div>
-          <h2 style={{fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Test Your Cognitive Age</h2>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Test Your Cognitive Age</h2>
           <div style={{background:'#FCEFCB',borderRadius:100,padding:'6px 18px',textAlign:'center',color:'#9A7B1E',fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>3 quick rounds</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
             A short check-in combining memory, attention, and recall — done in about a minute.
@@ -2314,7 +2334,7 @@ function CognitiveAgeTest({player,onBack}){
             {chainShowIdx<chainSeq.length
               ?<div style={{
                   fontSize:'clamp(5rem,15vw,7rem)',fontWeight:800,color:T.navy,
-                  fontFamily:'Nunito,sans-serif',lineHeight:1,
+                  fontFamily:'Fraunces,Georgia,serif',lineHeight:1,
                   animation:'fadeUp 0.3s ease',
                   width:120,height:120,borderRadius:24,
                   background:T.mintL,border:`4px solid ${T.mint}`,
@@ -2349,7 +2369,7 @@ function CognitiveAgeTest({player,onBack}){
                 border:`3px solid ${chainInput[i]!==undefined?T.mint:T.border}`,
                 background:chainInput[i]!==undefined?T.mintL:'#fff',
                 display:'flex',alignItems:'center',justifyContent:'center',
-                fontSize:'1.6rem',fontWeight:800,color:T.navy,fontFamily:'Nunito,sans-serif',
+                fontSize:'1.6rem',fontWeight:800,color:T.navy,fontFamily:'Fraunces,Georgia,serif',
               }} aria-label={`Position ${i+1}: ${chainInput[i]!==undefined?chainInput[i]:'empty'}`}>
                 {chainInput[i]!==undefined?chainInput[i]:''}
               </div>
@@ -2363,7 +2383,7 @@ function CognitiveAgeTest({player,onBack}){
                 style={{
                   height:66,fontSize:'1.6rem',fontWeight:800,color:T.navy,
                   background:T.mintL,border:`2.5px solid ${T.border}`,
-                  borderRadius:14,cursor:'pointer',fontFamily:'Nunito,sans-serif',
+                  borderRadius:14,cursor:'pointer',fontFamily:'Fraunces,Georgia,serif',
                 }}>
                 {n}
               </button>
@@ -2469,7 +2489,7 @@ function CognitiveAgeTest({player,onBack}){
             }} role="region" aria-label="Cognitive Age result">
               <div style={{fontSize:'2.4rem',marginBottom:6}} aria-hidden="true">🧠</div>
               <div style={{fontSize:'1.1rem',color:'rgba(255,255,255,0.8)',marginBottom:4}}>Your cognitive age is approximately</div>
-              <div style={{fontSize:'3.6rem',fontWeight:800,color:'#6EE7DF',lineHeight:1,fontFamily:'Nunito,sans-serif'}}>{cogAge}</div>
+              <div style={{fontSize:'3.6rem',fontWeight:800,color:'#6EE7DF',lineHeight:1,fontFamily:'Fraunces,Georgia,serif'}}>{cogAge}</div>
               <div style={{fontSize:'0.95rem',color:'rgba(255,255,255,0.75)'}}>years</div>
             </div>
             <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:22,flexWrap:'wrap'}}>
@@ -2479,7 +2499,7 @@ function CognitiveAgeTest({player,onBack}){
                 ['Recall',`${Math.round(domainScores.episodicAcc*100)}%`,T.gold],
               ].map(([l,v,c])=>(
                 <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 12px',textAlign:'center',flex:'1 1 90px'}}>
-                  <div style={{fontSize:'1.2rem',fontWeight:800,color:c,fontFamily:'Nunito,sans-serif'}}>{v}</div>
+                  <div style={{fontSize:'1.2rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
                   <div style={{fontSize:'0.8rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
                 </div>
               ))}
@@ -2541,7 +2561,7 @@ function App(){
 
   if(!authReady) return(
     <div style={{minHeight:'100vh',background:T.navy,display:'flex',alignItems:'center',justifyContent:'center'}}>
-      <div style={{color:'#fff',fontWeight:800,fontSize:'1.6rem',fontFamily:'Nunito,sans-serif',letterSpacing:2}}>🧠 CLIVE</div>
+      <div style={{color:'#fff',fontWeight:800,fontSize:'1.6rem',fontFamily:'Fraunces,Georgia,serif',letterSpacing:2}}>🧠 CLIVE</div>
     </div>
   );
 
