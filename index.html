@@ -203,6 +203,13 @@
       .dash-grid { display:grid; grid-template-columns: 340px 1fr; gap:22px; align-items:start; }
       .dash-exercises-grid { grid-template-columns: repeat(2, 1fr); }
     }
+
+    /* Onboarding form — name and gender stack on narrow/mobile screens,
+       sit side-by-side only once there's enough room. */
+    .onboard-name-gender { display:flex; flex-direction:column; gap:20px; }
+    @media (min-width: 640px) {
+      .onboard-name-gender { display:grid; grid-template-columns: 1.1fr 1fr; gap:20px; }
+    }
     @media (min-width: 1200px) {
       .dash-exercises-grid { grid-template-columns: repeat(3, 1fr); }
     }
@@ -771,7 +778,7 @@ function Onboarding({onDone}){
           This personalises your training. Your data stays on your device and is never shared.
         </p>
 
-        <div style={{display:'grid',gridTemplateColumns:'1.1fr 1fr',gap:20,marginBottom:16}}>
+        <div className="onboard-name-gender" style={{marginBottom:16}}>
           {/* NAME */}
           <div>
             <label htmlFor="name-input" style={{display:'block',fontSize:'0.95rem',fontWeight:700,color:T.navy,marginBottom:8,textTransform:'uppercase',letterSpacing:0.8}}>
@@ -1513,7 +1520,7 @@ function FindOdd({player,onBack}){
                     transition:'all 0.15s',
                     fontFamily:'inherit',
                   }}>
-                  <Icon name={item.icon} color={item.color} size={38}/>
+                  <Icon name={item.icon} color={item.color} size={64}/>
                 </button>
               );
             })}
@@ -2120,7 +2127,7 @@ function MatchingPairs({player,onBack}){
                     display:'flex',alignItems:'center',justifyContent:'center',
                     transition:'all 0.2s',fontFamily:'inherit',
                   }}>
-                  {isFl&&<Icon name={c.e} size={30} color={isMa?T.success:T.teal}/>}
+                  {isFl&&<Icon name={c.e} size={48} color={isMa?T.success:T.teal}/>}
                 </button>
               );
             })}
