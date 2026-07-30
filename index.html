@@ -353,6 +353,20 @@ function Icon({name,size=28,color='currentColor',style={}}){
   );
 }
 
+/* Hand-painted illustration (warm gouache/watercolor style, matches
+   hero_still_life.webp / dashboard_coastal_path.webp) — used in place of
+   the flat Icon set wherever a game shows an actual product or object. */
+function Illustration({name,size=48,alt='',style={}}){
+  return(
+    <img
+      src={`/assets/illustrations/icons/${name}.webp`}
+      alt={alt}
+      aria-hidden={alt?undefined:'true'}
+      style={{width:size,height:size,objectFit:'contain',display:'block',...style}}
+    />
+  );
+}
+
 /* ─────────────────────────────────────────────────────────────────
    SUPABASE — auth (anonymous → linked) + progress persistence
 ───────────────────────────────────────────────────────────────── */
@@ -1104,9 +1118,9 @@ function GameCard({game,index,onPlay}){
       }}>
       <div style={{
         width:40,height:40,borderRadius:T.rSm,
-        background:game.color+'1A',display:'flex',alignItems:'center',justifyContent:'center',
-        flexShrink:0,
-      }}><Icon name={game.e} size={20} color={game.color}/></div>
+        background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',
+        flexShrink:0,overflow:'hidden',
+      }}><Illustration name={game.e} size={34}/></div>
       <div style={{flex:1,minWidth:0}}>
         <div style={{fontWeight:600,fontSize:'0.95rem',color:T.navy,marginBottom:1,fontFamily:'Fraunces,Georgia,serif'}}>{game.title}</div>
         <div style={{fontSize:'0.7rem',fontWeight:700,color:game.color,textTransform:'uppercase',letterSpacing:0.4,marginBottom:4}}>{game.domain}</div>
@@ -1254,7 +1268,7 @@ function ShoppingList({player,onBack}){
                 border:`2px solid ${T.teal}`,
                 animation:`fadeUp 0.4s ease ${i*60}ms both`,
               }}>
-                <Icon name={item.id} size={40} color={T.teal}/>
+                <Illustration name={item.id} size={56}/>
                 <span style={{fontSize:'1.05rem',fontWeight:700,color:T.navy,textAlign:'center'}}>{item.l}</span>
               </div>
             ))}
@@ -1301,7 +1315,7 @@ function ShoppingList({player,onBack}){
                     cursor:'pointer', position:'relative', transition:'all 0.15s',
                     fontFamily:'inherit',
                   }}>
-                  <Icon name={item.id} size={36} color={s?T.teal:T.textM}/>
+                  <Illustration name={item.id} size={48} style={{opacity:s?1:0.85}}/>
                   <span style={{fontSize:'0.95rem',fontWeight:700,color:T.navy,textAlign:'center'}}>{item.l}</span>
                   {s&&<div style={{position:'absolute',top:6,right:8,width:24,height:24,borderRadius:'50%',background:T.teal,display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <span style={{color:'#fff',fontSize:'0.8rem',fontWeight:800}}>✓</span>
@@ -1339,7 +1353,7 @@ function ShoppingList({player,onBack}){
                       padding:'12px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:5,
                       background:was?T.successL:T.errorL,
                     }}>
-                      <Icon name={item.id} size={30} color={was?T.success:T.error}/>
+                      <Illustration name={item.id} size={40}/>
                       <span style={{fontSize:'0.88rem',fontWeight:700,color:T.text,textAlign:'center'}}>{item.l}</span>
                       <div aria-label={was?'Correct':'Missed'} style={{
                         width:22,height:22,borderRadius:'50%',
@@ -1446,6 +1460,11 @@ const ODD_SETS=[
   mkOddSet('note',T.navy,'note',T.mint,'Find the gold note'),
   mkOddSet('square',T.info,'square',T.mint,'Find the gold square'),
 ];
+/* Icon names in ODD_SETS that depict a distinct real-world object (not a
+   same-icon colour-swap pair) — eligible for the static illustration.
+   Colour-swap sets (circle/heart/fish/note/square) must stay as <Icon>
+   since the odd item there differs only by colour, not shape. */
+const ODD_ILLUSTRATED = new Set(['apples','orange','dog','cat','star','moon','car','plane','pizza','burger','tree','palmtree','sun','cloud']);
 
 function FindOdd({player,onBack}){
   const [phase,setPhase]=useState('intro');
@@ -1549,7 +1568,9 @@ function FindOdd({player,onBack}){
                     transition:'all 0.15s',
                     fontFamily:'inherit',
                   }}>
-                  <Icon name={item.icon} color={item.color} size={64}/>
+                  {ODD_ILLUSTRATED.has(item.icon)
+                    ? <Illustration name={item.icon} size={64}/>
+                    : <Icon name={item.icon} color={item.color} size={64}/>}
                 </button>
               );
             })}
@@ -2161,7 +2182,7 @@ function MatchingPairs({player,onBack}){
                     transition:'all 0.2s',fontFamily:'inherit',
                     animation: isMismatch?`shake 0.24s ${MOTION.easeOut}`:isMa?'correctPop 0.35s ease':undefined,
                   }}>
-                  {isFl&&<Icon name={c.e} size={48} color={isMismatch?T.error:isMa?T.success:T.teal}/>}
+                  {isFl&&<Illustration name={c.e} size={56}/>}
                 </button>
               );
             })}
@@ -2316,9 +2337,8 @@ function TheRoute({player,onBack}){
                       fill={isForbidden?'#FDECEA':inPath?T.mintL:'#fff'}
                       stroke={isForbidden?T.error:isLast?T.mint:inPath?T.mint:T.border}
                       strokeWidth={isLast?4:2}/>
-                    <g transform={`translate(${p.x-9},${p.y-11}) scale(0.75)`}>
-                      <path d={ICON_PATHS[n.l]} fill={isForbidden?T.error:T.navy} fillRule="evenodd" clipRule="evenodd"/>
-                    </g>
+                    <image href={`/assets/illustrations/icons/${n.l}.webp`} x={p.x-14} y={p.y-16} width={28} height={28}
+                      style={{filter:isForbidden?'grayscale(0.7) opacity(0.7)':'none'}}/>
                     <text x={p.x} y={p.y+15} textAnchor="middle" fontSize="7.5" fill={isForbidden?T.error:'#4A5E72'} dominantBaseline="middle">{n.n}</text>
                     {inPath&&<text x={p.x+19} y={p.y-18} textAnchor="middle" fontSize="11" fill={T.mint} fontWeight="800">{pidx+1}</text>}
                   </g>
@@ -2620,7 +2640,9 @@ function CognitiveAgeTest({player,onBack}){
                   display:'flex',alignItems:'center',justifyContent:'center',
                   transition:'all 0.15s',fontFamily:'inherit',
                 }}>
-                <Icon name={item.icon} color={item.color} size={44}/>
+                {ODD_ILLUSTRATED.has(item.icon)
+                  ? <Illustration name={item.icon} size={44}/>
+                  : <Icon name={item.icon} color={item.color} size={44}/>}
               </button>
             ))}
           </div>
@@ -2640,7 +2662,7 @@ function CognitiveAgeTest({player,onBack}){
           <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}}>
             {shopTarget.map(it=>(
               <div key={it.id} style={{background:T.tealL,borderRadius:T.rMd,padding:'16px 10px',textAlign:'center'}}>
-                <div style={{marginBottom:6,display:'flex',justifyContent:'center'}}><Icon name={it.id} size={30} color={T.teal}/></div>
+                <div style={{marginBottom:6,display:'flex',justifyContent:'center'}}><Illustration name={it.id} size={44}/></div>
                 <div style={{fontWeight:700,color:T.navy}}>{it.l}</div>
               </div>
             ))}
@@ -2668,7 +2690,7 @@ function CognitiveAgeTest({player,onBack}){
                     background:picked?T.tealL:'#fff',
                     cursor:'pointer',textAlign:'center',fontFamily:'inherit',
                   }}>
-                  <div style={{marginBottom:4,display:'flex',justifyContent:'center'}}><Icon name={item.id} size={24} color={picked?T.teal:T.textM}/></div>
+                  <div style={{marginBottom:4,display:'flex',justifyContent:'center'}}><Illustration name={item.id} size={34} style={{opacity:picked?1:0.85}}/></div>
                   <div style={{fontSize:'0.85rem',fontWeight:700,color:T.navy}}>{item.l}</div>
                 </button>
               );
