@@ -2477,7 +2477,7 @@ function CognitiveAgeTest({player,onBack}){
             A short check-in combining memory, attention, and recall — done in about a minute.
           </p>
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
-            {[['🔢','Remember 3 digits, then type them backwards'],['🔦','Spot the odd item — twice, against the clock'],['🛒','Study a short list, then recall it']].map(([e,t],i)=>(
+            {['Remember 3 digits, then type them backwards','Spot the odd item — twice, against the clock','Study a short list, then recall it'].map((t,i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
@@ -2579,14 +2579,14 @@ function CognitiveAgeTest({player,onBack}){
                 onClick={()=>!oddAnswered&&oddAnswer(item)}
                 disabled={oddAnswered}
                 style={{
-                  aspectRatio:'1', fontSize:'clamp(2rem,7vw,2.8rem)',
+                  aspectRatio:'1',
                   background:'#fff',
                   border:`3px solid ${T.border}`,
                   borderRadius:16, cursor:oddAnswered?'default':'pointer',
                   display:'flex',alignItems:'center',justifyContent:'center',
                   transition:'all 0.15s',fontFamily:'inherit',
                 }}>
-                {item}
+                <Icon name={item.icon} color={item.color} size={44}/>
               </button>
             ))}
           </div>
