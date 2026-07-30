@@ -468,24 +468,23 @@ function CognitiveAge({player}){
   const cogAge=Math.max(age-1,18);
   return(
     <div style={{
-      background:`linear-gradient(135deg, ${T.navy} 0%, ${T.teal} 100%)`,
-      borderRadius:18, padding:'20px 22px', marginBottom:20, color:'#fff',
+      background:T.tealL, border:`1px solid ${T.teal}33`,
+      borderRadius:T.rLg, padding:'20px 22px', marginBottom:20,
     }} role="region" aria-label="Cognitive Age result">
       <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:12}}>
-        <span style={{fontSize:'2.4rem'}} aria-hidden="true">🧠</span>
         <div style={{flex:1}}>
-          <div style={{fontWeight:800,fontSize:'1.25rem',fontFamily:'Fraunces,Georgia,serif'}}>Your Cognitive Age</div>
-          <div style={{fontSize:'0.9rem',color:'rgba(255,255,255,0.75)'}}>Based on this session</div>
+          <div style={{fontWeight:600,fontSize:'1.2rem',fontFamily:'Fraunces,Georgia,serif',color:T.navy}}>Your Cognitive Age</div>
+          <div style={{fontSize:'0.88rem',color:T.textM}}>Based on this session</div>
         </div>
         <div style={{textAlign:'right'}}>
-          <div style={{fontSize:'3.2rem',fontWeight:800,color:'#6EE7DF',lineHeight:1,fontFamily:'Fraunces,Georgia,serif'}}>{cogAge}</div>
-          <div style={{fontSize:'0.85rem',color:'rgba(255,255,255,0.7)'}}>years</div>
+          <div style={{fontSize:'3rem',fontWeight:600,color:T.teal,lineHeight:1,fontFamily:'Fraunces,Georgia,serif'}}>{cogAge}</div>
+          <div style={{fontSize:'0.82rem',color:T.textM}}>years</div>
         </div>
       </div>
-      <div style={{background:'rgba(255,255,255,0.12)',borderRadius:12,padding:'12px 16px',fontSize:'1rem',lineHeight:1.6}}>
+      <div style={{background:T.surface,borderRadius:T.rMd,padding:'12px 16px',fontSize:'0.98rem',lineHeight:1.6,color:T.textM}}>
         Compared to average scores for your age group ({player.age}),
         your cognitive performance matches someone approximately{' '}
-        <strong style={{color:'#6EE7DF'}}>{cogAge} years old</strong> — one year younger.
+        <strong style={{color:T.navy}}>{cogAge} years old</strong> — one year younger.
         Keep training daily to maintain and improve this result.
       </div>
     </div>
@@ -629,7 +628,7 @@ function Onboarding({onDone}){
             You're all set. Let's begin your first cognitive session.
           </p>
           {/* Summary */}
-          <div style={{background:T.bg,borderRadius:14,padding:'16px 20px',marginBottom:28,textAlign:'left'}}>
+          <div style={{background:T.bg,borderRadius:T.rMd,padding:'16px 20px',marginBottom:28,textAlign:'left'}}>
             {[['Name',name.trim()],['Gender',gender==='female'?'Female':'Male'],['Age',finalAge]].map(([l,v])=>(
               <div key={l} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:`1px solid ${T.border}`}}>
                 <span style={{fontSize:'1rem',color:T.textS,fontWeight:600}}>{l}</span>
@@ -675,7 +674,7 @@ function Onboarding({onDone}){
             style={{
               width:'100%', padding:'16px 18px',
               border:`2.5px solid ${errors.name?T.error:T.border}`,
-              borderRadius:14, fontSize:'1.25rem', color:T.text, outline:'none',
+              borderRadius:T.rMd, fontSize:'1.25rem', color:T.text, outline:'none',
               fontFamily:'Atkinson Hyperlegible,sans-serif',
               transition:'border-color 0.2s',
               background: errors.name ? T.errorL : '#fff',
@@ -701,7 +700,7 @@ function Onboarding({onDone}){
                 style={{
                   flex:1, minHeight:72, padding:'14px 8px',
                   border:`2.5px solid ${errors.gender&&!gender?T.error:gender===opt.v?T.teal:T.border}`,
-                  borderRadius:14, background:gender===opt.v?T.tealL:'#fff',
+                  borderRadius:T.rMd, background:gender===opt.v?T.tealL:'#fff',
                   display:'flex',flexDirection:'column',alignItems:'center',gap:6,
                   cursor:'pointer', color:gender===opt.v?T.teal:T.textM,
                   transition:'all 0.15s', fontFamily:'Fraunces,Georgia,serif',
@@ -1044,7 +1043,7 @@ function ShoppingList({player,onBack}){
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',display:'inline-block',margin:'0 auto 18px',letterSpacing:1,textTransform:'uppercase',width:'100%'}}>Working Memory</div>
 
           {/* How to play — clear step-by-step */}
-          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+          <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
             <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem',marginBottom:14}}>How to play:</div>
             {[
               ['📋','A shopping list appears on screen'],
@@ -1179,7 +1178,7 @@ function ShoppingList({player,onBack}){
                   const was=!!last.sel.find(s=>s.id===item.id);
                   return(
                     <div key={item.id} style={{
-                      borderRadius:14,border:`3px solid ${was?T.success:T.error}`,
+                      borderRadius:T.rMd,border:`3px solid ${was?T.success:T.error}`,
                       padding:'12px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:5,
                       background:was?T.successL:T.errorL,
                     }}>
@@ -1223,7 +1222,7 @@ function ShoppingList({player,onBack}){
             {/* Stats */}
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Recalled',score.c,T.navy],['Total',score.tot,T.navy],['Accuracy',`${tp}%`,T.teal]].map(([l,v,c])=>(
-                <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 18px',textAlign:'center',flex:1}}>
+                <div key={l} style={{background:T.bg,borderRadius:T.rMd,padding:'14px 18px',textAlign:'center',flex:1}}>
                   <div style={{fontSize:'1.8rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
                   <div style={{fontSize:'0.9rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
                 </div>
@@ -1246,7 +1245,7 @@ function ShoppingList({player,onBack}){
             </div>
 
             {/* What you trained */}
-            <div style={{background:T.tealL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.teal}44`}}>
+            <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.teal}44`}}>
               <strong style={{color:T.teal}}>What you trained:</strong> Working memory and episodic recall — used every day for remembering names, appointments, shopping, and instructions.
             </div>
 
@@ -1332,7 +1331,7 @@ function FindOdd({player,onBack}){
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
             A grid of items appears. One item is <strong>different</strong> from all the others. Tap it as quickly as you can!
           </p>
-          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+          <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
             {[['👀','Look carefully at every item in the grid'],['⚡','Tap the one that is different'],['⏱','The faster you answer, the better']].map(([e,t])=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
@@ -1394,7 +1393,7 @@ function FindOdd({player,onBack}){
               <div style={{
                 background:wasCorrect?T.successL:T.errorL,
                 border:`2px solid ${wasCorrect?T.success:T.error}`,
-                borderRadius:14,padding:'16px 20px',textAlign:'center',marginBottom:16,
+                borderRadius:T.rMd,padding:'16px 20px',textAlign:'center',marginBottom:16,
               }}>
                 <div style={{fontSize:'2rem',marginBottom:6}}>{wasCorrect?'✅':'❌'}</div>
                 <div style={{fontSize:'1.2rem',fontWeight:700,color:wasCorrect?T.success:T.error}}>
@@ -1427,14 +1426,14 @@ function FindOdd({player,onBack}){
             </div>
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Correct',`${score}/${TOTAL}`,T.navy],['Accuracy',`${pct}%`,T.mint],['Avg time',avgT?`${avgT}s`:'—',T.navy]].map(([l,v,c])=>(
-                <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 16px',textAlign:'center',flex:1}}>
+                <div key={l} style={{background:T.bg,borderRadius:T.rMd,padding:'14px 16px',textAlign:'center',flex:1}}>
                   <div style={{fontSize:'1.7rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
                   <div style={{fontSize:'0.88rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
                 </div>
               ))}
             </div>
             <CognitiveAge player={player}/>
-            <div style={{background:T.mintL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`}}>
+            <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`}}>
               <strong style={{color:T.mint}}>What you trained:</strong> Selective and sustained attention, and processing speed — essential for reading, driving, and following conversations.
             </div>
             <div style={{display:'flex',gap:12}}>
@@ -1516,7 +1515,7 @@ function WhatWasYesterday({player,onBack}){
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Story &amp; Recall</h2>
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Episodic Memory</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Read a short story carefully, then answer questions about what you read from memory.</p>
-          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+          <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
             {[['📖','Read the story — take your time'],['🙈','Story disappears after 35 seconds'],['❓','Answer questions from memory']].map(([e,t])=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
@@ -1591,7 +1590,7 @@ function WhatWasYesterday({player,onBack}){
                     onClick={()=>answer(i)}
                     style={{
                       minHeight:60,padding:'14px 18px',
-                      border:`2.5px solid ${border}`,borderRadius:14,
+                      border:`2.5px solid ${border}`,borderRadius:T.rMd,
                       background:bg,textAlign:'left',
                       fontSize:'1.1rem',fontWeight:600,color:T.text,
                       cursor:chosen!==null?'default':'pointer',
@@ -1625,14 +1624,14 @@ function WhatWasYesterday({player,onBack}){
             </div>
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Correct',`${score}/${S.qs.length}`,T.navy],['Score',`${pct}%`,T.teal]].map(([l,v,c])=>(
-                <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 22px',textAlign:'center',flex:1}}>
+                <div key={l} style={{background:T.bg,borderRadius:T.rMd,padding:'14px 22px',textAlign:'center',flex:1}}>
                   <div style={{fontSize:'1.8rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
                   <div style={{fontSize:'0.9rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
                 </div>
               ))}
             </div>
             <CognitiveAge player={player}/>
-            <div style={{background:T.tealL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.teal}44`}}>
+            <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.teal}44`}}>
               <strong style={{color:T.teal}}>What you trained:</strong> Episodic memory — retaining details from everyday events, essential for conversations, medical instructions, and daily planning.
             </div>
             <div style={{display:'flex',gap:12}}>
@@ -1701,7 +1700,7 @@ function NumberChain({player,onBack}){
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
             Digits will flash one at a time. Remember them in order, then type them back in <strong>reverse order</strong>.
           </p>
-          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+          <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
             {[['📺','Digits appear one at a time on screen'],['🔄','Enter them in REVERSE order'],['📈','Sequences get longer each round']].map(([e,t])=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
@@ -1777,7 +1776,7 @@ function NumberChain({player,onBack}){
             <div style={{
               background:feedback==='correct'?T.successL:T.errorL,
               border:`2px solid ${feedback==='correct'?T.success:T.error}`,
-              borderRadius:14,padding:'16px 20px',textAlign:'center',marginBottom:16,
+              borderRadius:T.rMd,padding:'16px 20px',textAlign:'center',marginBottom:16,
               animation:'fadeUp 0.3s ease',
             }}>
               <div style={{fontSize:'2rem',marginBottom:6}}>{feedback==='correct'?'✅':'❌'}</div>
@@ -1801,7 +1800,7 @@ function NumberChain({player,onBack}){
                     style={{
                       height:66,fontSize:'1.6rem',fontWeight:800,color:T.navy,
                       background:T.mintL,border:`2.5px solid ${T.border}`,
-                      borderRadius:14,cursor:'pointer',fontFamily:'Fraunces,Georgia,serif',
+                      borderRadius:T.rMd,cursor:'pointer',fontFamily:'Fraunces,Georgia,serif',
                       transition:'all 0.1s',
                     }}>
                     {n}
@@ -1810,9 +1809,9 @@ function NumberChain({player,onBack}){
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
                 <button aria-label="0" onClick={()=>tap(0)}
-                  style={{height:66,fontSize:'1.6rem',fontWeight:800,color:T.navy,background:T.mintL,border:`2.5px solid ${T.border}`,borderRadius:14,cursor:'pointer',fontFamily:'Fraunces,Georgia,serif'}}>0</button>
+                  style={{height:66,fontSize:'1.6rem',fontWeight:800,color:T.navy,background:T.mintL,border:`2.5px solid ${T.border}`,borderRadius:T.rMd,cursor:'pointer',fontFamily:'Fraunces,Georgia,serif'}}>0</button>
                 <button aria-label="Delete last digit" onClick={()=>setInput(p=>p.slice(0,-1))}
-                  style={{height:66,fontSize:'1.4rem',fontWeight:700,color:T.error,background:'#FDECEA',border:`2.5px solid ${T.error}44`,borderRadius:14,cursor:'pointer',fontFamily:'Fraunces,Georgia,serif'}}>
+                  style={{height:66,fontSize:'1.4rem',fontWeight:700,color:T.error,background:'#FDECEA',border:`2.5px solid ${T.error}44`,borderRadius:T.rMd,cursor:'pointer',fontFamily:'Fraunces,Georgia,serif'}}>
                   ⌫ Delete
                 </button>
               </div>
@@ -1835,14 +1834,14 @@ function NumberChain({player,onBack}){
             </div>
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Correct',`${score}/${TOTAL}`,T.navy],['Accuracy',`${pct}%`,T.mint]].map(([l,v,c])=>(
-                <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 22px',textAlign:'center',flex:1}}>
+                <div key={l} style={{background:T.bg,borderRadius:T.rMd,padding:'14px 22px',textAlign:'center',flex:1}}>
                   <div style={{fontSize:'1.8rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
                   <div style={{fontSize:'0.9rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
                 </div>
               ))}
             </div>
             <CognitiveAge player={player}/>
-            <div style={{background:T.mintL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`}}>
+            <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`}}>
               <strong style={{color:T.mint}}>What you trained:</strong> Working memory and processing speed — essential for mental arithmetic, following multi-step instructions, and holding information in mind while doing tasks.
             </div>
             <div style={{display:'flex',gap:12}}>
@@ -1917,7 +1916,7 @@ function MatchingPairs({player,onBack}){
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>Matching Pairs</h2>
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Visual Memory</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>All cards are face down. Flip two at a time and find all {PAIRS} matching pairs using your memory.</p>
-          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+          <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
             {[['👆','Tap a card to flip it face up'],['🔍','Remember where each image is'],['✅','Match all pairs to finish']].map(([e,t])=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
@@ -1967,7 +1966,7 @@ function MatchingPairs({player,onBack}){
                   onClick={()=>flip(c.uid)}
                   style={{
                     aspectRatio:'1',fontSize:'clamp(1.6rem,5vw,2.2rem)',
-                    borderRadius:14,
+                    borderRadius:T.rMd,
                     border:`3px solid ${isMa?T.success:isFl?T.teal:T.border}`,
                     background:isMa?T.successL:isFl?T.tealL:T.navy,
                     cursor:isFl?'default':'pointer',
@@ -1997,14 +1996,14 @@ function MatchingPairs({player,onBack}){
             </div>
             <div style={{display:'flex',gap:12,justifyContent:'center',marginBottom:22}}>
               {[['Moves',moves,T.navy],['Time',`${elapsed}s`,T.navy],['Pairs',`${PAIRS}/${PAIRS}`,T.teal]].map(([l,v,c])=>(
-                <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 16px',textAlign:'center',flex:1}}>
+                <div key={l} style={{background:T.bg,borderRadius:T.rMd,padding:'14px 16px',textAlign:'center',flex:1}}>
                   <div style={{fontSize:'1.7rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
                   <div style={{fontSize:'0.88rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
                 </div>
               ))}
             </div>
             <CognitiveAge player={player}/>
-            <div style={{background:T.tealL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.teal}44`}}>
+            <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.teal}44`}}>
               <strong style={{color:T.teal}}>What you trained:</strong> Visual memory and spatial reasoning — used for recognising faces, navigating familiar places, and finding objects around the home.
             </div>
             <div style={{display:'flex',gap:12}}>
@@ -2073,7 +2072,7 @@ function TheRoute({player,onBack}){
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.8rem',color:T.navy,textAlign:'center',marginBottom:10}}>The Route</h2>
           <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Executive Function</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Plan the correct route on the map, following all the given rules. Think carefully before you tap!</p>
-          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+          <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
             {[['📋','Read all the instructions carefully'],['🗺','Tap locations on the map in order'],['🚫','Avoid any forbidden locations']].map(([e,t])=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
@@ -2093,7 +2092,7 @@ function TheRoute({player,onBack}){
       <Card>
         <div style={{padding:'20px 18px'}}>
           {/* Instructions — clear numbered list */}
-          <div style={{background:T.bg,borderRadius:14,padding:'16px 18px',marginBottom:16}}>
+          <div style={{background:T.bg,borderRadius:T.rMd,padding:'16px 18px',marginBottom:16}}>
             <div style={{fontWeight:800,fontSize:'1.05rem',color:T.navy,marginBottom:12,fontFamily:'Fraunces,Georgia,serif'}}>Your instructions:</div>
             {T2.instructions.map((inst,i)=>(
               <div key={i} style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:10}}>
@@ -2148,7 +2147,7 @@ function TheRoute({player,onBack}){
           {/* Feedback message — large, clear */}
           {msg&&(
             <div style={{
-              borderRadius:14,padding:'14px 18px',marginBottom:12,fontSize:'1.05rem',
+              borderRadius:T.rMd,padding:'14px 18px',marginBottom:12,fontSize:'1.05rem',
               textAlign:'center',fontWeight:700,lineHeight:1.5,
               background:msgType==='success'?T.successL:msgType==='error'?T.errorL:T.goldL,
               color:msgType==='success'?T.success:msgType==='error'?T.error:T.gold,
@@ -2176,7 +2175,7 @@ function TheRoute({player,onBack}){
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}!</h2>
           <p style={{fontSize:'1.1rem',color:T.textM,marginBottom:22}}>You planned the correct route successfully.</p>
           <CognitiveAge player={player}/>
-          <div style={{background:T.mintL,borderRadius:14,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`,textAlign:'left'}}>
+          <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`,textAlign:'left'}}>
             <strong style={{color:T.mint}}>What you trained:</strong> Executive function — planning, sequencing, and following rules. These skills are used for planning errands, managing medications, and organising the day.
           </div>
           <div style={{display:'flex',gap:12}}>
@@ -2321,7 +2320,7 @@ function CognitiveAgeTest({player,onBack}){
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>
             A short check-in combining memory, attention, and recall — done in about a minute.
           </p>
-          <div style={{background:T.bg,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+          <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
             {[['🔢','Remember 3 digits, then type them backwards'],['🔦','Spot the odd item — twice, against the clock'],['🛒','Study a short list, then recall it']].map(([e,t])=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
                 <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
@@ -2396,7 +2395,7 @@ function CognitiveAgeTest({player,onBack}){
                 style={{
                   height:66,fontSize:'1.6rem',fontWeight:800,color:T.navy,
                   background:T.mintL,border:`2.5px solid ${T.border}`,
-                  borderRadius:14,cursor:'pointer',fontFamily:'Fraunces,Georgia,serif',
+                  borderRadius:T.rMd,cursor:'pointer',fontFamily:'Fraunces,Georgia,serif',
                 }}>
                 {n}
               </button>
@@ -2450,7 +2449,7 @@ function CognitiveAgeTest({player,onBack}){
           <p style={{textAlign:'center',fontSize:'1.05rem',fontWeight:700,color:T.navy,marginBottom:18}}>Remember these items</p>
           <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}}>
             {shopTarget.map(it=>(
-              <div key={it.id} style={{background:T.tealL,borderRadius:14,padding:'16px 10px',textAlign:'center'}}>
+              <div key={it.id} style={{background:T.tealL,borderRadius:T.rMd,padding:'16px 10px',textAlign:'center'}}>
                 <div style={{fontSize:'2rem',marginBottom:6}} aria-hidden="true">{it.e}</div>
                 <div style={{fontWeight:700,color:T.navy}}>{it.l}</div>
               </div>
@@ -2474,7 +2473,7 @@ function CognitiveAgeTest({player,onBack}){
                   onClick={()=>shopToggle(item)}
                   aria-pressed={picked}
                   style={{
-                    padding:'14px 6px',borderRadius:14,
+                    padding:'14px 6px',borderRadius:T.rMd,
                     border:`2.5px solid ${picked?T.teal:T.border}`,
                     background:picked?T.tealL:'#fff',
                     cursor:'pointer',textAlign:'center',fontFamily:'inherit',
@@ -2497,13 +2496,12 @@ function CognitiveAgeTest({player,onBack}){
         <Card>
           <div style={{padding:'28px 22px'}}>
             <div style={{
-              background:`linear-gradient(135deg, ${T.navy} 0%, ${T.teal} 100%)`,
-              borderRadius:18, padding:'24px 22px', marginBottom:22, color:'#fff',textAlign:'center',
+              background:T.tealL, border:`1px solid ${T.teal}33`,
+              borderRadius:T.rLg, padding:'24px 22px', marginBottom:22, textAlign:'center',
             }} role="region" aria-label="Cognitive Age result">
-              <div style={{fontSize:'2.4rem',marginBottom:6}} aria-hidden="true">🧠</div>
-              <div style={{fontSize:'1.1rem',color:'rgba(255,255,255,0.8)',marginBottom:4}}>Your cognitive age is approximately</div>
-              <div style={{fontSize:'3.6rem',fontWeight:800,color:'#6EE7DF',lineHeight:1,fontFamily:'Fraunces,Georgia,serif'}}>{cogAge}</div>
-              <div style={{fontSize:'0.95rem',color:'rgba(255,255,255,0.75)'}}>years</div>
+              <div style={{fontSize:'1.05rem',color:T.textM,marginBottom:4}}>Your cognitive age is approximately</div>
+              <div style={{fontSize:'3.4rem',fontWeight:600,color:T.teal,lineHeight:1,fontFamily:'Fraunces,Georgia,serif'}}>{cogAge}</div>
+              <div style={{fontSize:'0.92rem',color:T.textM}}>years</div>
             </div>
             <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:22,flexWrap:'wrap'}}>
               {domainScores&&[
@@ -2511,13 +2509,13 @@ function CognitiveAgeTest({player,onBack}){
                 ['Attention',`${domainScores.reactionTimeSec}s avg`,T.teal],
                 ['Recall',`${Math.round(domainScores.episodicAcc*100)}%`,T.gold],
               ].map(([l,v,c])=>(
-                <div key={l} style={{background:T.bg,borderRadius:14,padding:'14px 12px',textAlign:'center',flex:'1 1 90px'}}>
+                <div key={l} style={{background:T.bg,borderRadius:T.rMd,padding:'14px 12px',textAlign:'center',flex:'1 1 90px'}}>
                   <div style={{fontSize:'1.2rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
                   <div style={{fontSize:'0.8rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
                 </div>
               ))}
             </div>
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:'14px 18px',fontSize:'0.92rem',color:T.textM,lineHeight:1.6,marginBottom:22}}>
+            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:T.rMd,padding:'14px 18px',fontSize:'0.92rem',color:T.textM,lineHeight:1.6,marginBottom:22}}>
               This is an informal, self-comparison estimate against typical scores for your age group — not a clinical or diagnostic result. Keep training daily to track your trend over time.
             </div>
             <div style={{display:'flex',gap:12}}>
