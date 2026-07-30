@@ -790,18 +790,14 @@ function SaveProgressCard({authUser}){
       <div style={{padding:'20px 22px'}}>
         {status==='sent' ? (
           <div style={{textAlign:'center'}}>
-            <div style={{fontSize:'2rem',marginBottom:8}} aria-hidden="true">📬</div>
-            <div style={{fontWeight:800,color:T.navy,fontSize:'1.1rem',marginBottom:6,fontFamily:'Fraunces,Georgia,serif'}}>Check your email</div>
+            <div style={{fontWeight:700,color:T.navy,fontSize:'1.1rem',marginBottom:6,fontFamily:'Fraunces,Georgia,serif'}}>Check your email</div>
             <div style={{color:T.textM,fontSize:'0.98rem'}}>We sent a link to {email.trim()} — tap it to save your progress.</div>
           </div>
         ) : (
           <>
-            <div style={{display:'flex',gap:12,alignItems:'flex-start',marginBottom:14}}>
-              <span style={{fontSize:'1.8rem'}} aria-hidden="true">💾</span>
-              <div>
-                <div style={{fontWeight:800,color:T.navy,fontSize:'1.1rem',marginBottom:4,fontFamily:'Fraunces,Georgia,serif'}}>Save your progress</div>
-                <div style={{color:T.textM,fontSize:'0.95rem',lineHeight:1.5}}>Get a link by email so your results and daily streak are never lost.</div>
-              </div>
+            <div style={{marginBottom:14}}>
+              <div style={{fontWeight:700,color:T.navy,fontSize:'1.1rem',marginBottom:4,fontFamily:'Fraunces,Georgia,serif'}}>Save your progress</div>
+              <div style={{color:T.textM,fontSize:'0.95rem',lineHeight:1.5}}>Get a link by email so your results and daily streak are never lost.</div>
             </div>
             <div style={{marginBottom:10}}>
               <input type="email" placeholder="you@example.com" value={email}
@@ -823,65 +819,95 @@ function SaveProgressCard({authUser}){
 
 function Menu({player,authUser,onPlay}){
   const hour=new Date().getHours();
-  const greeting=hour<12?'Good morning':'hour<18'?'Good afternoon':'Good evening';
   const time=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
+  const [sessionCount,setSessionCount]=useState(null);
+
+  useEffect(()=>{
+    let active=true;
+    (async()=>{
+      if(!authUser) return;
+      const { count } = await supabase.from('sessions').select('*',{count:'exact',head:true}).eq('user_id',authUser.id);
+      if(active) setSessionCount(count||0);
+    })();
+    return ()=>{active=false;};
+  },[authUser]);
+
+  const today = GAMES[new Date().getDate()%GAMES.length];
 
   return(
     <div style={{minHeight:'100vh',background:T.bg,display:'flex',flexDirection:'column'}}>
       {/* Header */}
       <header style={{
-        background:T.navy,padding:'0 24px',minHeight:72,
+        background:T.surface,padding:'0 24px',minHeight:68,
         display:'flex',alignItems:'center',justifyContent:'space-between',
-        boxShadow:'0 2px 8px rgba(0,0,0,0.2)',flexShrink:0,
+        borderBottom:`1px solid ${T.borderLight}`,flexShrink:0,
       }}>
-        <div style={{display:'flex',alignItems:'center',gap:10}}>
-          <span style={{fontSize:'1.6rem'}} aria-hidden="true">🧠</span>
-          <span style={{color:'#fff',fontWeight:800,fontSize:'1.4rem',fontFamily:'Fraunces,Georgia,serif',letterSpacing:2}}>CLIVE</span>
-        </div>
-        <div style={{display:'flex',alignItems:'center',gap:10}}>
-          <span style={{fontSize:'1.8rem'}} aria-hidden="true">{player.gender==='female'?'👩':'👨'}</span>
-          <div>
-            <div style={{color:'#fff',fontWeight:700,fontSize:'1rem',lineHeight:1.2}}>{player.name}</div>
-            <div style={{color:'rgba(255,255,255,0.65)',fontSize:'0.82rem'}}>{player.age}</div>
-          </div>
-        </div>
+        <span style={{color:T.navy,fontWeight:600,fontSize:'1.25rem',fontFamily:'Fraunces,Georgia,serif',letterSpacing:3,textTransform:'uppercase'}}>CLIVE</span>
+        <div style={{
+          width:40,height:40,borderRadius:'50%',background:T.tealL,
+          display:'flex',alignItems:'center',justifyContent:'center',
+          fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',fontSize:'1.05rem',
+        }} aria-hidden="true">{(player.name||'?').trim()[0]?.toUpperCase()}</div>
       </header>
 
-      <main style={{maxWidth:720,margin:'0 auto',padding:'32px 16px 80px',width:'100%'}}>
+      <main style={{maxWidth:720,margin:'0 auto',padding:'28px 16px 80px',width:'100%'}}>
         {/* Greeting */}
-        <div style={{marginBottom:32,animation:'fadeUp 0.5s ease'}}>
+        <div style={{marginBottom:24,animation:'fadeUp 0.5s ease'}}>
           <h1 style={{
-            fontFamily:'Fraunces,Georgia,serif',fontWeight:800,
-            fontSize:'clamp(1.7rem,4vw,2.4rem)',color:T.navy,lineHeight:1.2,marginBottom:8,
+            fontFamily:'Fraunces,Georgia,serif',fontWeight:600,
+            fontSize:'clamp(1.7rem,4vw,2.3rem)',color:T.navy,lineHeight:1.2,marginBottom:6,
           }}>
-            {time}, <span style={{color:T.teal}}>{player.name}.</span>
+            {time}, {player.name}
           </h1>
-          <p style={{fontSize:'1.15rem',color:T.textM}}>
-            Choose an exercise to begin your daily session.
-          </p>
+          <p style={{fontSize:'1.05rem',color:T.textM}}>Consistency today. Confidence tomorrow.</p>
         </div>
+
+        {/* Today's session — hero card */}
+        <div style={{
+          background:T.surface,borderRadius:T.rXl,overflow:'hidden',marginBottom:20,
+          boxShadow:T.shadow1,border:`1px solid ${T.borderLight}`,
+        }}>
+          <div style={{padding:'22px 24px 0'}}>
+            <div style={{fontSize:'0.78rem',fontWeight:700,color:T.textS,textTransform:'uppercase',letterSpacing:1,marginBottom:8}}>Today's session</div>
+            <div style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:600,fontSize:'1.4rem',color:T.navy,marginBottom:4}}>{today.title}</div>
+            <div style={{fontSize:'0.85rem',fontWeight:700,color:today.color,textTransform:'uppercase',letterSpacing:0.5,marginBottom:16}}>{today.domain}</div>
+          </div>
+          <img src="/assets/illustrations/dashboard_coastal_path.webp" alt="" aria-hidden="true"
+            style={{width:'100%',display:'block',maxHeight:180,objectFit:'cover'}}/>
+          <div style={{padding:'18px 24px 22px'}}>
+            <PrimaryBtn color={T.navy} icon="→" onClick={()=>onPlay(today.id)}>Continue session</PrimaryBtn>
+          </div>
+        </div>
+
+        {sessionCount!==null && sessionCount>0 && (
+          <div style={{
+            background:T.surface,borderRadius:T.rLg,padding:'14px 18px',marginBottom:20,
+            border:`1px solid ${T.borderLight}`,display:'flex',alignItems:'center',gap:14,
+          }}>
+            <div style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:600,fontSize:'1.5rem',color:T.navy}}>{sessionCount}</div>
+            <div style={{fontSize:'0.9rem',color:T.textM,fontWeight:600}}>session{sessionCount===1?'':'s'} completed so far</div>
+          </div>
+        )}
 
         <SaveProgressCard authUser={authUser}/>
 
         {/* Cognitive age test CTA */}
         <button onClick={()=>onPlay('cogtest')} style={{
-          width:'100%', textAlign:'left', border:'none', cursor:'pointer', padding:0,
-          borderRadius:18, overflow:'hidden', marginBottom:24,
-          background:`linear-gradient(135deg, ${T.navy} 0%, ${T.teal} 100%)`,
-          boxShadow:'0 4px 16px rgba(13,43,78,0.22)', fontFamily:'inherit',
+          width:'100%', textAlign:'left', border:`1.5px solid ${T.mint}55`, cursor:'pointer',
+          padding:'18px 20px', borderRadius:T.rLg, marginBottom:24,
+          background:T.mintL, display:'flex', gap:14, alignItems:'center', fontFamily:'inherit',
         }}>
-          <div style={{padding:'20px 22px',display:'flex',gap:16,alignItems:'center',color:'#fff'}}>
-            <span style={{fontSize:'2.4rem'}} aria-hidden="true">🧠</span>
-            <div style={{flex:1}}>
-              <div style={{fontWeight:800,fontSize:'1.15rem',fontFamily:'Fraunces,Georgia,serif',marginBottom:2}}>Test Your Cognitive Age</div>
-              <div style={{fontSize:'0.92rem',color:'rgba(255,255,255,0.8)'}}>A ~60-second check-in across memory, attention, and recall</div>
-            </div>
-            <span style={{fontSize:'1.4rem'}} aria-hidden="true">→</span>
+          <img src="/assets/illustrations/leaf_symbol.webp" alt="" aria-hidden="true" style={{width:36,height:36,objectFit:'contain',flexShrink:0}}/>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:700,fontSize:'1.05rem',color:T.navy,fontFamily:'Fraunces,Georgia,serif',marginBottom:2}}>Test Your Cognitive Age</div>
+            <div style={{fontSize:'0.88rem',color:T.textM}}>A ~60-second check-in across memory, attention, and recall</div>
           </div>
+          <span style={{fontSize:'1.3rem',color:T.teal}} aria-hidden="true">→</span>
         </button>
 
-        {/* Game cards */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:16,marginBottom:32}}>
+        {/* Exercises */}
+        <div style={{marginBottom:14,fontFamily:'Fraunces,Georgia,serif',fontWeight:600,fontSize:'1.15rem',color:T.navy}}>Exercises</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:14,marginBottom:32}}>
           {GAMES.map((g,i)=>(
             <GameCard key={g.id} game={g} index={i} onPlay={onPlay}/>
           ))}
@@ -889,10 +915,10 @@ function Menu({player,authUser,onPlay}){
 
         {/* Clinical note */}
         <div style={{
-          background:T.surface,borderRadius:14,padding:'16px 20px',
-          border:`1px solid ${T.border}`,textAlign:'center',
+          background:T.surface,borderRadius:T.rMd,padding:'16px 20px',
+          border:`1px solid ${T.borderLight}`,textAlign:'center',
         }}>
-          <p style={{fontSize:'0.9rem',color:T.textS,lineHeight:1.6}}>
+          <p style={{fontSize:'0.88rem',color:T.textS,lineHeight:1.6}}>
             All exercises are grounded in clinically validated cognitive rehabilitation methods.<br/>
             <strong style={{color:T.textM}}>NICE NG236 (2023) · Cicerone et al. (2019) · CST/NICE · EBRSR 19th Ed.</strong>
           </p>
@@ -910,38 +936,23 @@ function GameCard({game,index,onPlay}){
       onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       aria-label={`Play ${game.title} — ${game.domain}`}
       style={{
-        background:T.surface, borderRadius:18, overflow:'hidden',
-        boxShadow: hov ? '0 8px 28px rgba(13,43,78,0.18)' : '0 3px 12px rgba(13,43,78,0.10)',
-        border:`2px solid ${hov?game.color:'rgba(155,180,197,0.4)'}`,
-        cursor:'pointer', textAlign:'left', padding:0,
-        transform: hov ? 'translateY(-3px)' : 'none',
+        background:T.surface, borderRadius:T.rLg, overflow:'hidden',
+        boxShadow: hov ? T.shadow2 : T.shadow1,
+        border:`1px solid ${T.borderLight}`,
+        cursor:'pointer', textAlign:'left', padding:'20px',
+        transform: hov ? 'translateY(-2px)' : 'none',
         transition:'all 0.2s', animation:`fadeUp 0.5s ease ${index*60}ms both`,
-        fontFamily:'inherit',
+        fontFamily:'inherit', display:'flex', gap:14, alignItems:'flex-start',
       }}>
-      {/* Colour accent bar */}
-      <div style={{height:7,background:game.color,width:'100%'}}/>
-      {/* Content */}
-      <div style={{padding:'18px 20px 16px',display:'flex',gap:14,alignItems:'flex-start'}}>
-        <div style={{
-          width:54,height:54,borderRadius:14,
-          background:game.color+'22',display:'flex',alignItems:'center',justifyContent:'center',
-          fontSize:'1.8rem',flexShrink:0,
-        }} aria-hidden="true">{game.e}</div>
-        <div style={{flex:1}}>
-          <div style={{fontWeight:800,fontSize:'1.1rem',color:T.navy,marginBottom:2,fontFamily:'Fraunces,Georgia,serif'}}>{game.title}</div>
-          <div style={{fontSize:'0.85rem',fontWeight:700,color:game.color,textTransform:'uppercase',letterSpacing:0.5,marginBottom:6}}>{game.domain}</div>
-          <div style={{fontSize:'0.97rem',color:T.textM,lineHeight:1.5}}>{game.desc}</div>
-        </div>
-      </div>
-      {/* Play button */}
       <div style={{
-        margin:'0 20px 18px',
-        background:game.color,color:'#fff',
-        borderRadius:100,padding:'9px 20px',
-        fontSize:'0.95rem',fontWeight:700,fontFamily:'Fraunces,Georgia,serif',
-        display:'inline-flex',alignItems:'center',gap:6,
-      }}>
-        <span aria-hidden="true">▶</span> Play
+        width:52,height:52,borderRadius:T.rMd,
+        background:game.color+'1A',display:'flex',alignItems:'center',justifyContent:'center',
+        fontSize:'1.6rem',flexShrink:0,
+      }} aria-hidden="true">{game.e}</div>
+      <div style={{flex:1}}>
+        <div style={{fontWeight:600,fontSize:'1.05rem',color:T.navy,marginBottom:2,fontFamily:'Fraunces,Georgia,serif'}}>{game.title}</div>
+        <div style={{fontSize:'0.78rem',fontWeight:700,color:game.color,textTransform:'uppercase',letterSpacing:0.5,marginBottom:6}}>{game.domain}</div>
+        <div style={{fontSize:'0.92rem',color:T.textM,lineHeight:1.5}}>{game.desc}</div>
       </div>
     </button>
   );
