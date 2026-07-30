@@ -1050,9 +1050,9 @@ function ShoppingList({player,onBack}){
               ['👀',`Study it carefully for ${cfg.secs} seconds`],
               ['🙈','The list disappears automatically'],
               ['☑️','Tap all the items you remember'],
-            ].map(([e,t])=>(
+            ].map(([e,t],i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
-                <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
               </div>
             ))}
@@ -1068,7 +1068,7 @@ function ShoppingList({player,onBack}){
           </PrimaryBtn>
 
           <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>
-            📌 Cicerone et al. 2019 — Episodic memory training, Practice Standard
+            Cicerone et al. 2019 — Episodic memory training, Practice Standard
           </p>
         </div>
       </Card>
@@ -1184,7 +1184,13 @@ function ShoppingList({player,onBack}){
                     }}>
                       <span style={{fontSize:'2rem'}} aria-hidden="true">{item.e}</span>
                       <span style={{fontSize:'0.88rem',fontWeight:700,color:T.text,textAlign:'center'}}>{item.l}</span>
-                      <span style={{fontSize:'1.2rem'}} aria-label={was?'Correct':'Missed'}>{was?'✅':'❌'}</span>
+                      <div aria-label={was?'Correct':'Missed'} style={{
+                        width:22,height:22,borderRadius:'50%',
+                        background:was?T.success:T.error,
+                        display:'flex',alignItems:'center',justifyContent:'center',
+                      }}>
+                        <span aria-hidden="true" style={{color:'#fff',fontSize:'0.75rem',fontWeight:800}}>{was?'✓':'✕'}</span>
+                      </div>
                     </div>
                   );
                 })}
@@ -1332,9 +1338,9 @@ function FindOdd({player,onBack}){
             A grid of items appears. One item is <strong>different</strong> from all the others. Tap it as quickly as you can!
           </p>
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
-            {[['👀','Look carefully at every item in the grid'],['⚡','Tap the one that is different'],['⏱','The faster you answer, the better']].map(([e,t])=>(
+            {[['👀','Look carefully at every item in the grid'],['⚡','Tap the one that is different'],['⏱','The faster you answer, the better']].map(([e,t],i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
-                <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.mint,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
               </div>
             ))}
@@ -1344,7 +1350,7 @@ function FindOdd({player,onBack}){
             <span style={{fontWeight:700,color:T.navy}}>{TIME}s per round</span>
           </div>
           <PrimaryBtn color={T.mint} icon="▶" onClick={()=>startRound(1)}>Start</PrimaryBtn>
-          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>📌 NICE NG236 (2023) §1.5 — Sustained attention training, HIGH confidence</p>
+          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>NICE NG236 (2023) §1.5 — Sustained attention training, HIGH confidence</p>
         </div>
       </Card>
     </Screen>
@@ -1395,7 +1401,11 @@ function FindOdd({player,onBack}){
                 border:`2px solid ${wasCorrect?T.success:T.error}`,
                 borderRadius:T.rMd,padding:'16px 20px',textAlign:'center',marginBottom:16,
               }}>
-                <div style={{fontSize:'2rem',marginBottom:6}}>{wasCorrect?'✅':'❌'}</div>
+                <div style={{
+                  width:40,height:40,borderRadius:'50%',margin:'0 auto 8px',
+                  background:wasCorrect?T.success:T.error,
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                }}><span aria-hidden="true" style={{color:'#fff',fontSize:'1.2rem',fontWeight:800}}>{wasCorrect?'✓':'✕'}</span></div>
                 <div style={{fontSize:'1.2rem',fontWeight:700,color:wasCorrect?T.success:T.error}}>
                   {wasCorrect?`Found it in ${results[results.length-1].timeUsed}s!`:`The odd one was: ${current.odd}`}
                 </div>
@@ -1516,9 +1526,9 @@ function WhatWasYesterday({player,onBack}){
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Episodic Memory</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Read a short story carefully, then answer questions about what you read from memory.</p>
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
-            {[['📖','Read the story — take your time'],['🙈','Story disappears after 35 seconds'],['❓','Answer questions from memory']].map(([e,t])=>(
+            {[['📖','Read the story — take your time'],['🙈','Story disappears after 35 seconds'],['❓','Answer questions from memory']].map(([e,t],i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
-                <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
               </div>
             ))}
@@ -1528,7 +1538,7 @@ function WhatWasYesterday({player,onBack}){
             <span style={{fontWeight:700,color:T.navy}}>35s to read</span>
           </div>
           <PrimaryBtn color={T.teal} icon="📖" onClick={()=>setPhase('read')}>Start reading</PrimaryBtn>
-          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>📌 Spector et al. 2003 — Reality Orientation / CST, 201-participant RCT</p>
+          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>Spector et al. 2003 — Reality Orientation / CST, 201-participant RCT</p>
         </div>
       </Card>
     </Screen>
@@ -1599,8 +1609,16 @@ function WhatWasYesterday({player,onBack}){
                       transition:'all 0.2s',
                     }}>
                     <span>{opt}</span>
-                    {chosen!==null&&isCorrect&&<span style={{fontSize:'1.4rem'}} aria-label="Correct">✅</span>}
-                    {chosen!==null&&isChosen&&!isCorrect&&<span style={{fontSize:'1.4rem'}} aria-label="Incorrect">❌</span>}
+                    {chosen!==null&&isCorrect&&(
+                      <div aria-label="Correct" style={{width:26,height:26,borderRadius:'50%',background:T.success,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        <span aria-hidden="true" style={{color:'#fff',fontSize:'0.85rem',fontWeight:800}}>✓</span>
+                      </div>
+                    )}
+                    {chosen!==null&&isChosen&&!isCorrect&&(
+                      <div aria-label="Incorrect" style={{width:26,height:26,borderRadius:'50%',background:T.error,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        <span aria-hidden="true" style={{color:'#fff',fontSize:'0.85rem',fontWeight:800}}>✕</span>
+                      </div>
+                    )}
                   </button>
                 );
               })}
@@ -1701,15 +1719,15 @@ function NumberChain({player,onBack}){
             Digits will flash one at a time. Remember them in order, then type them back in <strong>reverse order</strong>.
           </p>
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
-            {[['📺','Digits appear one at a time on screen'],['🔄','Enter them in REVERSE order'],['📈','Sequences get longer each round']].map(([e,t])=>(
+            {[['📺','Digits appear one at a time on screen'],['🔄','Enter them in REVERSE order'],['📈','Sequences get longer each round']].map(([e,t],i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
-                <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.mint,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
               </div>
             ))}
           </div>
           <PrimaryBtn color={T.mint} icon="▶" onClick={()=>startRound(1)}>Start</PrimaryBtn>
-          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>📌 NICE NG236 — Digit span backward (standard MoCA clinical test)</p>
+          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>NICE NG236 — Digit span backward (standard MoCA clinical test)</p>
         </div>
       </Card>
     </Screen>
@@ -1779,7 +1797,11 @@ function NumberChain({player,onBack}){
               borderRadius:T.rMd,padding:'16px 20px',textAlign:'center',marginBottom:16,
               animation:'fadeUp 0.3s ease',
             }}>
-              <div style={{fontSize:'2rem',marginBottom:6}}>{feedback==='correct'?'✅':'❌'}</div>
+              <div style={{
+                width:40,height:40,borderRadius:'50%',margin:'0 auto 8px',
+                background:feedback==='correct'?T.success:T.error,
+                display:'flex',alignItems:'center',justifyContent:'center',
+              }}><span aria-hidden="true" style={{color:'#fff',fontSize:'1.2rem',fontWeight:800}}>{feedback==='correct'?'✓':'✕'}</span></div>
               <div style={{fontSize:'1.1rem',fontWeight:700,color:feedback==='correct'?T.success:T.error}}>
                 {feedback==='correct'?'Correct!':'Incorrect'}
               </div>
@@ -1917,9 +1939,9 @@ function MatchingPairs({player,onBack}){
           <div style={{background:T.tealL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.teal,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Visual Memory</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>All cards are face down. Flip two at a time and find all {PAIRS} matching pairs using your memory.</p>
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
-            {[['👆','Tap a card to flip it face up'],['🔍','Remember where each image is'],['✅','Match all pairs to finish']].map(([e,t])=>(
+            {[['👆','Tap a card to flip it face up'],['🔍','Remember where each image is'],['✅','Match all pairs to finish']].map(([e,t],i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
-                <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
               </div>
             ))}
@@ -1929,7 +1951,7 @@ function MatchingPairs({player,onBack}){
             <span style={{fontWeight:700,color:T.navy}}>{PAIRS*2} cards total</span>
           </div>
           <PrimaryBtn color={T.teal} icon="▶" onClick={start}>Start</PrimaryBtn>
-          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>📌 UCLA Health 2024 — Visual recognition memory gains measurable in 2 weeks</p>
+          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>UCLA Health 2024 — Visual recognition memory gains measurable in 2 weeks</p>
         </div>
       </Card>
     </Screen>
@@ -2050,7 +2072,7 @@ function TheRoute({player,onBack}){
   function tap(id){
     if(done) return;
     if((T2.forbidden||[]).includes(id)){
-      setMsg('🚫 That location is forbidden! Your route has been reset.');setMsgType('error');setPath([]);return;
+      setMsg('That location is forbidden — your route has been reset.');setMsgType('error');setPath([]);return;
     }
     setPath(p=>{const np=p[p.length-1]===id?p:[...p,id];return np;});setMsg('');setMsgType('');
   }
@@ -2058,8 +2080,8 @@ function TheRoute({player,onBack}){
   function check(){
     const c=T2.correct;
     const ok=path.length===c.length&&path.every((p,i)=>p===c[i]);
-    if(ok){setMsg('✅ Perfect route! You followed all the instructions correctly.');setMsgType('success');setDone(true);}
-    else{setMsg('❌ That route doesn\'t follow all the instructions. Try again!');setMsgType('error');setPath([]);}
+    if(ok){setMsg('Perfect route! You followed all the instructions correctly.');setMsgType('success');setDone(true);}
+    else{setMsg('That route doesn\'t follow all the instructions. Try again!');setMsgType('error');setPath([]);}
   }
 
   useEffect(()=>{ if(phase==='complete') logSession('route', null, 1, 1); },[phase]);
@@ -2073,15 +2095,15 @@ function TheRoute({player,onBack}){
           <div style={{background:T.mintL,borderRadius:100,padding:'6px 18px',textAlign:'center',color:T.mint,fontWeight:700,fontSize:'0.9rem',letterSpacing:1,textTransform:'uppercase',marginBottom:18}}>Executive Function</div>
           <p style={{fontSize:'1.1rem',color:T.textM,lineHeight:1.7,textAlign:'center',marginBottom:20}}>Plan the correct route on the map, following all the given rules. Think carefully before you tap!</p>
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
-            {[['📋','Read all the instructions carefully'],['🗺','Tap locations on the map in order'],['🚫','Avoid any forbidden locations']].map(([e,t])=>(
+            {[['📋','Read all the instructions carefully'],['🗺','Tap locations on the map in order'],['🚫','Avoid any forbidden locations']].map(([e,t],i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
-                <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <div style={{width:44,height:44,borderRadius:12,background:T.mintL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.mint,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
               </div>
             ))}
           </div>
           <PrimaryBtn color={T.mint} icon="▶" onClick={()=>setPhase('play')}>Start</PrimaryBtn>
-          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>📌 EBRSR 19th Ed. — Goal management & sequencing training</p>
+          <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>EBRSR 19th Ed. — Goal management & sequencing training</p>
         </div>
       </Card>
     </Screen>
@@ -2321,9 +2343,9 @@ function CognitiveAgeTest({player,onBack}){
             A short check-in combining memory, attention, and recall — done in about a minute.
           </p>
           <div style={{background:T.bg,borderRadius:T.rMd,padding:'18px 20px',marginBottom:22}}>
-            {[['🔢','Remember 3 digits, then type them backwards'],['🔦','Spot the odd item — twice, against the clock'],['🛒','Study a short list, then recall it']].map(([e,t])=>(
+            {[['🔢','Remember 3 digits, then type them backwards'],['🔦','Spot the odd item — twice, against the clock'],['🛒','Study a short list, then recall it']].map(([e,t],i)=>(
               <div key={t} style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
-                <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',flexShrink:0}} aria-hidden="true">{e}</div>
+                <div style={{width:44,height:44,borderRadius:12,background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.15rem',fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',flexShrink:0}} aria-hidden="true">{i+1}</div>
                 <span style={{fontSize:'1.05rem',color:T.textM,fontWeight:600}}>{t}</span>
               </div>
             ))}
