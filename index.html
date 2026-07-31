@@ -195,6 +195,12 @@
         transition-duration: 0.01ms !important;
       }
     }
+    /* In-app "Reduce motion" preference (Settings) — same effect as the OS-level
+       media query above, but user-controlled independent of OS settings. */
+    html.clive-reduce-motion *, html.clive-reduce-motion *::before, html.clive-reduce-motion *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
 
     /* Scrollbar — visible and large */
     ::-webkit-scrollbar { width: 10px; }
@@ -276,6 +282,13 @@ const ICON_PATHS = {
   person: 'M12 12.5a4.5 4.5 0 100-9 4.5 4.5 0 000 9zm0 1.8c-4.4 0-8 2.3-8 5.2v1.3a1 1 0 001 1h14a1 1 0 001-1v-1.3c0-2.9-3.6-5.2-8-5.2z',
   // UI / system glyphs
   alert: 'M12,2a10,10 0 1,0 0,20a10,10 0 1,0 0,-20 M10.9,6.5h2.2v9h-2.2z M10.9,17.3h2.2v2.2h-2.2z',
+  insights: 'M3.5 20.5v-6.2h3.2v6.2zM10.4 20.5V7.8h3.2v12.7zM17.3 20.5v-9.6h3.2v9.6z M14.5 4.2l5.7 0.3-2.3 2.3-2.6 2.6-2.6-1.9-4 4-1.3-1.3 5.3-5.3 2.6 1.9z',
+  gear: 'M12 8.6a3.4 3.4 0 100 6.8 3.4 3.4 0 000-6.8zM19.4 13.4l1.8 1.4-1.4 2.4-2.1-0.7a6.9 6.9 0 01-1.5 0.9l-0.3 2.2h-2.8l-0.3-2.2a6.9 6.9 0 01-1.5-0.9l-2.1 0.7-1.4-2.4 1.8-1.4a7 7 0 010-1.8l-1.8-1.4 1.4-2.4 2.1 0.7c0.5-0.4 1-0.6 1.5-0.9l0.3-2.2h2.8l0.3 2.2c0.5 0.3 1 0.5 1.5 0.9l2.1-0.7 1.4 2.4-1.8 1.4a7 7 0 010 1.8z',
+  question: 'M12,2a10,10 0 1,0 0,20a10,10 0 1,0 0,-20 M9.3 9.2c0.3-1.7 1.6-2.8 3.2-2.8 1.8 0 3.2 1.2 3.2 2.9 0 1.4-0.8 2.1-1.8 2.8-0.9 0.6-1.3 1-1.3 1.9v0.4h-2v-0.5c0-1.4 0.7-2.1 1.7-2.8 0.8-0.6 1.2-0.9 1.2-1.7 0-0.8-0.6-1.3-1.4-1.3-0.8 0-1.4 0.5-1.6 1.4z M10.9,16.3h2.2v2.2h-2.2z',
+  export: 'M12 3v10.5M8 9.5l4 4 4-4 M5 15.5v3.5a1.5 1.5 0 001.5 1.5h11a1.5 1.5 0 001.5-1.5v-3.5',
+  trash: 'M9 3.5h6l0.8 2h4.2v2h-1.2l-1 12.5a1.5 1.5 0 01-1.5 1.4H9.7a1.5 1.5 0 01-1.5-1.4L7.2 7.5H6v-2h4.2zM9.5 10v8M12 10v8M14.5 10v8',
+  chevronRight: 'M8.5 4.5l7 7.5-7 7.5-1.5-1.4 5.8-6.1-5.8-6.1z',
+  search: 'M10.5 3a7.5 7.5 0 015.9 12.1l4.5 4.5-1.4 1.4-4.5-4.5A7.5 7.5 0 1110.5 3zm0 2a5.5 5.5 0 100 11 5.5 5.5 0 000-11z',
   // groceries
   milk: 'M9.3 2.2h5.4l1.4 3.3-1.4 1.4V20a1.3 1.3 0 01-1.3 1.3h-2.8A1.3 1.3 0 019.3 20V6.9L7.9 5.5zM8.6 12h6.8v1.6H8.6z',
   bread: 'M4 13.2C4 8.7 7.4 5.5 12 5.5s8 3.2 8 7.7v4.6a1.4 1.4 0 01-1.4 1.4H5.4A1.4 1.4 0 014 17.8zm5-3.6v8M12 8.6v10M15 9.6v8',
@@ -353,6 +366,25 @@ function Icon({name,size=28,color='currentColor',style={}}){
   );
 }
 
+// Profile avatar — renders the uploaded photo when present, otherwise falls
+// back to the existing initial-letter/icon circle. There is no upload UI yet
+// (deferred to the app-store release — needs a Supabase Storage bucket, an
+// upload/crop flow, and a storage RLS policy); this component and the
+// `avatarUrl` field on `player` (persisted as profiles.avatar_url) are the
+// hook a future upload feature will slot into without touching every
+// avatar call site again.
+function Avatar({url,size,bg,fallback}){
+  if(url){
+    return <img src={url} alt="" width={size} height={size}
+      style={{width:size,height:size,borderRadius:'50%',objectFit:'cover',flexShrink:0}}/>;
+  }
+  return(
+    <div style={{width:size,height:size,borderRadius:'50%',background:bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+      {fallback}
+    </div>
+  );
+}
+
 /* Hand-painted illustration (warm gouache/watercolor style, matches
    hero_still_life.webp / dashboard_coastal_path.webp) — used in place of
    the flat Icon set wherever a game shows an actual product or object. */
@@ -374,11 +406,11 @@ const SUPABASE_URL = 'https://zksoexscmazqngryjade.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inprc29leHNjbWF6cW5ncnlqYWRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjQ0MzAsImV4cCI6MjEwMDkwMDQzMH0.BW2o2ssOQr0H1DfAxz6uyd6wpxFwaApQxB9YUTAvLhM';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-async function logSession(exerciseId, level, score, total){
+async function logSession(exerciseId, level, score, total, durationMs){
   try{
     const { data:{ user } } = await supabase.auth.getUser();
     if(!user) return;
-    await supabase.from('sessions').insert({user_id:user.id, exercise_id:exerciseId, level:level||1, score, total});
+    await supabase.from('sessions').insert({user_id:user.id, exercise_id:exerciseId, level:level||1, score, total, duration_ms:durationMs||null});
     localStorage.setItem('clive_sessions_done','1');
   }catch(e){ console.log('CLIVE: logSession failed', e); }
 }
@@ -455,7 +487,7 @@ function SecondaryBtn({children,onClick,icon,style={}}){
 /* ─────────────────────────────────────────────────────────────────
    SHARED: SCREEN WRAPPER — sticky header with large back button
 ───────────────────────────────────────────────────────────────── */
-function Screen({player,title,subtitle,onBack,children,headerColor}){
+function Screen({player,title,subtitle,onBack,children,headerColor,backLabel}){
   const accent = headerColor||T.navy;
   return(
     <div style={{height:'100vh',background:T.bg,display:'flex',flexDirection:'column',overflow:'hidden',animation:`screenEnter ${MOTION.normal}ms ${MOTION.easeOut}`}}>
@@ -473,7 +505,7 @@ function Screen({player,title,subtitle,onBack,children,headerColor}){
         {/* Back button — minimum 52px touch target */}
         <button
           onClick={onBack}
-          aria-label="Back to menu"
+          aria-label={`Back to ${backLabel||'menu'}`}
           style={{
             minWidth:52, minHeight:52, padding:'8px 12px',
             background:'transparent',
@@ -484,7 +516,7 @@ function Screen({player,title,subtitle,onBack,children,headerColor}){
             display:'flex', alignItems:'center', gap:6,
           }}>
           <span aria-hidden="true" style={{fontSize:'1.3rem',color:accent}}>←</span>
-          <span>Menu</span>
+          <span>{backLabel||'Menu'}</span>
         </button>
 
         {/* Title block */}
@@ -1009,11 +1041,18 @@ function Menu({player,authUser,onPlay}){
         borderBottom:`1px solid ${T.borderLight}`,flexShrink:0,
       }}>
         <span style={{color:T.navy,fontWeight:600,fontSize:'1.25rem',fontFamily:'Fraunces,Georgia,serif',letterSpacing:3,textTransform:'uppercase'}}>CLIVE</span>
-        <div style={{
-          width:40,height:40,borderRadius:'50%',background:T.tealL,
-          display:'flex',alignItems:'center',justifyContent:'center',
-          fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',fontSize:'1.05rem',
-        }} aria-hidden="true">{(player.name||'?').trim()[0]?.toUpperCase()}</div>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <button onClick={()=>onPlay('insights')} aria-label="Insights"
+            style={{
+              width:40,height:40,borderRadius:'50%',background:'transparent',border:'none',
+              display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+            }}><Icon name="insights" size={22} color={T.navy}/></button>
+          <button onClick={()=>onPlay('profile')} aria-label={`Profile — ${player.name}`}
+            style={{width:40,height:40,borderRadius:'50%',border:'none',cursor:'pointer',padding:0}}>
+            <Avatar url={player.avatarUrl} size={40} bg={T.tealL}
+              fallback={<span style={{fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',fontSize:'1.05rem'}}>{(player.name||'?').trim()[0]?.toUpperCase()}</span>}/>
+          </button>
+        </div>
       </header>
 
       <main style={{maxWidth:1160,margin:'0 auto',padding:'18px 16px 20px',width:'100%',flex:1,overflowY:'auto'}}>
@@ -1167,10 +1206,12 @@ function ShoppingList({player,onBack}){
   const [score,setScore]=useState({c:0,tot:0});
   const [rounds,setRounds]=useState([]);
   const timer=useRef(null);
+  const sessionStart=useRef(null);
   const TOTAL=3;
   const cfg=SL_LEVELS[Math.min(lvl,SL_LEVELS.length-1)];
 
   const startRound=useCallback(()=>{
+    if(!sessionStart.current) sessionStart.current=Date.now();
     const its=shuffle(ITEMS).slice(0,cfg.items);
     const dist=shuffle(ITEMS.filter(p=>!its.find(i=>i.id===p.id))).slice(0,cfg.items);
     setTarget(its);setPool(shuffle([...its,...dist]));setSel([]);setT(cfg.secs);setPhase('memorise');
@@ -1203,7 +1244,7 @@ function ShoppingList({player,onBack}){
     setRound(r=>r+1);startRound();
   }
 
-  useEffect(()=>{ if(phase==='complete') logSession('shopping', cfg.n, score.c, score.tot); },[phase]);
+  useEffect(()=>{ if(phase==='complete') logSession('shopping', cfg.n, score.c, score.tot, sessionStart.current?Date.now()-sessionStart.current:null); },[phase]);
 
   if(phase==='intro') return(
     <Screen player={player} title="Shopping List" subtitle="Working Memory" onBack={onBack} headerColor={T.teal}>
@@ -1476,9 +1517,11 @@ function FindOdd({player,onBack}){
   const [answered,setAnswered]=useState(false);
   const [wasCorrect,setWasCorrect]=useState(false);
   const timer=useRef(null);
+  const sessionStart=useRef(null);
   const TOTAL=6;const TIME=15;
 
   function startRound(r){
+    if(!sessionStart.current) sessionStart.current=Date.now();
     const set=ODD_SETS[(r-1)%ODD_SETS.length];
     setCurrent(set);setGrid(shuffle([...set.items]));setT(TIME);setAnswered(false);setPhase('play');
   }
@@ -1505,7 +1548,7 @@ function FindOdd({player,onBack}){
 
   const score=results.filter(r=>r.correct).length;
 
-  useEffect(()=>{ if(phase==='complete') logSession('odd', null, score, TOTAL); },[phase]);
+  useEffect(()=>{ if(phase==='complete') logSession('odd', null, score, TOTAL, sessionStart.current?Date.now()-sessionStart.current:null); },[phase]);
 
   if(phase==='intro') return(
     <Screen player={player} title="Find the Odd One" subtitle="Attention & Speed" onBack={onBack} headerColor={T.mint}>
@@ -1678,6 +1721,7 @@ function WhatWasYesterday({player,onBack}){
   const [answers,setAnswers]=useState([]);
   const [chosen,setChosen]=useState(null);
   const timer=useRef(null);
+  const sessionStart=useRef(null);
   const S=STORIES[si];
 
   useEffect(()=>{
@@ -1699,7 +1743,7 @@ function WhatWasYesterday({player,onBack}){
 
   const score=answers.filter(a=>a.correct).length;
 
-  useEffect(()=>{ if(phase==='complete') logSession('yesterday', null, score, S.qs.length); },[phase]);
+  useEffect(()=>{ if(phase==='complete') logSession('yesterday', null, score, S.qs.length, sessionStart.current?Date.now()-sessionStart.current:null); },[phase]);
 
   if(phase==='intro') return(
     <Screen player={player} title="Story & Recall" subtitle="Episodic Memory" onBack={onBack} headerColor={T.teal}>
@@ -1721,7 +1765,7 @@ function WhatWasYesterday({player,onBack}){
             <span style={{fontWeight:600,color:T.teal}}>{S.qs.length} questions</span>
             <span style={{fontWeight:700,color:T.navy}}>35s to read</span>
           </div>
-          <PrimaryBtn color={T.teal} icon="→" onClick={()=>setPhase('read')}>Start reading</PrimaryBtn>
+          <PrimaryBtn color={T.teal} icon="→" onClick={()=>{sessionStart.current=Date.now();setPhase('read');}}>Start reading</PrimaryBtn>
           <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>Spector et al. 2003 — Reality Orientation / CST, 201-participant RCT</p>
         </div>
       </Card>
@@ -1860,10 +1904,12 @@ function NumberChain({player,onBack}){
   const [input,setInput]=useState([]);
   const [results,setResults]=useState([]);
   const [feedback,setFeedback]=useState(null);
+  const sessionStart=useRef(null);
   const TOTAL=6;
   function seqLen(r){return 2+Math.floor((r-1)*0.6);}
 
   function startRound(r){
+    if(!sessionStart.current) sessionStart.current=Date.now();
     const l=seqLen(r);
     const s=Array.from({length:l},()=>Math.floor(Math.random()*9)+1);
     setSeq(s);setShowIdx(0);setInput([]);setFeedback(null);setPhase('show');
@@ -1890,7 +1936,7 @@ function NumberChain({player,onBack}){
 
   const score=results.filter(r=>r.correct).length;
 
-  useEffect(()=>{ if(phase==='complete') logSession('chain', null, score, TOTAL); },[phase]);
+  useEffect(()=>{ if(phase==='complete') logSession('chain', null, score, TOTAL, sessionStart.current?Date.now()-sessionStart.current:null); },[phase]);
 
   if(phase==='intro') return(
     <Screen player={player} title="Number Chain" subtitle="Working Memory" onBack={onBack} headerColor={T.mint}>
@@ -2113,7 +2159,7 @@ function MatchingPairs({player,onBack}){
     }
   }
 
-  useEffect(()=>{ if(phase==='complete') logSession('pairs', null, PAIRS, PAIRS); },[phase]);
+  useEffect(()=>{ if(phase==='complete') logSession('pairs', null, PAIRS, PAIRS, startT?Date.now()-startT:null); },[phase]);
 
   if(phase==='intro') return(
     <Screen player={player} title="Matching Pairs" subtitle="Visual Memory" onBack={onBack} headerColor={T.teal}>
@@ -2249,6 +2295,7 @@ function TheRoute({player,onBack}){
   const [msg,setMsg]=useState('');
   const [msgType,setMsgType]=useState('');
   const [done,setDone]=useState(false);
+  const sessionStart=useRef(null);
   const T2=TASKS[ti];
 
   const maxX=Math.max(...T2.nodes.map(n=>n.x));
@@ -2271,7 +2318,7 @@ function TheRoute({player,onBack}){
     else{setMsg('That route doesn\'t follow all the instructions. Try again.');setMsgType('error');setPath([]);}
   }
 
-  useEffect(()=>{ if(phase==='complete') logSession('route', null, 1, 1); },[phase]);
+  useEffect(()=>{ if(phase==='complete') logSession('route', null, 1, 1, sessionStart.current?Date.now()-sessionStart.current:null); },[phase]);
 
   if(phase==='intro') return(
     <Screen player={player} title="The Route" subtitle="Executive Function" onBack={onBack} headerColor={T.mint}>
@@ -2289,7 +2336,7 @@ function TheRoute({player,onBack}){
               </div>
             ))}
           </div>
-          <PrimaryBtn color={T.mint} icon="▶" onClick={()=>setPhase('play')}>Start</PrimaryBtn>
+          <PrimaryBtn color={T.mint} icon="▶" onClick={()=>{sessionStart.current=Date.now();setPhase('play');}}>Start</PrimaryBtn>
           <p style={{textAlign:'center',fontSize:'0.82rem',color:T.textS,marginTop:14}}>EBRSR 19th Ed. — Goal management & sequencing training</p>
         </div>
       </Card>
@@ -2743,6 +2790,623 @@ function CognitiveAgeTest({player,onBack}){
 }
 
 /* ─────────────────────────────────────────────────────────────────
+   SHARED DATA HELPERS — real Supabase-backed stats (Insights/Profile)
+───────────────────────────────────────────────────────────────── */
+function pct(score,total){ return total>0 ? Math.round((score/total)*100) : 0; }
+
+/* Longest run of consecutive calendar days (ending today or yesterday —
+   today not having a session yet doesn't break the streak). */
+function computeStreak(sessions){
+  if(!sessions||!sessions.length) return 0;
+  const days=new Set(sessions.map(s=>new Date(s.played_at).toDateString()));
+  let streak=0;
+  let cursor=new Date(); cursor.setHours(0,0,0,0);
+  if(!days.has(cursor.toDateString())) cursor.setDate(cursor.getDate()-1);
+  while(days.has(cursor.toDateString())){ streak++; cursor.setDate(cursor.getDate()-1); }
+  return streak;
+}
+
+/* Day buckets (7-day range) or weekly buckets (30-day range) for the trend chart. */
+function buildBuckets(range){
+  const now=new Date(); const buckets=[];
+  if(range===7){
+    for(let i=6;i>=0;i--){
+      const d=new Date(now); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+      const end=new Date(d); end.setHours(23,59,59,999);
+      buckets.push({label:d.toLocaleDateString('en-US',{weekday:'short'}),start:d,end});
+    }
+  } else {
+    for(let i=4;i>=0;i--){
+      const end=new Date(now); end.setDate(end.getDate()-i*7); end.setHours(23,59,59,999);
+      const start=new Date(end); start.setDate(start.getDate()-6); start.setHours(0,0,0,0);
+      buckets.push({label:`${start.getMonth()+1}/${start.getDate()}`,start,end});
+    }
+  }
+  return buckets;
+}
+
+/* Simple accessible bar chart — bars degrade gracefully with sparse/zero
+   data (unlike a line path, a missing day is just a flat bar, not a gap
+   that breaks the line). Textual summary via aria-label per spec Ch.5. */
+function BarChart({buckets,sessions}){
+  const data=buckets.map(b=>{
+    const inRange=sessions.filter(s=>{const d=new Date(s.played_at); return d>=b.start&&d<=b.end;});
+    if(!inRange.length) return {...b,value:null};
+    const avg=Math.round(inRange.reduce((a,s)=>a+pct(s.score,s.total),0)/inRange.length);
+    return {...b,value:avg};
+  });
+  const hasAny=data.some(d=>d.value!=null);
+  if(!hasAny) return <div style={{textAlign:'center',color:T.textS,fontSize:'0.95rem',padding:'20px 0'}}>Not enough sessions in this period yet.</div>;
+  return(
+    <div>
+      <div style={{display:'flex',alignItems:'flex-end',gap:8,height:120,marginBottom:8}} role="img"
+        aria-label={`Accuracy by period: ${data.map(d=>`${d.label} ${d.value!=null?d.value+'%':'no sessions'}`).join(', ')}`}>
+        {data.map((d,i)=>(
+          <div key={i} style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'flex-end',alignItems:'center',height:'100%'}}>
+            <div style={{
+              width:'100%',maxWidth:36,
+              height:d.value!=null?`${Math.max(d.value,4)}%`:'4px',
+              background:d.value!=null?T.teal:T.border,
+              borderRadius:'6px 6px 2px 2px',
+              transition:`height 0.5s ${MOTION.easeOut}`,
+            }}/>
+          </div>
+        ))}
+      </div>
+      <div style={{display:'flex',gap:8}}>
+        {data.map((d,i)=>(
+          <div key={i} style={{flex:1,textAlign:'center',fontSize:'0.75rem',color:T.textS,fontWeight:600}}>{d.label}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   INSIGHTS — real progress analytics (per-exercise averages, trend,
+   streak, strengths/opportunities) computed from the sessions table.
+───────────────────────────────────────────────────────────────── */
+function Insights({player,authUser,onBack,onPlay}){
+  const [sessions,setSessions]=useState(null);
+  const [latestCog,setLatestCog]=useState(null);
+  const [range,setRange]=useState(7);
+
+  useEffect(()=>{
+    let active=true;
+    (async()=>{
+      if(!authUser) return;
+      const { data } = await supabase.from('sessions').select('exercise_id,score,total,played_at').eq('user_id',authUser.id).order('played_at',{ascending:true});
+      if(active) setSessions(data||[]);
+      const { data:cog } = await supabase.from('cognitive_age_tests').select('cognitive_age,taken_at').eq('user_id',authUser.id).order('taken_at',{ascending:false}).limit(1).maybeSingle();
+      if(active&&cog) setLatestCog(cog);
+    })();
+    return ()=>{active=false;};
+  },[authUser]);
+
+  if(sessions===null) return(
+    <Screen player={player} title="Insights" onBack={onBack} headerColor={T.navy}>
+      <div style={{textAlign:'center',padding:'60px 0',color:T.textS}}>Loading your progress…</div>
+    </Screen>
+  );
+
+  if(sessions.length===0) return(
+    <Screen player={player} title="Insights" onBack={onBack} headerColor={T.navy}>
+      <Card>
+        <div style={{padding:'32px 24px',textAlign:'center'}}>
+          <div style={{borderRadius:T.rLg,overflow:'hidden',marginBottom:20}}>
+            <img src="/assets/illustrations/dashboard_coastal_path.webp" alt="" aria-hidden="true" style={{width:'100%',display:'block',maxHeight:140,objectFit:'cover'}}/>
+          </div>
+          <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:700,fontSize:'1.5rem',color:T.navy,marginBottom:10}}>No sessions yet</h2>
+          <p style={{fontSize:'1.05rem',color:T.textM,lineHeight:1.6,marginBottom:22}}>Complete your first exercise and your progress will appear here.</p>
+          <PrimaryBtn color={T.navy} icon="→" onClick={onBack}>Start an exercise</PrimaryBtn>
+        </div>
+      </Card>
+    </Screen>
+  );
+
+  const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-range); cutoff.setHours(0,0,0,0);
+  const rangeSessions=sessions.filter(s=>new Date(s.played_at)>=cutoff);
+  const sessionCount=rangeSessions.length;
+  const avgAcc=rangeSessions.length?Math.round(rangeSessions.reduce((a,s)=>a+pct(s.score,s.total),0)/rangeSessions.length):0;
+  const streak=computeStreak(sessions);
+  const buckets=buildBuckets(range);
+
+  const byGame=GAMES.map(g=>{
+    const gs=sessions.filter(s=>s.exercise_id===g.id);
+    if(!gs.length) return {...g,avg:null,count:0};
+    const avg=Math.round(gs.reduce((a,s)=>a+pct(s.score,s.total),0)/gs.length);
+    return {...g,avg,count:gs.length};
+  });
+  const withData=byGame.filter(g=>g.avg!=null);
+  const strength=withData.length>=2?withData.reduce((a,b)=>a.avg>=b.avg?a:b):null;
+  const opportunity=withData.length>=2?withData.reduce((a,b)=>a.avg<=b.avg?a:b):null;
+
+  return(
+    <Screen player={player} title="Insights" subtitle="Your progress" onBack={onBack} headerColor={T.navy}>
+      <div style={{display:'flex',gap:8,marginBottom:16}} role="group" aria-label="Time range">
+        {[{v:7,l:'7 days'},{v:30,l:'30 days'}].map(r=>(
+          <button key={r.v} onClick={()=>setRange(r.v)} aria-pressed={range===r.v}
+            style={{
+              flex:1,minHeight:48,borderRadius:T.rFull,border:`2px solid ${range===r.v?T.navy:T.border}`,
+              background:range===r.v?T.navy:T.surface,color:range===r.v?'#fff':T.textM,
+              fontWeight:700,fontSize:'0.98rem',cursor:'pointer',fontFamily:'Atkinson Hyperlegible,sans-serif',
+            }}>{r.l}</button>
+        ))}
+      </div>
+
+      <div style={{display:'flex',gap:10,marginBottom:20}}>
+        {[['Sessions',sessionCount,T.navy],['Avg accuracy',`${avgAcc}%`,T.teal],['Day streak',streak,T.gold]].map(([l,v,c])=>(
+          <div key={l} style={{flex:1,background:T.surface,borderRadius:T.rMd,padding:'16px 10px',textAlign:'center',border:`1px solid ${T.borderLight}`}}>
+            <div style={{fontSize:'1.6rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
+            <div style={{fontSize:'0.82rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
+          </div>
+        ))}
+      </div>
+
+      <Card style={{marginBottom:20}}>
+        <div style={{padding:'20px 18px'}}>
+          <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem',marginBottom:14,fontFamily:'Fraunces,Georgia,serif'}}>Accuracy over time</div>
+          <BarChart buckets={buckets} sessions={rangeSessions}/>
+        </div>
+      </Card>
+
+      <Card style={{marginBottom:20}}>
+        <div style={{padding:'20px 18px'}}>
+          <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem',marginBottom:14,fontFamily:'Fraunces,Georgia,serif'}}>By exercise</div>
+          {byGame.map(g=>(
+            <div key={g.id} style={{marginBottom:14}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,alignItems:'center',gap:8}}>
+                <span style={{fontSize:'0.96rem',fontWeight:700,color:T.navy,display:'flex',alignItems:'center',gap:8,minWidth:0}}>
+                  <Illustration name={g.e} size={24}/> <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{g.title}</span>
+                </span>
+                <span style={{fontSize:'0.9rem',fontWeight:700,color:g.avg!=null?g.color:T.textS,flexShrink:0}}>
+                  {g.avg!=null?`${g.avg}%`:'No sessions yet'}
+                </span>
+              </div>
+              <div style={{height:10,background:'#EDE7DC',borderRadius:6,overflow:'hidden'}}>
+                <div style={{height:'100%',width:`${g.avg||0}%`,background:g.avg!=null?g.color:'transparent',borderRadius:6,transition:'width 0.5s ease'}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {strength&&opportunity&&strength.id!==opportunity.id&&(
+        <div style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap'}}>
+          <Card style={{flex:'1 1 240px'}}>
+            <div style={{padding:'18px 18px'}}>
+              <div style={{fontSize:'0.78rem',fontWeight:700,color:T.success,textTransform:'uppercase',letterSpacing:0.5,marginBottom:6}}>Strength</div>
+              <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem',marginBottom:6}}>{strength.title}</div>
+              <div style={{fontSize:'0.92rem',color:T.textM,lineHeight:1.5,marginBottom:10}}>You're performing well here — keep it up.</div>
+              <button onClick={()=>onPlay(strength.id)} style={{background:'none',border:'none',color:T.teal,fontWeight:700,cursor:'pointer',fontSize:'0.95rem',padding:0}}>Play again →</button>
+            </div>
+          </Card>
+          <Card style={{flex:'1 1 240px'}}>
+            <div style={{padding:'18px 18px'}}>
+              <div style={{fontSize:'0.78rem',fontWeight:700,color:T.gold,textTransform:'uppercase',letterSpacing:0.5,marginBottom:6}}>Opportunity</div>
+              <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem',marginBottom:6}}>{opportunity.title}</div>
+              <div style={{fontSize:'0.92rem',color:T.textM,lineHeight:1.5,marginBottom:10}}>A little extra practice here could help.</div>
+              <button onClick={()=>onPlay(opportunity.id)} style={{background:'none',border:'none',color:T.teal,fontWeight:700,cursor:'pointer',fontSize:'0.95rem',padding:0}}>Try it →</button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {latestCog&&(
+        <Card style={{marginBottom:20}}>
+          <div style={{padding:'18px 18px',display:'flex',alignItems:'center',gap:16}}>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:700,color:T.navy,fontSize:'1.02rem',marginBottom:2}}>Latest cognitive age</div>
+              <div style={{fontSize:'0.88rem',color:T.textS}}>Tested {new Date(latestCog.taken_at).toLocaleDateString()}</div>
+            </div>
+            <div style={{fontSize:'2rem',fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif'}}>{Math.round(latestCog.cognitive_age)}</div>
+            <button onClick={()=>onPlay('cogtest')} style={{background:'none',border:'none',color:T.teal,fontWeight:700,cursor:'pointer',fontSize:'0.92rem'}}>Retake →</button>
+          </div>
+        </Card>
+      )}
+    </Screen>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   PROFILE — real journey stats + achievements + inline profile edit
+───────────────────────────────────────────────────────────────── */
+function AchievementBadge({icon,label,desc,unlocked}){
+  return(
+    <div style={{flex:'0 0 auto',width:112,textAlign:'center',opacity:unlocked?1:0.4}}>
+      <div style={{
+        width:56,height:56,borderRadius:T.rMd,margin:'0 auto 8px',
+        background:unlocked?T.tealL:T.bg,border:`1.5px solid ${unlocked?T.teal:T.border}`,
+        display:'flex',alignItems:'center',justifyContent:'center',
+      }}><Icon name={icon} size={26} color={unlocked?T.teal:T.textS}/></div>
+      <div style={{fontSize:'0.8rem',fontWeight:700,color:T.navy,marginBottom:2}}>{label}</div>
+      <div style={{fontSize:'0.7rem',color:T.textS,lineHeight:1.3}}>{desc}</div>
+    </div>
+  );
+}
+
+function Profile({player,authUser,onBack,onPlay,onUpdatePlayer}){
+  const [sessions,setSessions]=useState(null);
+  const [editing,setEditing]=useState(false);
+  const [name,setName]=useState(player.name);
+  const [gender,setGender]=useState(player.gender);
+  const isPreset=AGE_GROUPS.some(a=>a.label===player.age);
+  const [ageGroup,setAgeGroup]=useState(isPreset?player.age:'');
+  const [ageCustom,setAgeCustom]=useState(isPreset?'':String(player.ageNum||''));
+  const [saving,setSaving]=useState(false);
+  const [errors,setErrors]=useState({});
+
+  useEffect(()=>{
+    let active=true;
+    (async()=>{
+      if(!authUser) return;
+      const { data } = await supabase.from('sessions').select('exercise_id,score,total,played_at').eq('user_id',authUser.id).order('played_at',{ascending:true});
+      if(active) setSessions(data||[]);
+    })();
+    return ()=>{active=false;};
+  },[authUser]);
+
+  const total=sessions?sessions.length:0;
+  const streak=sessions?computeStreak(sessions):0;
+  const avgAcc=sessions&&sessions.length?Math.round(sessions.reduce((a,s)=>a+pct(s.score,s.total),0)/sessions.length):0;
+  const weekCutoff=new Date(); weekCutoff.setDate(weekCutoff.getDate()-7);
+  const weekCount=sessions?sessions.filter(s=>new Date(s.played_at)>=weekCutoff).length:0;
+  const bestAcc=sessions&&sessions.length?Math.max(...sessions.map(s=>pct(s.score,s.total))):0;
+
+  const achievements=[
+    {icon:'star',label:'Getting Started',desc:'Complete your first session',unlocked:total>=1},
+    {icon:'flashlight',label:'On a Roll',desc:'Reach a 3-day streak',unlocked:streak>=3},
+    {icon:'mind',label:'Focused Mind',desc:'Score 85%+ in a session',unlocked:bestAcc>=85},
+    {icon:'compass',label:'Week Warrior',desc:'5 sessions in one week',unlocked:weekCount>=5},
+  ];
+
+  async function saveProfile(){
+    const finalAge=ageCustom.trim()?ageCustom.trim():ageGroup;
+    const finalAgeNum=ageCustom.trim()?parseInt(ageCustom):(AGE_GROUPS.find(a=>a.label===ageGroup)?.num||player.ageNum);
+    const e={};
+    if(!name.trim()||name.trim().length<2) e.name='Please enter your name (at least 2 letters).';
+    if(!finalAge) e.age='Please select or enter your age.';
+    if(ageCustom.trim()){const n=parseInt(ageCustom);if(isNaN(n)||n<18||n>120) e.age='Please enter an age between 18 and 120.';}
+    setErrors(e);
+    if(Object.keys(e).length) return;
+    setSaving(true);
+    if(authUser){
+      await supabase.from('profiles').upsert({id:authUser.id,name:name.trim(),gender,age:finalAgeNum,age_group:finalAge});
+    }
+    onUpdatePlayer({name:name.trim(),gender,age:finalAge,ageNum:finalAgeNum});
+    setSaving(false);setEditing(false);
+  }
+
+  return(
+    <Screen player={player} title="Profile" onBack={onBack} headerColor={T.teal}>
+      <Card style={{marginBottom:20}}>
+        <div style={{padding:'28px 24px',textAlign:'center'}}>
+          {/* Photo upload not implemented yet — see Avatar component note.
+              Renders player.avatarUrl once a future upload flow sets it. */}
+          <div style={{margin:'0 auto 14px',width:88}}>
+            <Avatar url={player.avatarUrl} size={88} bg={T.tealL} fallback={<Icon name="person" size={40} color={T.teal}/>}/>
+          </div>
+          {!editing?(
+            <>
+              <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:700,fontSize:'1.5rem',color:T.navy,marginBottom:4}}>{player.name}</h2>
+              <div style={{fontSize:'0.92rem',color:T.textS,marginBottom:16}}>{player.gender==='female'?'Female':'Male'} · {player.age}</div>
+              <SecondaryBtn onClick={()=>setEditing(true)} style={{width:'auto',minWidth:160,minHeight:48,margin:'0 auto'}}>Edit profile</SecondaryBtn>
+            </>
+          ):(
+            <div style={{textAlign:'left'}}>
+              <label htmlFor="profile-name" style={{display:'block',fontSize:'0.85rem',fontWeight:700,color:T.navy,marginBottom:6,textTransform:'uppercase',letterSpacing:0.6}}>Name</label>
+              <input id="profile-name" value={name} onChange={e=>setName(e.target.value)}
+                aria-invalid={!!errors.name}
+                style={{width:'100%',minHeight:52,padding:'10px 14px',border:`2px solid ${errors.name?T.error:T.border}`,borderRadius:T.rMd,fontSize:'1.1rem',marginBottom:6,fontFamily:'Atkinson Hyperlegible,sans-serif'}}/>
+              {errors.name&&<div role="alert" style={{marginBottom:10,fontSize:'0.88rem',color:T.error,fontWeight:600,display:'flex',gap:6,alignItems:'center'}}><Icon name="alert" size={14} color={T.error}/>{errors.name}</div>}
+
+              <div style={{fontSize:'0.85rem',fontWeight:700,color:T.navy,marginBottom:6,marginTop:10,textTransform:'uppercase',letterSpacing:0.6}}>Gender</div>
+              <div style={{display:'flex',gap:8,marginBottom:16}} role="group" aria-label="Gender">
+                {[{v:'female',l:'Female'},{v:'male',l:'Male'}].map(o=>(
+                  <button key={o.v} type="button" aria-pressed={gender===o.v} onClick={()=>setGender(o.v)}
+                    style={{flex:1,minHeight:48,borderRadius:T.rMd,border:`2px solid ${gender===o.v?T.teal:T.border}`,background:gender===o.v?T.tealL:'#fff',color:gender===o.v?T.teal:T.textM,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>{o.l}</button>
+                ))}
+              </div>
+
+              <div style={{fontSize:'0.85rem',fontWeight:700,color:T.navy,marginBottom:6,textTransform:'uppercase',letterSpacing:0.6}}>Age group</div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:6}} role="group" aria-label="Age group">
+                {AGE_GROUPS.map(ag=>(
+                  <button key={ag.label} type="button" aria-pressed={ageGroup===ag.label&&!ageCustom}
+                    onClick={()=>{setAgeGroup(ag.label);setAgeCustom('');setErrors(ev=>({...ev,age:''}));}}
+                    style={{minHeight:44,borderRadius:T.rMd,border:`2px solid ${errors.age&&!ageGroup&&!ageCustom?T.error:ageGroup===ag.label&&!ageCustom?T.teal:T.border}`,background:ageGroup===ag.label&&!ageCustom?T.tealL:'#fff',color:T.navy,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>{ag.label}</button>
+                ))}
+              </div>
+              {errors.age&&<div role="alert" style={{marginBottom:10,fontSize:'0.88rem',color:T.error,fontWeight:600,display:'flex',gap:6,alignItems:'center'}}><Icon name="alert" size={14} color={T.error}/>{errors.age}</div>}
+
+              <div style={{display:'flex',gap:10,marginTop:14}}>
+                <SecondaryBtn onClick={()=>{setEditing(false);setErrors({});}}>Cancel</SecondaryBtn>
+                <PrimaryBtn color={T.teal} onClick={saveProfile} disabled={saving}>{saving?'Saving…':'Save'}</PrimaryBtn>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      <Card style={{marginBottom:20}}>
+        <div style={{padding:'20px 18px'}}>
+          <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem',marginBottom:14,fontFamily:'Fraunces,Georgia,serif'}}>Your journey</div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
+            {[['Sessions',total,T.navy],['Day streak',streak,T.gold],['Avg accuracy',`${avgAcc}%`,T.teal]].map(([l,v,c])=>(
+              <div key={l} style={{textAlign:'center',background:T.bg,borderRadius:T.rMd,padding:'14px 8px'}}>
+                <div style={{fontSize:'1.4rem',fontWeight:800,color:c,fontFamily:'Fraunces,Georgia,serif'}}>{v}</div>
+                <div style={{fontSize:'0.78rem',color:T.textS,marginTop:2,fontWeight:600}}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      <Card style={{marginBottom:20}}>
+        <div style={{padding:'20px 18px'}}>
+          <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem',marginBottom:14,fontFamily:'Fraunces,Georgia,serif'}}>Achievements</div>
+          <div style={{display:'flex',gap:14,overflowX:'auto',paddingBottom:4}}>
+            {achievements.map(a=><AchievementBadge key={a.label} {...a}/>)}
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <div style={{padding:'8px 8px'}}>
+          {[
+            {label:'Insights',icon:'insights',onClick:()=>onPlay('insights')},
+            {label:'Settings',icon:'gear',onClick:()=>onPlay('settings')},
+            {label:'Help Center',icon:'question',onClick:()=>onPlay('help')},
+          ].map((row,i)=>(
+            <button key={row.label} onClick={row.onClick} style={{
+              width:'100%',display:'flex',alignItems:'center',gap:14,padding:'16px 14px',
+              background:'none',border:'none',borderBottom:i<2?`1px solid ${T.borderLight}`:'none',
+              cursor:'pointer',textAlign:'left',fontFamily:'inherit',
+            }}>
+              <Icon name={row.icon} size={20} color={T.navy}/>
+              <span style={{flex:1,fontSize:'1rem',fontWeight:700,color:T.navy}}>{row.label}</span>
+              <Icon name="chevronRight" size={16} color={T.textS}/>
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <p style={{textAlign:'center',fontSize:'0.8rem',color:T.textS,marginTop:18}}>CLIVE v1.0</p>
+    </Screen>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SETTINGS — real, working preferences only. No toggles for features
+   that don't exist (push notifications, dark mode, language switch
+   are not implemented, so they are not offered here).
+───────────────────────────────────────────────────────────────── */
+const TEXT_SIZES=[{id:'normal',label:'Normal',px:18},{id:'large',label:'Large',px:20},{id:'xlarge',label:'Extra large',px:23}];
+
+function Settings({player,authUser,onBack,onUpdatePlayer,textSize,setTextSize,reduceMotion,setReduceMotion}){
+  const [exporting,setExporting]=useState(false);
+  const [confirmDelete,setConfirmDelete]=useState(false);
+
+  async function exportData(){
+    if(!authUser) return;
+    setExporting(true);
+    try{
+      const [{ data:sessions },{ data:cog },{ data:profile }] = await Promise.all([
+        supabase.from('sessions').select('exercise_id,level,score,total,duration_ms,played_at').eq('user_id',authUser.id).order('played_at',{ascending:true}),
+        supabase.from('cognitive_age_tests').select('cognitive_age,domain_scores,taken_at').eq('user_id',authUser.id).order('taken_at',{ascending:true}),
+        supabase.from('profiles').select('name,gender,age,age_group,created_at').eq('id',authUser.id).maybeSingle(),
+      ]);
+      const payload={exported_at:new Date().toISOString(),profile:profile||null,sessions:sessions||[],cognitive_age_tests:cog||[]};
+      const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download='clive-my-data.json'; document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+    }catch(e){ console.log('CLIVE: export failed', e); }
+    setExporting(false);
+  }
+
+  function Row({icon,label,desc,right,onClick,danger}){
+    // Use a real <button> only when the row itself is clickable. When it isn't
+    // (e.g. rows that host their own interactive controls like the text-size
+    // buttons or the reduce-motion switch), rendering a disabled <button>
+    // wrapper would block pointer events on ALL descendants per the HTML spec
+    // — so those inner controls become unclickable. A plain <div> avoids that.
+    const Tag = onClick ? 'button' : 'div';
+    return(
+      <Tag onClick={onClick} style={{
+        width:'100%',display:'flex',alignItems:'center',gap:14,padding:'16px 4px',
+        background:'none',border:'none',borderBottom:`1px solid ${T.borderLight}`,
+        cursor:onClick?'pointer':'default',textAlign:'left',fontFamily:'inherit',
+      }}>
+        <div style={{width:38,height:38,borderRadius:T.rSm,background:danger?T.errorL:T.bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+          <Icon name={icon} size={18} color={danger?T.error:T.navy}/>
+        </div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:'0.98rem',fontWeight:700,color:danger?T.error:T.navy}}>{label}</div>
+          {desc&&<div style={{fontSize:'0.82rem',color:T.textS,marginTop:1}}>{desc}</div>}
+        </div>
+        {right}
+      </Tag>
+    );
+  }
+
+  return(
+    <Screen player={player} title="Settings" onBack={onBack} backLabel="Profile" headerColor={T.navy}>
+      <Card style={{marginBottom:20}}>
+        <div style={{padding:'18px 18px',display:'flex',alignItems:'center',gap:16}}>
+          <Avatar url={player.avatarUrl} size={52} bg={T.tealL} fallback={<Icon name="person" size={24} color={T.teal}/>}/>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem'}}>{player.name}</div>
+            <div style={{fontSize:'0.85rem',color:T.textS}}>{authUser&&!authUser.is_anonymous?authUser.email:'Progress not linked to an email yet'}</div>
+          </div>
+        </div>
+      </Card>
+
+      <div style={{fontSize:'0.78rem',fontWeight:700,color:T.textS,letterSpacing:0.6,textTransform:'uppercase',marginBottom:8,marginTop:4}}>Accessibility</div>
+      <Card style={{marginBottom:20}}>
+        <div style={{padding:'4px 18px'}}>
+          <Row icon="alert" label="Text size" desc="Applies across the whole app"
+            right={
+              <div style={{display:'flex',gap:6}}>
+                {TEXT_SIZES.map(sz=>(
+                  <span key={sz.id} onClick={(e)=>{e.stopPropagation();setTextSize(sz.id);}}
+                    role="button" tabIndex={0} aria-pressed={textSize===sz.id}
+                    onKeyDown={e=>{if(e.key==='Enter'){setTextSize(sz.id);}}}
+                    style={{
+                      minHeight:36,padding:'6px 12px',borderRadius:T.rFull,fontSize:'0.85rem',fontWeight:700,cursor:'pointer',
+                      background:textSize===sz.id?T.navy:T.bg,color:textSize===sz.id?'#fff':T.textM,
+                    }}>{sz.label}</span>
+                ))}
+              </div>
+            }/>
+          <Row icon="alert" label="Reduce motion" desc="Turns off animations and transitions"
+            right={
+              <span onClick={(e)=>{e.stopPropagation();setReduceMotion(!reduceMotion);}}
+                role="switch" aria-checked={reduceMotion} tabIndex={0}
+                onKeyDown={e=>{if(e.key==='Enter') setReduceMotion(!reduceMotion);}}
+                style={{
+                  width:48,height:28,borderRadius:100,padding:3,cursor:'pointer',
+                  background:reduceMotion?T.teal:T.border,display:'flex',
+                  justifyContent:reduceMotion?'flex-end':'flex-start',
+                }}><span style={{width:22,height:22,borderRadius:'50%',background:'#fff',display:'block'}}/></span>
+            }/>
+        </div>
+      </Card>
+
+      <div style={{fontSize:'0.78rem',fontWeight:700,color:T.textS,letterSpacing:0.6,textTransform:'uppercase',marginBottom:8}}>Privacy &amp; data</div>
+      <Card style={{marginBottom:20}}>
+        <div style={{padding:'4px 18px'}}>
+          <Row icon="export" label="Export my data" desc="Download your sessions and results as a file"
+            onClick={exportData}
+            right={<span style={{fontSize:'0.85rem',color:T.textS,fontWeight:600}}>{exporting?'Preparing…':''}</span>}/>
+          <Row icon="trash" label="Delete my data" desc="Request permanent deletion of your account and data" danger
+            onClick={()=>setConfirmDelete(true)}/>
+        </div>
+      </Card>
+
+      <div style={{fontSize:'0.78rem',fontWeight:700,color:T.textS,letterSpacing:0.6,textTransform:'uppercase',marginBottom:8}}>About</div>
+      <Card>
+        <div style={{padding:'18px 18px'}}>
+          <p style={{fontSize:'0.95rem',color:T.textM,lineHeight:1.6,marginBottom:12}}>
+            CLIVE is a calm, ad-free cognitive training app for adults 55+, grounded in clinically validated methods.
+          </p>
+          <div style={{fontSize:'0.85rem',color:T.textS}}>Version 1.0</div>
+        </div>
+      </Card>
+
+      {confirmDelete&&(
+        <div role="dialog" aria-label="Confirm data deletion" style={{
+          position:'fixed',inset:0,background:'rgba(31,42,50,0.5)',display:'flex',alignItems:'center',justifyContent:'center',padding:20,zIndex:50,
+        }}>
+          <div style={{background:T.surface,borderRadius:T.rLg,padding:'26px 24px',maxWidth:420,width:'100%',boxShadow:T.shadow3}}>
+            <h3 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:700,fontSize:'1.3rem',color:T.navy,marginBottom:10}}>Request account deletion</h3>
+            <p style={{fontSize:'0.98rem',color:T.textM,lineHeight:1.6,marginBottom:20}}>
+              This sends a request to CLIVE support to permanently delete your account and all training data. This can't be undone once processed.
+            </p>
+            <div style={{display:'flex',gap:10}}>
+              <SecondaryBtn onClick={()=>setConfirmDelete(false)}>Cancel</SecondaryBtn>
+              <PrimaryBtn color={T.error} onClick={()=>{window.location.href='mailto:support@getclive.app?subject=Delete%20my%20CLIVE%20data';setConfirmDelete(false);}}>Send request</PrimaryBtn>
+            </div>
+          </div>
+        </div>
+      )}
+    </Screen>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   HELP CENTER — real, searchable FAQ grounded in CLIVE's actual
+   mechanics (no fabricated claims about unimplemented features).
+───────────────────────────────────────────────────────────────── */
+const FAQS=[
+  {cat:'Getting Started',q:'How does CLIVE work?',a:'Each day, CLIVE suggests one short exercise from a rotating set of six games, each targeting a different cognitive skill: working memory, attention, episodic memory, visual memory, and executive function. Sessions take a few minutes.'},
+  {cat:'Getting Started',q:'Do I need to play every exercise every day?',a:'No — the dashboard highlights one suggested session, but you can play any exercise, any time, from the Exercises list.'},
+  {cat:'Using CLIVE',q:'How is my score calculated?',a:'Each session compares how many items or questions you answered correctly out of the total for that round. Your accuracy is the percentage correct.'},
+  {cat:'Using CLIVE',q:'What is the Cognitive Age Test?',a:'It is a short, informal check-in combining a working-memory task, an attention task, and a recall task. It compares your combined performance to typical scores for your age group. It is not a medical or diagnostic test.'},
+  {cat:'Using CLIVE',q:'Why do the exercises get harder over time?',a:'Shopping List increases the number of items to remember as you succeed, so the challenge stays appropriate to your level.'},
+  {cat:'Progress',q:'Where can I see my progress?',a:'Open Insights from the dashboard header to see your accuracy trend, a breakdown by exercise, and your current day streak.'},
+  {cat:'Progress',q:'What counts toward my day streak?',a:'Any day with at least one completed session. The streak continues until a full day passes with no session.'},
+  {cat:'Account & Settings',q:'Do I need to create an account?',a:'No — CLIVE starts saving your progress automatically. If you want to keep your progress across devices, you can link an email from the Profile screen.'},
+  {cat:'Account & Settings',q:'How do I change my name, gender, or age group?',a:'Go to Profile and tap Edit profile.'},
+  {cat:'Account & Settings',q:'Can I make the text bigger?',a:'Yes — go to Settings → Accessibility → Text size.'},
+  {cat:'Privacy & Security',q:'Is my data shared with anyone?',a:'No. CLIVE does not sell or share your personal training data. It is stored securely and used only to show you your own progress.'},
+  {cat:'Privacy & Security',q:'Can I download my data?',a:'Yes — go to Settings → Privacy & data → Export my data.'},
+  {cat:'Privacy & Security',q:'Can I delete my data?',a:'Yes — go to Settings → Privacy & data → Delete my data to send a deletion request.'},
+];
+const HELP_TOPICS=[
+  {cat:'Getting Started',icon:'person'},
+  {cat:'Using CLIVE',icon:'insights'},
+  {cat:'Account & Settings',icon:'gear'},
+  {cat:'Privacy & Security',icon:'export'},
+];
+
+function HelpCenter({player,onBack}){
+  const [query,setQuery]=useState('');
+  const [cat,setCat]=useState(null);
+  const [openIdx,setOpenIdx]=useState(null);
+
+  const filtered=FAQS.filter(f=>{
+    if(cat&&f.cat!==cat) return false;
+    if(!query.trim()) return true;
+    const q=query.trim().toLowerCase();
+    return f.q.toLowerCase().includes(q)||f.a.toLowerCase().includes(q);
+  });
+
+  return(
+    <Screen player={player} title="Help Center" onBack={onBack} backLabel="Profile" headerColor={T.teal}>
+      <div style={{position:'relative',marginBottom:20}}>
+        <span style={{position:'absolute',left:16,top:'50%',transform:'translateY(-50%)'}}><Icon name="search" size={18} color={T.textS}/></span>
+        <input
+          type="search" value={query} onChange={e=>setQuery(e.target.value)}
+          placeholder="Search for help articles…" aria-label="Search help articles"
+          style={{width:'100%',minHeight:56,padding:'12px 16px 12px 46px',border:`2px solid ${T.border}`,borderRadius:T.rFull,fontSize:'1.05rem',color:T.text,outline:'none',fontFamily:'Atkinson Hyperlegible,sans-serif',background:'#fff'}}
+        />
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10,marginBottom:20}} role="group" aria-label="Topics">
+        {HELP_TOPICS.map(t=>(
+          <button key={t.cat} onClick={()=>setCat(cat===t.cat?null:t.cat)} aria-pressed={cat===t.cat}
+            style={{
+              display:'flex',alignItems:'center',gap:10,padding:'14px',borderRadius:T.rMd,textAlign:'left',
+              border:`2px solid ${cat===t.cat?T.teal:T.borderLight}`,background:cat===t.cat?T.tealL:T.surface,cursor:'pointer',fontFamily:'inherit',
+            }}>
+            <Icon name={t.icon} size={20} color={T.teal}/>
+            <span style={{fontSize:'0.92rem',fontWeight:700,color:T.navy}}>{t.cat}</span>
+          </button>
+        ))}
+      </div>
+
+      <Card style={{marginBottom:20}}>
+        <div style={{padding:'8px 18px'}}>
+          <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem',padding:'12px 0',fontFamily:'Fraunces,Georgia,serif'}}>
+            {cat?cat:'Frequently asked questions'}
+          </div>
+          {filtered.length===0&&<p style={{color:T.textS,fontSize:'0.95rem',padding:'12px 0'}}>No articles match your search.</p>}
+          {filtered.map((f,i)=>(
+            <div key={i} style={{borderTop:i>0?`1px solid ${T.borderLight}`:'none'}}>
+              <button onClick={()=>setOpenIdx(openIdx===i?null:i)} aria-expanded={openIdx===i}
+                style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,padding:'14px 0',background:'none',border:'none',textAlign:'left',cursor:'pointer',fontFamily:'inherit'}}>
+                <span style={{fontSize:'0.98rem',fontWeight:700,color:T.navy}}>{f.q}</span>
+                <span style={{transform:openIdx===i?'rotate(90deg)':'none',transition:'transform 0.2s',flexShrink:0}}><Icon name="chevronRight" size={16} color={T.textS}/></span>
+              </button>
+              {openIdx===i&&<p style={{fontSize:'0.95rem',color:T.textM,lineHeight:1.6,paddingBottom:14}}>{f.a}</p>}
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <div style={{padding:'22px 20px',textAlign:'center'}}>
+          <div style={{fontWeight:700,color:T.navy,fontSize:'1.1rem',marginBottom:6,fontFamily:'Fraunces,Georgia,serif'}}>Still need help?</div>
+          <p style={{fontSize:'0.95rem',color:T.textM,marginBottom:16}}>Our support team is ready to assist you.</p>
+          <PrimaryBtn color={T.navy} onClick={()=>{window.location.href='mailto:support@getclive.app';}}>Contact support</PrimaryBtn>
+        </div>
+      </Card>
+    </Screen>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
    APP ROUTER
 ───────────────────────────────────────────────────────────────── */
 function App(){
@@ -2750,6 +3414,23 @@ function App(){
   const [screen,setScreen]=useState('onboarding');
   const [authUser,setAuthUser]=useState(null);
   const [authReady,setAuthReady]=useState(false);
+  const [textSize,setTextSize]=useState(()=>localStorage.getItem('clive_text_size')||'normal');
+  const [reduceMotion,setReduceMotion]=useState(()=>localStorage.getItem('clive_reduce_motion')==='1');
+
+  /* Settings: text size — scales the html root font-size, which every
+     rem-based measurement in the app is relative to. */
+  useEffect(()=>{
+    const sz=TEXT_SIZES.find(s=>s.id===textSize)||TEXT_SIZES[0];
+    document.documentElement.style.fontSize=sz.px+'px';
+    localStorage.setItem('clive_text_size',textSize);
+  },[textSize]);
+
+  /* Settings: reduce motion — user-controlled override, independent of
+     the OS-level prefers-reduced-motion media query already in place. */
+  useEffect(()=>{
+    document.documentElement.classList.toggle('clive-reduce-motion',reduceMotion);
+    localStorage.setItem('clive_reduce_motion',reduceMotion?'1':'0');
+  },[reduceMotion]);
 
   /* Bootstrap: resume existing session, or sign in anonymously so
      progress can be saved from the very first tap — no form, no password. */
@@ -2776,7 +3457,7 @@ function App(){
     (async()=>{
       const { data } = await supabase.from('profiles').select('*').eq('id',authUser.id).maybeSingle();
       if(data){
-        setPlayer({name:data.name,gender:data.gender,age:data.age_group||String(data.age),ageNum:data.age});
+        setPlayer({name:data.name,gender:data.gender,age:data.age_group||String(data.age),ageNum:data.age,avatarUrl:data.avatar_url||null});
         setScreen('menu');
       }
     })();
@@ -2797,6 +3478,15 @@ function App(){
     }
   }}/>;
 
+  async function updatePlayer(p){
+    setPlayer(p);
+    if(authUser){
+      // avatar_url included so a future photo-upload feature can persist it
+      // just by passing avatarUrl through this same call — no upload UI yet.
+      await supabase.from('profiles').upsert({id:authUser.id,name:p.name,gender:p.gender,age:p.ageNum,age_group:p.age,avatar_url:p.avatarUrl||null});
+    }
+  }
+
   const games={
     shopping:<ShoppingList player={player} onBack={()=>setScreen('menu')}/>,
     odd:     <FindOdd      player={player} onBack={()=>setScreen('menu')}/>,
@@ -2805,6 +3495,11 @@ function App(){
     pairs:   <MatchingPairs player={player} onBack={()=>setScreen('menu')}/>,
     route:   <TheRoute     player={player} onBack={()=>setScreen('menu')}/>,
     cogtest: <CognitiveAgeTest player={player} onBack={()=>setScreen('menu')}/>,
+    insights:<Insights player={player} authUser={authUser} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
+    profile: <Profile  player={player} authUser={authUser} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)} onUpdatePlayer={updatePlayer}/>,
+    settings:<Settings player={player} authUser={authUser} onBack={()=>setScreen('profile')} onUpdatePlayer={updatePlayer}
+                textSize={textSize} setTextSize={setTextSize} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion}/>,
+    help:    <HelpCenter player={player} onBack={()=>setScreen('profile')}/>,
   };
   return games[screen]||<Menu player={player} authUser={authUser} onPlay={id=>setScreen(id)}/>;
 }
