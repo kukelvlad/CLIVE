@@ -399,6 +399,28 @@ function Illustration({name,size=48,alt='',style={}}){
   );
 }
 
+// Viewport-safe game grid — used by Find the Odd One and Matching Pairs.
+// Bug this fixes: those grids used a fixed per-cell `aspect-ratio:1`, which
+// sizes cells from the AVAILABLE WIDTH only. On any short viewport (a
+// non-maximized laptop window, landscape mobile, or just a smaller screen)
+// the grid could end up taller than the visible viewport, pushing rows —
+// including the one with the correct answer — below the fold during a
+// timed round. Here the *wrapper* carries both the aspect-ratio (cols:rows)
+// and a maxHeight in vh, so the whole grid shrinks to fit whatever vertical
+// space is actually available instead of only ever growing with width.
+function BoundedGrid({cols,rows,maxVh=46,gap=10,children,ariaLabel}){
+  return(
+    <div style={{maxWidth:'100%',maxHeight:`${maxVh}vh`,aspectRatio:`${cols}/${rows}`,margin:'0 auto'}}>
+      <div role="group" aria-label={ariaLabel} style={{
+        display:'grid',gridTemplateColumns:`repeat(${cols},1fr)`,gridTemplateRows:`repeat(${rows},1fr)`,
+        gap,width:'100%',height:'100%',
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 /* ─────────────────────────────────────────────────────────────────
    SUPABASE — auth (anonymous → linked) + progress persistence
 ───────────────────────────────────────────────────────────────── */
@@ -487,7 +509,7 @@ function SecondaryBtn({children,onClick,icon,style={}}){
 /* ─────────────────────────────────────────────────────────────────
    SHARED: SCREEN WRAPPER — sticky header with large back button
 ───────────────────────────────────────────────────────────────── */
-function Screen({player,title,subtitle,onBack,children,headerColor,backLabel}){
+function Screen({player,title,subtitle,onBack,children,headerColor,backLabel,footer}){
   const accent = headerColor||T.navy;
   return(
     <div style={{height:'100vh',background:T.bg,display:'flex',flexDirection:'column',overflow:'hidden',animation:`screenEnter ${MOTION.normal}ms ${MOTION.easeOut}`}}>
@@ -544,6 +566,18 @@ function Screen({player,title,subtitle,onBack,children,headerColor,backLabel}){
       <main role="main" style={{flex:1,maxWidth:820,margin:'0 auto',padding:'18px 16px 20px',width:'100%',overflowY:'auto'}}>
         {children}
       </main>
+
+      {/* Sticky action footer — sits outside the scrollable main so primary
+          buttons (continue/next round/play again) are always visible without
+          extra scrolling, no matter how tall the content above is. */}
+      {footer&&(
+        <div style={{
+          flexShrink:0,background:T.surface,borderTop:`1px solid ${T.borderLight}`,
+          padding:'12px 16px',boxShadow:'0 -2px 10px rgba(13,43,78,0.08)',
+        }}>
+          <div style={{maxWidth:820,margin:'0 auto',width:'100%'}}>{footer}</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1377,13 +1411,16 @@ function ShoppingList({player,onBack}){
   if(phase==='result'){
     const last=rounds[rounds.length-1];
     return(
-      <Screen player={player} title={`Round ${round} — Result`} onBack={onBack} headerColor={T.teal}>
+      <Screen player={player} title={`Round ${round} — Result`} onBack={onBack} headerColor={T.teal}
+        footer={<PrimaryBtn color={T.teal} icon="→" onClick={next}>
+          {round>=TOTAL?'See final results':'Round '+(round+1)}
+        </PrimaryBtn>}>
         <Card>
           <div style={{padding:'28px 22px'}}>
             <ResultHeader correct={last.c} total={last.tot}/>
 
             {/* Item review */}
-            <div style={{marginBottom:24}}>
+            <div style={{marginBottom:round>=TOTAL?24:0}}>
               <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem',marginBottom:12}}>Your answers:</div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:8}}>
                 {last.target.map(item=>{
@@ -1410,10 +1447,6 @@ function ShoppingList({player,onBack}){
             </div>
 
             {round>=TOTAL&&<CognitiveAge player={player}/>}
-
-            <PrimaryBtn color={T.teal} icon="→" onClick={next}>
-              {round>=TOTAL?'See final results':'Round '+(round+1)}
-            </PrimaryBtn>
           </div>
         </Card>
       </Screen>
@@ -1424,7 +1457,11 @@ function ShoppingList({player,onBack}){
     const tp=Math.round((score.c/score.tot)*100);
     const stars=tp>=90?3:tp>=65?2:1;
     return(
-      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.teal}>
+      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.teal}
+        footer={<div style={{display:'flex',gap:12}}>
+          <SecondaryBtn icon="↺" onClick={()=>{setRound(1);setScore({c:0,tot:0});setRounds([]);setLvl(0);setPhase('intro');}}>Play again</SecondaryBtn>
+          <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+        </div>}>
         <Card>
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
@@ -1461,13 +1498,8 @@ function ShoppingList({player,onBack}){
             </div>
 
             {/* What you trained */}
-            <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.teal}44`}}>
+            <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.teal}44`}}>
               <strong style={{color:T.teal}}>What you trained:</strong> Working memory and episodic recall — used every day for remembering names, appointments, shopping, and instructions.
-            </div>
-
-            <div style={{display:'flex',gap:12}}>
-              <SecondaryBtn icon="↺" onClick={()=>{setRound(1);setScore({c:0,tot:0});setRounds([]);setLvl(0);setPhase('intro');}}>Play again</SecondaryBtn>
-              <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
             </div>
           </div>
         </Card>
@@ -1580,7 +1612,12 @@ function FindOdd({player,onBack}){
   );
 
   if(phase==='play') return(
-    <Screen player={player} title={`Round ${round}/${TOTAL}`} onBack={onBack} headerColor={T.mint}>
+    <Screen player={player} title={`Round ${round}/${TOTAL}`} onBack={onBack} headerColor={T.mint}
+      footer={answered&&(
+        <PrimaryBtn color={T.mint} icon="→" onClick={next}>
+          {round>=TOTAL?'See results':'Round '+(round+1)}
+        </PrimaryBtn>
+      )}>
       <Card>
         <div style={{padding:'22px 20px'}}>
           <div style={{marginBottom:16}}>
@@ -1592,31 +1629,33 @@ function FindOdd({player,onBack}){
             <span style={{fontSize:'1.05rem',fontWeight:700,color:T.mint}}>Tap the item that is different from all others</span>
           </div>
 
-          {/* 3×3 grid — large tap targets */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:16}} role="group" aria-label="Find the odd item">
-            {grid.map((item,i)=>{
-              const isOdd=item===current.odd;
-              const bg=answered?(isOdd?(wasCorrect?T.successL:T.errorL):'#fff'):'#fff';
-              const border=answered&&isOdd?(wasCorrect?T.success:T.error):T.border;
-              return(
-                <button key={i}
-                  aria-label={`Item ${i+1}`}
-                  onClick={()=>!answered&&handleAnswer(item)}
-                  style={{
-                    aspectRatio:'1',
-                    background:bg,
-                    border:`3px solid ${border}`,
-                    borderRadius:16, cursor:answered?'default':'pointer',
-                    display:'flex',alignItems:'center',justifyContent:'center',
-                    transition:'all 0.15s',
-                    fontFamily:'inherit',
-                  }}>
-                  {ODD_ILLUSTRATED.has(item.icon)
-                    ? <Illustration name={item.icon} size={64}/>
-                    : <Icon name={item.icon} color={item.color} size={64}/>}
-                </button>
-              );
-            })}
+          {/* 3×3 grid — large tap targets, height-bounded so it always fits
+              the viewport during the timed round (see BoundedGrid) */}
+          <div style={{marginBottom:16}}>
+            <BoundedGrid cols={3} rows={3} maxVh={46} ariaLabel="Find the odd item">
+              {grid.map((item,i)=>{
+                const isOdd=item===current.odd;
+                const bg=answered?(isOdd?(wasCorrect?T.successL:T.errorL):'#fff'):'#fff';
+                const border=answered&&isOdd?(wasCorrect?T.success:T.error):T.border;
+                return(
+                  <button key={i}
+                    aria-label={`Item ${i+1}`}
+                    onClick={()=>!answered&&handleAnswer(item)}
+                    style={{
+                      background:bg,
+                      border:`3px solid ${border}`,
+                      borderRadius:16, cursor:answered?'default':'pointer',
+                      display:'flex',alignItems:'center',justifyContent:'center',
+                      transition:'all 0.15s',
+                      fontFamily:'inherit',
+                    }}>
+                    {ODD_ILLUSTRATED.has(item.icon)
+                      ? <Illustration name={item.icon} size={64}/>
+                      : <Icon name={item.icon} color={item.color} size={64}/>}
+                  </button>
+                );
+              })}
+            </BoundedGrid>
           </div>
 
           {answered&&(
@@ -1638,9 +1677,6 @@ function FindOdd({player,onBack}){
                 </div>
                 {!wasCorrect&&<div style={{fontSize:'1rem',color:T.textS,marginTop:4}}>{current.hint}</div>}
               </div>
-              <PrimaryBtn color={T.mint} icon="→" onClick={next}>
-                {round>=TOTAL?'See results':'Round '+(round+1)}
-              </PrimaryBtn>
             </div>
           )}
         </div>
@@ -1654,7 +1690,11 @@ function FindOdd({player,onBack}){
     const avgT=correct.length?Math.round(correct.reduce((a,b)=>a+b.timeUsed,0)/correct.length):0;
     const stars=pct>=90?3:pct>=60?2:1;
     return(
-      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.mint}>
+      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.mint}
+        footer={<div style={{display:'flex',gap:12}}>
+          <SecondaryBtn icon="↺" onClick={()=>{setRound(1);setResults([]);setPhase('intro');}}>Play again</SecondaryBtn>
+          <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+        </div>}>
         <Card>
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
@@ -1670,12 +1710,8 @@ function FindOdd({player,onBack}){
               ))}
             </div>
             <CognitiveAge player={player}/>
-            <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`}}>
+            <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.mint}44`}}>
               <strong style={{color:T.mint}}>What you trained:</strong> Selective and sustained attention, and processing speed — essential for reading, driving, and following conversations.
-            </div>
-            <div style={{display:'flex',gap:12}}>
-              <SecondaryBtn icon="↺" onClick={()=>{setRound(1);setResults([]);setPhase('intro');}}>Play again</SecondaryBtn>
-              <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
             </div>
           </div>
         </Card>
@@ -1861,7 +1897,11 @@ function WhatWasYesterday({player,onBack}){
     const pct=Math.round((score/S.qs.length)*100);
     const stars=pct>=90?3:pct>=60?2:1;
     return(
-      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.teal}>
+      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.teal}
+        footer={<div style={{display:'flex',gap:12}}>
+          <SecondaryBtn icon="↺" onClick={()=>{setQi(0);setAnswers([]);setChosen(null);setReadT(35);setPhase('intro');}}>Play again</SecondaryBtn>
+          <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+        </div>}>
         <Card>
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
@@ -1877,12 +1917,8 @@ function WhatWasYesterday({player,onBack}){
               ))}
             </div>
             <CognitiveAge player={player}/>
-            <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.teal}44`}}>
+            <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.teal}44`}}>
               <strong style={{color:T.teal}}>What you trained:</strong> Episodic memory — retaining details from everyday events, essential for conversations, medical instructions, and daily planning.
-            </div>
-            <div style={{display:'flex',gap:12}}>
-              <SecondaryBtn icon="↺" onClick={()=>{setQi(0);setAnswers([]);setChosen(null);setReadT(35);setPhase('intro');}}>Play again</SecondaryBtn>
-              <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
             </div>
           </div>
         </Card>
@@ -2078,7 +2114,11 @@ function NumberChain({player,onBack}){
   if(phase==='complete'){
     const pct=Math.round((score/TOTAL)*100);const stars=pct>=90?3:pct>=60?2:1;
     return(
-      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.mint}>
+      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.mint}
+        footer={<div style={{display:'flex',gap:12}}>
+          <SecondaryBtn icon="↺" onClick={()=>{setRound(1);setResults([]);setInput([]);setFeedback(null);setPhase('intro');}}>Play again</SecondaryBtn>
+          <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+        </div>}>
         <Card>
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
@@ -2094,12 +2134,8 @@ function NumberChain({player,onBack}){
               ))}
             </div>
             <CognitiveAge player={player}/>
-            <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`}}>
+            <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.mint}44`}}>
               <strong style={{color:T.mint}}>What you trained:</strong> Working memory and processing speed — essential for mental arithmetic, following multi-step instructions, and holding information in mind while doing tasks.
-            </div>
-            <div style={{display:'flex',gap:12}}>
-              <SecondaryBtn icon="↺" onClick={()=>{setRound(1);setResults([]);setInput([]);setFeedback(null);setPhase('intro');}}>Play again</SecondaryBtn>
-              <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
             </div>
           </div>
         </Card>
@@ -2208,8 +2244,10 @@ function MatchingPairs({player,onBack}){
             </div>
           </div>
 
-          {/* Card grid — extra large tap targets */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10}} role="grid" aria-label="Memory card grid">
+          {/* Card grid — extra large tap targets, height-bounded (see BoundedGrid)
+              so all 12 cards stay visible instead of the bottom row being
+              pushed off-screen on shorter viewports */}
+          <BoundedGrid cols={4} rows={3} maxVh={44} ariaLabel="Memory card grid">
             {cards.map(c=>{
               const isFl=flipped.includes(c.uid)||matched.includes(c.uid);
               const isMa=matched.includes(c.uid);
@@ -2219,7 +2257,6 @@ function MatchingPairs({player,onBack}){
                   aria-label={isFl?c.e:'Hidden card'}
                   onClick={()=>flip(c.uid)}
                   style={{
-                    aspectRatio:'1',
                     borderRadius:T.rMd,
                     border:`3px solid ${isMismatch?T.error:isMa?T.success:isFl?T.teal:T.border}`,
                     background:isMismatch?T.errorL:isMa?T.successL:isFl?T.tealL:T.navy,
@@ -2232,7 +2269,7 @@ function MatchingPairs({player,onBack}){
                 </button>
               );
             })}
-          </div>
+          </BoundedGrid>
         </div>
       </Card>
     </Screen>
@@ -2241,7 +2278,11 @@ function MatchingPairs({player,onBack}){
   if(phase==='complete'){
     const stars=moves<=PAIRS+2?3:moves<=PAIRS*2?2:1;
     return(
-      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.teal}>
+      <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.teal}
+        footer={<div style={{display:'flex',gap:12}}>
+          <SecondaryBtn icon="↺" onClick={start}>Play again</SecondaryBtn>
+          <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+        </div>}>
         <Card>
           <div style={{padding:'28px 22px'}}>
             <div style={{textAlign:'center',marginBottom:20}}>
@@ -2258,12 +2299,8 @@ function MatchingPairs({player,onBack}){
               ))}
             </div>
             <CognitiveAge player={player}/>
-            <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.teal}44`}}>
+            <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.teal}44`}}>
               <strong style={{color:T.teal}}>What you trained:</strong> Visual memory and spatial reasoning — used for recognising faces, navigating familiar places, and finding objects around the home.
-            </div>
-            <div style={{display:'flex',gap:12}}>
-              <SecondaryBtn icon="↺" onClick={start}>Play again</SecondaryBtn>
-              <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
             </div>
           </div>
         </Card>
@@ -2344,7 +2381,14 @@ function TheRoute({player,onBack}){
   );
 
   if(phase==='play') return(
-    <Screen player={player} title="Plan your route" onBack={onBack} headerColor={T.mint}>
+    <Screen player={player} title="Plan your route" onBack={onBack} headerColor={T.mint}
+      footer={<div style={{display:'flex',gap:12}}>
+        <SecondaryBtn icon="↺" onClick={()=>{setPath([]);setMsg('');setMsgType('');setDone(false);}}>Reset</SecondaryBtn>
+        {done
+          ?<PrimaryBtn color={T.mint} icon="→" onClick={()=>setPhase('complete')}>See results</PrimaryBtn>
+          :<PrimaryBtn color={T.mint} icon="✓" onClick={check} disabled={path.length<2}>Check my route</PrimaryBtn>
+        }
+      </div>}>
       <Card>
         <div style={{padding:'20px 18px'}}>
           {/* Instructions — clear numbered list */}
@@ -2365,9 +2409,12 @@ function TheRoute({player,onBack}){
             ))}
           </div>
 
-          {/* Map SVG */}
+          {/* Map SVG — maxHeight bounds it to the viewport (with width:100%
+              and height:auto, the browser shrinks both dimensions together
+              to preserve the viewBox aspect ratio) so the map never grows
+              taller than what's actually visible on shorter screens */}
           <div style={{margin:'0 auto',marginBottom:14,background:T.bg,borderRadius:16,padding:8}}>
-            <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{display:'block'}}>
+            <svg width="100%" height="auto" viewBox={`0 0 ${W} ${H}`} style={{display:'block',maxHeight:'42vh',margin:'0 auto'}}>
               {T2.edges.map(([a,b],i)=>{
                 const na=T2.nodes.find(n=>n.id===a);const nb=T2.nodes.find(n=>n.id===b);
                 const pa=pos(na);const pb=pos(nb);
@@ -2404,40 +2451,32 @@ function TheRoute({player,onBack}){
           {/* Feedback message — large, clear */}
           {msg&&(
             <div style={{
-              borderRadius:T.rMd,padding:'14px 18px',marginBottom:12,fontSize:'1.05rem',
+              borderRadius:T.rMd,padding:'14px 18px',fontSize:'1.05rem',
               textAlign:'center',fontWeight:700,lineHeight:1.5,
               background:msgType==='success'?T.successL:msgType==='error'?T.errorL:T.goldL,
               color:msgType==='success'?T.success:msgType==='error'?T.error:T.gold,
               border:`2px solid ${msgType==='success'?T.success:msgType==='error'?T.error:T.gold}44`,
             }}>{msg}</div>
           )}
-
-          <div style={{display:'flex',gap:12}}>
-            <SecondaryBtn icon="↺" onClick={()=>{setPath([]);setMsg('');setMsgType('');setDone(false);}}>Reset</SecondaryBtn>
-            {done
-              ?<PrimaryBtn color={T.mint} icon="→" onClick={()=>setPhase('complete')}>See results</PrimaryBtn>
-              :<PrimaryBtn color={T.mint} icon="✓" onClick={check} disabled={path.length<2}>Check my route</PrimaryBtn>
-            }
-          </div>
         </div>
       </Card>
     </Screen>
   );
 
   if(phase==='complete') return(
-    <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.mint}>
+    <Screen player={player} title="Session Complete" onBack={onBack} headerColor={T.mint}
+      footer={<div style={{display:'flex',gap:12}}>
+        <SecondaryBtn icon="↺" onClick={()=>{setPath([]);setMsg('');setMsgType('');setDone(false);setPhase('play');}}>Play again</SecondaryBtn>
+        <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+      </div>}>
       <Card>
         <div style={{padding:'28px 22px',textAlign:'center'}}>
           <div style={{marginBottom:14}}><StarRating stars={3}/></div>
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}</h2>
           <p style={{fontSize:'1.1rem',color:T.textM,marginBottom:22}}>You planned the correct route successfully.</p>
           <CognitiveAge player={player}/>
-          <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,marginBottom:22,border:`1px solid ${T.mint}44`,textAlign:'left'}}>
+          <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.mint}44`,textAlign:'left'}}>
             <strong style={{color:T.mint}}>What you trained:</strong> Executive function — planning, sequencing, and following rules. These skills are used for planning errands, managing medications, and organising the day.
-          </div>
-          <div style={{display:'flex',gap:12}}>
-            <SecondaryBtn icon="↺" onClick={()=>{setPath([]);setMsg('');setMsgType('');setDone(false);setPhase('play');}}>Play again</SecondaryBtn>
-            <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
           </div>
         </div>
       </Card>
@@ -2673,14 +2712,13 @@ function CognitiveAgeTest({player,onBack}){
           <div style={{background:T.mintL,borderRadius:12,padding:'12px 16px',marginBottom:18,textAlign:'center'}}>
             <span style={{fontSize:'1.05rem',fontWeight:700,color:T.mint}}>Tap the item that is different from all others</span>
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}} role="group" aria-label="Find the odd item">
+          <BoundedGrid cols={3} rows={3} maxVh={40} ariaLabel="Find the odd item">
             {oddGrid.map((item,i)=>(
               <button key={i}
                 aria-label={`Item ${i+1}`}
                 onClick={()=>!oddAnswered&&oddAnswer(item)}
                 disabled={oddAnswered}
                 style={{
-                  aspectRatio:'1',
                   background:'#fff',
                   border:`3px solid ${T.border}`,
                   borderRadius:16, cursor:oddAnswered?'default':'pointer',
@@ -2692,7 +2730,7 @@ function CognitiveAgeTest({player,onBack}){
                   : <Icon name={item.icon} color={item.color} size={44}/>}
               </button>
             ))}
-          </div>
+          </BoundedGrid>
         </div>
       </Card>
     </Screen>
@@ -2751,7 +2789,11 @@ function CognitiveAgeTest({player,onBack}){
 
   if(phase==='result'){
     return(
-      <Screen player={player} title="Your Result" onBack={onBack} headerColor={T.navy}>
+      <Screen player={player} title="Your Result" onBack={onBack} headerColor={T.navy}
+        footer={<div style={{display:'flex',gap:12}}>
+          <SecondaryBtn icon="↺" onClick={()=>{setOddResults([]);setChainCorrect(0);setPhase('intro');}}>Test again</SecondaryBtn>
+          <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
+        </div>}>
         <Card>
           <div style={{padding:'28px 22px'}}>
             <div style={{
@@ -2774,12 +2816,8 @@ function CognitiveAgeTest({player,onBack}){
                 </div>
               ))}
             </div>
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:T.rMd,padding:'14px 18px',fontSize:'0.92rem',color:T.textM,lineHeight:1.6,marginBottom:22}}>
+            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:T.rMd,padding:'14px 18px',fontSize:'0.92rem',color:T.textM,lineHeight:1.6}}>
               This is an informal, self-comparison estimate against typical scores for your age group — not a clinical or diagnostic result. Keep training daily to track your trend over time.
-            </div>
-            <div style={{display:'flex',gap:12}}>
-              <SecondaryBtn icon="↺" onClick={()=>{setOddResults([]);setChainCorrect(0);setPhase('intro');}}>Test again</SecondaryBtn>
-              <PrimaryBtn color={T.navy} icon="⌂" onClick={onBack}>Dashboard</PrimaryBtn>
             </div>
           </div>
         </Card>
