@@ -3186,8 +3186,14 @@ function Settings({player,authUser,onBack,onUpdatePlayer,textSize,setTextSize,re
   }
 
   function Row({icon,label,desc,right,onClick,danger}){
+    // Use a real <button> only when the row itself is clickable. When it isn't
+    // (e.g. rows that host their own interactive controls like the text-size
+    // buttons or the reduce-motion switch), rendering a disabled <button>
+    // wrapper would block pointer events on ALL descendants per the HTML spec
+    // — so those inner controls become unclickable. A plain <div> avoids that.
+    const Tag = onClick ? 'button' : 'div';
     return(
-      <button onClick={onClick} disabled={!onClick} style={{
+      <Tag onClick={onClick} style={{
         width:'100%',display:'flex',alignItems:'center',gap:14,padding:'16px 4px',
         background:'none',border:'none',borderBottom:`1px solid ${T.borderLight}`,
         cursor:onClick?'pointer':'default',textAlign:'left',fontFamily:'inherit',
@@ -3200,7 +3206,7 @@ function Settings({player,authUser,onBack,onUpdatePlayer,textSize,setTextSize,re
           {desc&&<div style={{fontSize:'0.82rem',color:T.textS,marginTop:1}}>{desc}</div>}
         </div>
         {right}
-      </button>
+      </Tag>
     );
   }
 
