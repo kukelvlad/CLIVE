@@ -366,6 +366,25 @@ function Icon({name,size=28,color='currentColor',style={}}){
   );
 }
 
+// Profile avatar — renders the uploaded photo when present, otherwise falls
+// back to the existing initial-letter/icon circle. There is no upload UI yet
+// (deferred to the app-store release — needs a Supabase Storage bucket, an
+// upload/crop flow, and a storage RLS policy); this component and the
+// `avatarUrl` field on `player` (persisted as profiles.avatar_url) are the
+// hook a future upload feature will slot into without touching every
+// avatar call site again.
+function Avatar({url,size,bg,fallback}){
+  if(url){
+    return <img src={url} alt="" width={size} height={size}
+      style={{width:size,height:size,borderRadius:'50%',objectFit:'cover',flexShrink:0}}/>;
+  }
+  return(
+    <div style={{width:size,height:size,borderRadius:'50%',background:bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+      {fallback}
+    </div>
+  );
+}
+
 /* Hand-painted illustration (warm gouache/watercolor style, matches
    hero_still_life.webp / dashboard_coastal_path.webp) — used in place of
    the flat Icon set wherever a game shows an actual product or object. */
@@ -1029,11 +1048,10 @@ function Menu({player,authUser,onPlay}){
               display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
             }}><Icon name="insights" size={22} color={T.navy}/></button>
           <button onClick={()=>onPlay('profile')} aria-label={`Profile — ${player.name}`}
-            style={{
-              width:40,height:40,borderRadius:'50%',background:T.tealL,border:'none',cursor:'pointer',
-              display:'flex',alignItems:'center',justifyContent:'center',
-              fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',fontSize:'1.05rem',
-            }}>{(player.name||'?').trim()[0]?.toUpperCase()}</button>
+            style={{width:40,height:40,borderRadius:'50%',border:'none',cursor:'pointer',padding:0}}>
+            <Avatar url={player.avatarUrl} size={40} bg={T.tealL}
+              fallback={<span style={{fontWeight:700,color:T.teal,fontFamily:'Fraunces,Georgia,serif',fontSize:'1.05rem'}}>{(player.name||'?').trim()[0]?.toUpperCase()}</span>}/>
+          </button>
         </div>
       </header>
 
@@ -3063,8 +3081,10 @@ function Profile({player,authUser,onBack,onPlay,onUpdatePlayer}){
     <Screen player={player} title="Profile" onBack={onBack} headerColor={T.teal}>
       <Card style={{marginBottom:20}}>
         <div style={{padding:'28px 24px',textAlign:'center'}}>
-          <div style={{width:88,height:88,borderRadius:'50%',background:T.tealL,margin:'0 auto 14px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-            <Icon name="person" size={40} color={T.teal}/>
+          {/* Photo upload not implemented yet — see Avatar component note.
+              Renders player.avatarUrl once a future upload flow sets it. */}
+          <div style={{margin:'0 auto 14px',width:88}}>
+            <Avatar url={player.avatarUrl} size={88} bg={T.tealL} fallback={<Icon name="person" size={40} color={T.teal}/>}/>
           </div>
           {!editing?(
             <>
@@ -3214,9 +3234,7 @@ function Settings({player,authUser,onBack,onUpdatePlayer,textSize,setTextSize,re
     <Screen player={player} title="Settings" onBack={onBack} backLabel="Profile" headerColor={T.navy}>
       <Card style={{marginBottom:20}}>
         <div style={{padding:'18px 18px',display:'flex',alignItems:'center',gap:16}}>
-          <div style={{width:52,height:52,borderRadius:'50%',background:T.tealL,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-            <Icon name="person" size={24} color={T.teal}/>
-          </div>
+          <Avatar url={player.avatarUrl} size={52} bg={T.tealL} fallback={<Icon name="person" size={24} color={T.teal}/>}/>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontWeight:700,color:T.navy,fontSize:'1.05rem'}}>{player.name}</div>
             <div style={{fontSize:'0.85rem',color:T.textS}}>{authUser&&!authUser.is_anonymous?authUser.email:'Progress not linked to an email yet'}</div>
@@ -3439,7 +3457,7 @@ function App(){
     (async()=>{
       const { data } = await supabase.from('profiles').select('*').eq('id',authUser.id).maybeSingle();
       if(data){
-        setPlayer({name:data.name,gender:data.gender,age:data.age_group||String(data.age),ageNum:data.age});
+        setPlayer({name:data.name,gender:data.gender,age:data.age_group||String(data.age),ageNum:data.age,avatarUrl:data.avatar_url||null});
         setScreen('menu');
       }
     })();
@@ -3463,7 +3481,9 @@ function App(){
   async function updatePlayer(p){
     setPlayer(p);
     if(authUser){
-      await supabase.from('profiles').upsert({id:authUser.id,name:p.name,gender:p.gender,age:p.ageNum,age_group:p.age});
+      // avatar_url included so a future photo-upload feature can persist it
+      // just by passing avatarUrl through this same call — no upload UI yet.
+      await supabase.from('profiles').upsert({id:authUser.id,name:p.name,gender:p.gender,age:p.ageNum,age_group:p.age,avatar_url:p.avatarUrl||null});
     }
   }
 
