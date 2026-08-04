@@ -482,22 +482,24 @@ function PrimaryBtn({children,onClick,disabled,color,icon,style={}}){
 }
 
 /* Secondary button — outlined */
-function SecondaryBtn({children,onClick,icon,style={}}){
+function SecondaryBtn({children,onClick,icon,disabled,style={}}){
   const [pressed,setPressed]=useState(false);
   return(
     <button
-      onClick={onClick}
+      onClick={!disabled?onClick:undefined}
       onMouseDown={()=>setPressed(true)} onMouseUp={()=>setPressed(false)}
       onTouchStart={()=>setPressed(true)} onTouchEnd={()=>setPressed(false)}
+      aria-disabled={disabled}
       style={{
         display:'flex', alignItems:'center', justifyContent:'center', gap:10,
         width:'100%', minHeight:64, padding:'0 32px',
-        background: pressed ? T.tealL : T.surface,
+        background: pressed&&!disabled ? T.tealL : T.surface,
         color: T.navy, fontSize:'1.05rem', fontWeight:600,
-        borderRadius:T.rXl, border:`1.5px solid ${T.border}`, cursor:'pointer',
+        borderRadius:T.rXl, border:`1.5px solid ${T.border}`, cursor:disabled?'not-allowed':'pointer',
         fontFamily:'Atkinson Hyperlegible,sans-serif',
-        transform: pressed ? 'scale(0.98)' : 'scale(1)',
+        transform: pressed&&!disabled ? 'scale(0.98)' : 'scale(1)',
         transition:'all 0.12s',
+        opacity: disabled ? 0.65 : 1,
         ...style
       }}>
       {icon&&<span aria-hidden="true" style={{fontSize:'1.2rem'}}>{icon}</span>}
@@ -3223,6 +3225,27 @@ const TEXT_SIZES=[{id:'normal',label:'Normal',px:18},{id:'large',label:'Large',p
 function Settings({player,authUser,onBack,onUpdatePlayer,textSize,setTextSize,reduceMotion,setReduceMotion}){
   const [exporting,setExporting]=useState(false);
   const [confirmDelete,setConfirmDelete]=useState(false);
+  const [deleting,setDeleting]=useState(false);
+  const [deleteError,setDeleteError]=useState('');
+
+  /* Real, permanent self-service deletion (Apple Guideline 5.1.1(v) requires
+     this to happen in-app, not via a support email). The delete-account
+     Edge Function verifies the caller's own session, then removes the
+     auth.users row via the admin API — profiles/sessions/exercise_state/
+     cognitive_age_tests all cascade-delete automatically via their FK. */
+  async function deleteAccount(){
+    setDeleting(true);setDeleteError('');
+    try{
+      const { data, error } = await supabase.functions.invoke('delete-account');
+      if(error||!data?.success) throw error||new Error('Deletion failed');
+      await supabase.auth.signOut();
+      window.location.reload();
+    }catch(e){
+      console.log('CLIVE: account deletion failed', e);
+      setDeleting(false);
+      setDeleteError("Something went wrong and your account wasn't deleted. Please try again, or email support@getclive.app.");
+    }
+  }
 
   async function exportData(){
     if(!authUser) return;
@@ -3317,8 +3340,8 @@ function Settings({player,authUser,onBack,onUpdatePlayer,textSize,setTextSize,re
           <Row icon="export" label="Export my data" desc="Download your sessions and results as a file"
             onClick={exportData}
             right={<span style={{fontSize:'0.85rem',color:T.textS,fontWeight:600}}>{exporting?'Preparing…':''}</span>}/>
-          <Row icon="trash" label="Delete my data" desc="Request permanent deletion of your account and data" danger
-            onClick={()=>setConfirmDelete(true)}/>
+          <Row icon="trash" label="Delete my account" desc="Permanently delete your account and all training data" danger
+            onClick={()=>{setDeleteError('');setConfirmDelete(true);}}/>
         </div>
       </Card>
 
@@ -3333,17 +3356,20 @@ function Settings({player,authUser,onBack,onUpdatePlayer,textSize,setTextSize,re
       </Card>
 
       {confirmDelete&&(
-        <div role="dialog" aria-label="Confirm data deletion" style={{
+        <div role="dialog" aria-label="Confirm account deletion" style={{
           position:'fixed',inset:0,background:'rgba(31,42,50,0.5)',display:'flex',alignItems:'center',justifyContent:'center',padding:20,zIndex:50,
         }}>
           <div style={{background:T.surface,borderRadius:T.rLg,padding:'26px 24px',maxWidth:420,width:'100%',boxShadow:T.shadow3}}>
-            <h3 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:700,fontSize:'1.3rem',color:T.navy,marginBottom:10}}>Request account deletion</h3>
-            <p style={{fontSize:'0.98rem',color:T.textM,lineHeight:1.6,marginBottom:20}}>
-              This sends a request to CLIVE support to permanently delete your account and all training data. This can't be undone once processed.
+            <h3 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:700,fontSize:'1.3rem',color:T.navy,marginBottom:10}}>Delete your account?</h3>
+            <p style={{fontSize:'0.98rem',color:T.textM,lineHeight:1.6,marginBottom:deleteError?12:20}}>
+              This permanently deletes your account and all training data right now. This can't be undone.
             </p>
+            {deleteError&&(
+              <p role="alert" style={{fontSize:'0.9rem',color:T.error,lineHeight:1.5,marginBottom:16}}>{deleteError}</p>
+            )}
             <div style={{display:'flex',gap:10}}>
-              <SecondaryBtn onClick={()=>setConfirmDelete(false)}>Cancel</SecondaryBtn>
-              <PrimaryBtn color={T.error} onClick={()=>{window.location.href='mailto:support@getclive.app?subject=Delete%20my%20CLIVE%20data';setConfirmDelete(false);}}>Send request</PrimaryBtn>
+              <SecondaryBtn onClick={()=>setConfirmDelete(false)} disabled={deleting}>Cancel</SecondaryBtn>
+              <PrimaryBtn color={T.error} onClick={deleteAccount} disabled={deleting}>{deleting?'Deleting…':'Delete permanently'}</PrimaryBtn>
             </div>
           </div>
         </div>
@@ -3369,7 +3395,7 @@ const FAQS=[
   {cat:'Account & Settings',q:'Can I make the text bigger?',a:'Yes — go to Settings → Accessibility → Text size.'},
   {cat:'Privacy & Security',q:'Is my data shared with anyone?',a:'No. CLIVE does not sell or share your personal training data. It is stored securely and used only to show you your own progress.'},
   {cat:'Privacy & Security',q:'Can I download my data?',a:'Yes — go to Settings → Privacy & data → Export my data.'},
-  {cat:'Privacy & Security',q:'Can I delete my data?',a:'Yes — go to Settings → Privacy & data → Delete my data to send a deletion request.'},
+  {cat:'Privacy & Security',q:'Can I delete my data?',a:'Yes — go to Settings → Privacy & data → Delete my account. This permanently deletes your account and all training data immediately; it can’t be undone.'},
 ];
 const HELP_TOPICS=[
   {cat:'Getting Started',icon:'person'},
