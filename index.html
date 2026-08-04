@@ -687,30 +687,29 @@ function StarRating({stars,size=32}){
 /* ─────────────────────────────────────────────────────────────────
    SHARED: COGNITIVE AGE BLOCK
 ───────────────────────────────────────────────────────────────── */
-function CognitiveAge({player}){
-  const age=parseInt(player.ageNum)||65;
-  const cogAge=Math.max(age-1,18);
+function CognitiveAge({player,onStartTest}){
+  // This banner used to fabricate a "cognitive age" (age - 1) from a single
+  // exercise session — that's not a real measurement, just player.ageNum
+  // minus one, and it doesn't reflect anything the person actually did.
+  // A real cognitive age needs a combined check-in across three domains
+  // (see computeCognitiveAge / AGE_NORMS, used by the actual Cognitive Age
+  // Test screen). One game session can't produce that number honestly, so
+  // this banner now points people to the real test instead of guessing.
   return(
     <div style={{
       background:T.tealL, border:`1px solid ${T.teal}33`,
       borderRadius:T.rLg, padding:'20px 22px', marginBottom:20,
-    }} role="region" aria-label="Cognitive Age result">
-      <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:12}}>
-        <div style={{flex:1}}>
-          <div style={{fontWeight:600,fontSize:'1.2rem',fontFamily:'Fraunces,Georgia,serif',color:T.navy}}>Your Cognitive Age</div>
-          <div style={{fontSize:'0.88rem',color:T.textM}}>Based on this session</div>
-        </div>
-        <div style={{textAlign:'right'}}>
-          <div style={{fontSize:'3rem',fontWeight:600,color:T.teal,lineHeight:1,fontFamily:'Fraunces,Georgia,serif'}}>{cogAge}</div>
-          <div style={{fontSize:'0.82rem',color:T.textM}}>years</div>
-        </div>
+    }} role="region" aria-label="Cognitive Age Test">
+      <div style={{fontWeight:600,fontSize:'1.2rem',fontFamily:'Fraunces,Georgia,serif',color:T.navy,marginBottom:6}}>
+        Want your Cognitive Age?
       </div>
-      <div style={{background:T.surface,borderRadius:T.rMd,padding:'12px 16px',fontSize:'0.98rem',lineHeight:1.6,color:T.textM}}>
-        Compared to average scores for your age group ({player.age}),
-        your cognitive performance matches someone approximately{' '}
-        <strong style={{color:T.navy}}>{cogAge} years old</strong> — one year younger.
-        Keep training daily to maintain and improve this result.
+      <div style={{fontSize:'0.98rem',lineHeight:1.6,color:T.textM,marginBottom:onStartTest?16:0}}>
+        It's measured by a short, combined check-in across three skills — not by a single exercise like this one.
+        Take the ~60-second Cognitive Age Test to see where you stand.
       </div>
+      {onStartTest&&
+        <SecondaryBtn icon="→" onClick={onStartTest} style={{minHeight:52}}>Take the Cognitive Age Test</SecondaryBtn>
+      }
     </div>
   );
 }
@@ -1231,7 +1230,7 @@ const SL_LEVELS=[
   {n:5,items:8,secs:18,label:'Expert'},
 ];
 
-function ShoppingList({player,onBack}){
+function ShoppingList({player,onBack,onPlay}){
   const [phase,setPhase]=useState('intro');
   const [lvl,setLvl]=useState(0);
   const [round,setRound]=useState(1);
@@ -1448,7 +1447,7 @@ function ShoppingList({player,onBack}){
               </div>
             </div>
 
-            {round>=TOTAL&&<CognitiveAge player={player}/>}
+            {round>=TOTAL&&<CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>}
           </div>
         </Card>
       </Screen>
@@ -1484,7 +1483,7 @@ function ShoppingList({player,onBack}){
               ))}
             </div>
 
-            <CognitiveAge player={player}/>
+            <CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>
 
             {/* Round bars */}
             <div style={{marginBottom:22}}>
@@ -1541,7 +1540,7 @@ const ODD_SETS=[
    since the odd item there differs only by colour, not shape. */
 const ODD_ILLUSTRATED = new Set(['apples','orange','dog','cat','star','moon','car','plane','pizza','burger','tree','palmtree','sun','cloud']);
 
-function FindOdd({player,onBack}){
+function FindOdd({player,onBack,onPlay}){
   const [phase,setPhase]=useState('intro');
   const [round,setRound]=useState(1);
   const [current,setCurrent]=useState(null);
@@ -1711,7 +1710,7 @@ function FindOdd({player,onBack}){
                 </div>
               ))}
             </div>
-            <CognitiveAge player={player}/>
+            <CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>
             <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.mint}44`}}>
               <strong style={{color:T.mint}}>What you trained:</strong> Selective and sustained attention, and processing speed — essential for reading, driving, and following conversations.
             </div>
@@ -1751,7 +1750,7 @@ const STORIES=[
   ]},
 ];
 
-function WhatWasYesterday({player,onBack}){
+function WhatWasYesterday({player,onBack,onPlay}){
   const [phase,setPhase]=useState('intro');
   const [si]=useState(()=>Math.floor(Math.random()*STORIES.length));
   const [readT,setReadT]=useState(35);
@@ -1918,7 +1917,7 @@ function WhatWasYesterday({player,onBack}){
                 </div>
               ))}
             </div>
-            <CognitiveAge player={player}/>
+            <CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>
             <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.teal}44`}}>
               <strong style={{color:T.teal}}>What you trained:</strong> Episodic memory — retaining details from everyday events, essential for conversations, medical instructions, and daily planning.
             </div>
@@ -1934,7 +1933,7 @@ function WhatWasYesterday({player,onBack}){
    GAME 4: NUMBER CHAIN (Working Memory + Processing Speed)
    Clinical: NICE NG236 — Digit span backward (MoCA test)
 ───────────────────────────────────────────────────────────────── */
-function NumberChain({player,onBack}){
+function NumberChain({player,onBack,onPlay}){
   const [phase,setPhase]=useState('intro');
   const [round,setRound]=useState(1);
   const [seq,setSeq]=useState([]);
@@ -2135,7 +2134,7 @@ function NumberChain({player,onBack}){
                 </div>
               ))}
             </div>
-            <CognitiveAge player={player}/>
+            <CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>
             <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.mint}44`}}>
               <strong style={{color:T.mint}}>What you trained:</strong> Working memory and processing speed — essential for mental arithmetic, following multi-step instructions, and holding information in mind while doing tasks.
             </div>
@@ -2157,7 +2156,7 @@ const PAIR_POOL=[
   {id:'i',e:'fox'},{id:'j',e:'leaf'},{id:'k',e:'dolphin'},{id:'l',e:'tent'},
 ];
 
-function MatchingPairs({player,onBack}){
+function MatchingPairs({player,onBack,onPlay}){
   const [phase,setPhase]=useState('intro');
   const [cards,setCards]=useState([]);
   const [flipped,setFlipped]=useState([]);
@@ -2300,7 +2299,7 @@ function MatchingPairs({player,onBack}){
                 </div>
               ))}
             </div>
-            <CognitiveAge player={player}/>
+            <CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>
             <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.teal}44`}}>
               <strong style={{color:T.teal}}>What you trained:</strong> Visual memory and spatial reasoning — used for recognising faces, navigating familiar places, and finding objects around the home.
             </div>
@@ -2327,7 +2326,7 @@ const TASKS=[
    correct:['library','postoffice','cafe','park'],forbidden:['school']},
 ];
 
-function TheRoute({player,onBack}){
+function TheRoute({player,onBack,onPlay}){
   const [phase,setPhase]=useState('intro');
   const [ti]=useState(()=>Math.floor(Math.random()*TASKS.length));
   const [path,setPath]=useState([]);
@@ -2476,7 +2475,7 @@ function TheRoute({player,onBack}){
           <div style={{marginBottom:14}}><StarRating stars={3}/></div>
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}</h2>
           <p style={{fontSize:'1.1rem',color:T.textM,marginBottom:22}}>You planned the correct route successfully.</p>
-          <CognitiveAge player={player}/>
+          <CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>
           <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.mint}44`,textAlign:'left'}}>
             <strong style={{color:T.mint}}>What you trained:</strong> Executive function — planning, sequencing, and following rules. These skills are used for planning errands, managing medications, and organising the day.
           </div>
@@ -3552,12 +3551,12 @@ function App(){
   }
 
   const games={
-    shopping:<ShoppingList player={player} onBack={()=>setScreen('menu')}/>,
-    odd:     <FindOdd      player={player} onBack={()=>setScreen('menu')}/>,
-    yesterday:<WhatWasYesterday player={player} onBack={()=>setScreen('menu')}/>,
-    chain:   <NumberChain  player={player} onBack={()=>setScreen('menu')}/>,
-    pairs:   <MatchingPairs player={player} onBack={()=>setScreen('menu')}/>,
-    route:   <TheRoute     player={player} onBack={()=>setScreen('menu')}/>,
+    shopping:<ShoppingList player={player} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
+    odd:     <FindOdd      player={player} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
+    yesterday:<WhatWasYesterday player={player} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
+    chain:   <NumberChain  player={player} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
+    pairs:   <MatchingPairs player={player} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
+    route:   <TheRoute     player={player} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
     cogtest: <CognitiveAgeTest player={player} onBack={()=>setScreen('menu')}/>,
     insights:<Insights player={player} authUser={authUser} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
     profile: <Profile  player={player} authUser={authUser} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)} onUpdatePlayer={updatePlayer}/>,
