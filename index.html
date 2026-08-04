@@ -482,22 +482,24 @@ function PrimaryBtn({children,onClick,disabled,color,icon,style={}}){
 }
 
 /* Secondary button — outlined */
-function SecondaryBtn({children,onClick,icon,style={}}){
+function SecondaryBtn({children,onClick,icon,disabled,style={}}){
   const [pressed,setPressed]=useState(false);
   return(
     <button
-      onClick={onClick}
+      onClick={!disabled?onClick:undefined}
       onMouseDown={()=>setPressed(true)} onMouseUp={()=>setPressed(false)}
       onTouchStart={()=>setPressed(true)} onTouchEnd={()=>setPressed(false)}
+      aria-disabled={disabled}
       style={{
         display:'flex', alignItems:'center', justifyContent:'center', gap:10,
         width:'100%', minHeight:64, padding:'0 32px',
-        background: pressed ? T.tealL : T.surface,
+        background: pressed&&!disabled ? T.tealL : T.surface,
         color: T.navy, fontSize:'1.05rem', fontWeight:600,
-        borderRadius:T.rXl, border:`1.5px solid ${T.border}`, cursor:'pointer',
+        borderRadius:T.rXl, border:`1.5px solid ${T.border}`, cursor:disabled?'not-allowed':'pointer',
         fontFamily:'Atkinson Hyperlegible,sans-serif',
-        transform: pressed ? 'scale(0.98)' : 'scale(1)',
+        transform: pressed&&!disabled ? 'scale(0.98)' : 'scale(1)',
         transition:'all 0.12s',
+        opacity: disabled ? 0.65 : 1,
         ...style
       }}>
       {icon&&<span aria-hidden="true" style={{fontSize:'1.2rem'}}>{icon}</span>}
@@ -685,30 +687,29 @@ function StarRating({stars,size=32}){
 /* ─────────────────────────────────────────────────────────────────
    SHARED: COGNITIVE AGE BLOCK
 ───────────────────────────────────────────────────────────────── */
-function CognitiveAge({player}){
-  const age=parseInt(player.ageNum)||65;
-  const cogAge=Math.max(age-1,18);
+function CognitiveAge({player,onStartTest}){
+  // This banner used to fabricate a "cognitive age" (age - 1) from a single
+  // exercise session — that's not a real measurement, just player.ageNum
+  // minus one, and it doesn't reflect anything the person actually did.
+  // A real cognitive age needs a combined check-in across three domains
+  // (see computeCognitiveAge / AGE_NORMS, used by the actual Cognitive Age
+  // Test screen). One game session can't produce that number honestly, so
+  // this banner now points people to the real test instead of guessing.
   return(
     <div style={{
       background:T.tealL, border:`1px solid ${T.teal}33`,
       borderRadius:T.rLg, padding:'20px 22px', marginBottom:20,
-    }} role="region" aria-label="Cognitive Age result">
-      <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:12}}>
-        <div style={{flex:1}}>
-          <div style={{fontWeight:600,fontSize:'1.2rem',fontFamily:'Fraunces,Georgia,serif',color:T.navy}}>Your Cognitive Age</div>
-          <div style={{fontSize:'0.88rem',color:T.textM}}>Based on this session</div>
-        </div>
-        <div style={{textAlign:'right'}}>
-          <div style={{fontSize:'3rem',fontWeight:600,color:T.teal,lineHeight:1,fontFamily:'Fraunces,Georgia,serif'}}>{cogAge}</div>
-          <div style={{fontSize:'0.82rem',color:T.textM}}>years</div>
-        </div>
+    }} role="region" aria-label="Cognitive Age Test">
+      <div style={{fontWeight:600,fontSize:'1.2rem',fontFamily:'Fraunces,Georgia,serif',color:T.navy,marginBottom:6}}>
+        Want your Cognitive Age?
       </div>
-      <div style={{background:T.surface,borderRadius:T.rMd,padding:'12px 16px',fontSize:'0.98rem',lineHeight:1.6,color:T.textM}}>
-        Compared to average scores for your age group ({player.age}),
-        your cognitive performance matches someone approximately{' '}
-        <strong style={{color:T.navy}}>{cogAge} years old</strong> — one year younger.
-        Keep training daily to maintain and improve this result.
+      <div style={{fontSize:'0.98rem',lineHeight:1.6,color:T.textM,marginBottom:onStartTest?16:0}}>
+        It's measured by a short, combined check-in across three skills — not by a single exercise like this one.
+        Take the ~60-second Cognitive Age Test to see where you stand.
       </div>
+      {onStartTest&&
+        <SecondaryBtn icon="→" onClick={onStartTest} style={{minHeight:52}}>Take the Cognitive Age Test</SecondaryBtn>
+      }
     </div>
   );
 }
@@ -1229,7 +1230,7 @@ const SL_LEVELS=[
   {n:5,items:8,secs:18,label:'Expert'},
 ];
 
-function ShoppingList({player,onBack}){
+function ShoppingList({player,onBack,onPlay}){
   const [phase,setPhase]=useState('intro');
   const [lvl,setLvl]=useState(0);
   const [round,setRound]=useState(1);
@@ -1446,7 +1447,7 @@ function ShoppingList({player,onBack}){
               </div>
             </div>
 
-            {round>=TOTAL&&<CognitiveAge player={player}/>}
+            {round>=TOTAL&&<CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>}
           </div>
         </Card>
       </Screen>
@@ -1482,7 +1483,7 @@ function ShoppingList({player,onBack}){
               ))}
             </div>
 
-            <CognitiveAge player={player}/>
+            <CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>
 
             {/* Round bars */}
             <div style={{marginBottom:22}}>
@@ -1539,7 +1540,7 @@ const ODD_SETS=[
    since the odd item there differs only by colour, not shape. */
 const ODD_ILLUSTRATED = new Set(['apples','orange','dog','cat','star','moon','car','plane','pizza','burger','tree','palmtree','sun','cloud']);
 
-function FindOdd({player,onBack}){
+function FindOdd({player,onBack,onPlay}){
   const [phase,setPhase]=useState('intro');
   const [round,setRound]=useState(1);
   const [current,setCurrent]=useState(null);
@@ -1709,7 +1710,7 @@ function FindOdd({player,onBack}){
                 </div>
               ))}
             </div>
-            <CognitiveAge player={player}/>
+            <CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>
             <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.mint}44`}}>
               <strong style={{color:T.mint}}>What you trained:</strong> Selective and sustained attention, and processing speed — essential for reading, driving, and following conversations.
             </div>
@@ -1747,9 +1748,72 @@ const STORIES=[
     {q:"What time does Helen arrive?",opts:["1pm","2pm","3pm","4pm"],c:2},
     {q:"What gift is Helen bringing?",opts:["A French recipe book","An Italian recipe book","A painting","Chocolates"],c:1},
   ]},
+  {story:"Walter spent Saturday morning in the garden. His grandson Tom came to visit at 11 o'clock and helped him pick tomatoes. Tom had brought a blue kite with him, and after lunch the two of them flew it in the field behind the house.",
+   qs:[
+    {q:"What day was it?",opts:["Friday","Saturday","Sunday","Monday"],c:1},
+    {q:"What time did Tom arrive?",opts:["9 o'clock","10 o'clock","11 o'clock","Noon"],c:2},
+    {q:"What did they pick in the garden?",opts:["Carrots","Tomatoes","Beans","Strawberries"],c:1},
+    {q:"What colour was the kite?",opts:["Red","Green","Yellow","Blue"],c:3},
+  ]},
+  {story:"Susan had a dentist appointment on Monday at half past two with Dr. Patel. In the waiting room she was given ticket number fourteen. Afterwards, on the way home, she stopped and bought herself a new toothbrush.",
+   qs:[
+    {q:"What day was Susan's appointment?",opts:["Sunday","Monday","Tuesday","Wednesday"],c:1},
+    {q:"Who was the dentist?",opts:["Dr. Khan","Dr. Patel","Dr. Lewis","Dr. Adams"],c:1},
+    {q:"What was Susan's waiting room number?",opts:["Four","Fourteen","Forty","Twelve"],c:1},
+    {q:"What did Susan buy afterwards?",opts:["Toothpaste","A toothbrush","Mouthwash","Floss"],c:1},
+  ]},
+  {story:"Frank went to the church fete on Sunday. The event raised three hundred and forty pounds for the roof fund. Frank tried his luck at the tombola and won a bottle of elderflower cordial.",
+   qs:[
+    {q:"What day was the fete?",opts:["Saturday","Sunday","Monday","Friday"],c:1},
+    {q:"How much money was raised?",opts:["£240","£340","£430","£140"],c:1},
+    {q:"What did the money raise funds for?",opts:["A new hall","The roof fund","A charity trip","New chairs"],c:1},
+    {q:"What did Frank win?",opts:["A jar of honey","A box of chocolates","A bottle of elderflower cordial","A tea set"],c:2},
+  ]},
+  {story:"On Thursday, Barbara's grandchildren Lily and Sam came round after school. Together they baked an apple pie, and in the evening they all watched a film called 'The Lighthouse Keeper'.",
+   qs:[
+    {q:"What day did the grandchildren visit?",opts:["Wednesday","Thursday","Friday","Saturday"],c:1},
+    {q:"What are the grandchildren's names?",opts:["Lily and Sam","Amy and Sam","Lily and Ben","Rosie and Sam"],c:0},
+    {q:"What did they bake?",opts:["A chocolate cake","An apple pie","Bread rolls","Scones"],c:1},
+    {q:"What was the film called?",opts:["The Old Windmill","The Lighthouse Keeper","The Village Bell","The River Path"],c:1},
+  ]},
+  {story:"Harold took his dog Biscuit to the vet on Tuesday. The appointment was with Dr. Chen, and it cost forty-five pounds. Biscuit was given some ear drops to use twice a day.",
+   qs:[
+    {q:"What day was the vet appointment?",opts:["Monday","Tuesday","Wednesday","Thursday"],c:1},
+    {q:"What is the dog's name?",opts:["Buster","Biscuit","Bramble","Barley"],c:1},
+    {q:"Who was the vet?",opts:["Dr. Chen","Dr. Ahmed","Dr. Wells","Dr. Ross"],c:0},
+    {q:"How much did the appointment cost?",opts:["£35","£40","£45","£55"],c:2},
+  ]},
+  {story:"Nancy had a hair appointment on Friday at ten in the morning. She saw a new stylist named Priya for the first time, and while she waited she was given a cup of tea.",
+   qs:[
+    {q:"What day was Nancy's appointment?",opts:["Thursday","Friday","Saturday","Sunday"],c:1},
+    {q:"What time was the appointment?",opts:["9am","10am","11am","Noon"],c:1},
+    {q:"What was the new stylist's name?",opts:["Priya","Maya","Anita","Sonia"],c:0},
+    {q:"What was Nancy given while she waited?",opts:["A biscuit","A magazine","A cup of tea","A glass of water"],c:2},
+  ]},
+  {story:"Arthur went to the post office on Wednesday to mail a parcel to his sister in Bristol. It cost eight pounds fifty to send, and he had to queue behind six other people.",
+   qs:[
+    {q:"What day did Arthur go to the post office?",opts:["Tuesday","Wednesday","Thursday","Friday"],c:1},
+    {q:"Which city was the parcel sent to?",opts:["Bath","Bristol","Birmingham","Brighton"],c:1},
+    {q:"How much did it cost to send?",opts:["£6.50","£7.50","£8.50","£9.50"],c:2},
+    {q:"How many people did Arthur queue behind?",opts:["Four","Five","Six","Seven"],c:2},
+  ]},
+  {story:"Patricia visited the farmers market on Saturday, where she bought a punnet of strawberries and a jar of jam for four pounds. She ran into her friend Joan there, and they chatted for a while by the flower stall.",
+   qs:[
+    {q:"What day was the farmers market?",opts:["Friday","Saturday","Sunday","Monday"],c:1},
+    {q:"What fruit did Patricia buy?",opts:["Raspberries","Blueberries","Strawberries","Cherries"],c:2},
+    {q:"How much was the jar of jam?",opts:["£3","£4","£5","£6"],c:1},
+    {q:"Who did Patricia meet at the market?",opts:["Joan","Helen","Susan","Nancy"],c:0},
+  ]},
+  {story:"On Sunday, Eleanor walked to the lake with her neighbour's dog, Max. She saw three swans on the water, and the whole walk lasted about forty minutes.",
+   qs:[
+    {q:"What day did Eleanor go for the walk?",opts:["Saturday","Sunday","Monday","Tuesday"],c:1},
+    {q:"What is the neighbour's dog called?",opts:["Max","Rex","Duke","Buddy"],c:0},
+    {q:"How many swans did Eleanor see?",opts:["Two","Three","Four","Five"],c:1},
+    {q:"About how long did the walk last?",opts:["Twenty minutes","Thirty minutes","Forty minutes","An hour"],c:2},
+  ]},
 ];
 
-function WhatWasYesterday({player,onBack}){
+function WhatWasYesterday({player,onBack,onPlay}){
   const [phase,setPhase]=useState('intro');
   const [si]=useState(()=>Math.floor(Math.random()*STORIES.length));
   const [readT,setReadT]=useState(35);
@@ -1916,7 +1980,7 @@ function WhatWasYesterday({player,onBack}){
                 </div>
               ))}
             </div>
-            <CognitiveAge player={player}/>
+            <CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>
             <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.teal}44`}}>
               <strong style={{color:T.teal}}>What you trained:</strong> Episodic memory — retaining details from everyday events, essential for conversations, medical instructions, and daily planning.
             </div>
@@ -1932,7 +1996,7 @@ function WhatWasYesterday({player,onBack}){
    GAME 4: NUMBER CHAIN (Working Memory + Processing Speed)
    Clinical: NICE NG236 — Digit span backward (MoCA test)
 ───────────────────────────────────────────────────────────────── */
-function NumberChain({player,onBack}){
+function NumberChain({player,onBack,onPlay}){
   const [phase,setPhase]=useState('intro');
   const [round,setRound]=useState(1);
   const [seq,setSeq]=useState([]);
@@ -2133,7 +2197,7 @@ function NumberChain({player,onBack}){
                 </div>
               ))}
             </div>
-            <CognitiveAge player={player}/>
+            <CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>
             <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.mint}44`}}>
               <strong style={{color:T.mint}}>What you trained:</strong> Working memory and processing speed — essential for mental arithmetic, following multi-step instructions, and holding information in mind while doing tasks.
             </div>
@@ -2153,9 +2217,11 @@ const PAIR_POOL=[
   {id:'a',e:'flower'},{id:'b',e:'butterfly'},{id:'c',e:'moon'},{id:'d',e:'star'},
   {id:'e',e:'rainbow'},{id:'f',e:'turtle'},{id:'g',e:'mushroom'},{id:'h',e:'drum'},
   {id:'i',e:'fox'},{id:'j',e:'leaf'},{id:'k',e:'dolphin'},{id:'l',e:'tent'},
+  {id:'m',e:'cat'},{id:'n',e:'dog'},{id:'o',e:'fish'},{id:'p',e:'sun'},
+  {id:'q',e:'cloud'},{id:'r',e:'palmtree'},
 ];
 
-function MatchingPairs({player,onBack}){
+function MatchingPairs({player,onBack,onPlay}){
   const [phase,setPhase]=useState('intro');
   const [cards,setCards]=useState([]);
   const [flipped,setFlipped]=useState([]);
@@ -2298,7 +2364,7 @@ function MatchingPairs({player,onBack}){
                 </div>
               ))}
             </div>
-            <CognitiveAge player={player}/>
+            <CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>
             <div style={{background:T.tealL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.teal}44`}}>
               <strong style={{color:T.teal}}>What you trained:</strong> Visual memory and spatial reasoning — used for recognising faces, navigating familiar places, and finding objects around the home.
             </div>
@@ -2323,9 +2389,33 @@ const TASKS=[
    nodes:[{id:'library',l:'notebook',n:'Library',x:0,y:1},{id:'postoffice',l:'postoffice',n:'Post Office',x:2,y:0},{id:'cafe',l:'coffee',n:'Café',x:2,y:2},{id:'park',l:'tree',n:'Park',x:4,y:1},{id:'school',l:'school',n:'School',x:1,y:0}],
    edges:[['library','school'],['library','cafe'],['school','postoffice'],['postoffice','park'],['postoffice','cafe'],['cafe','park']],
    correct:['library','postoffice','cafe','park'],forbidden:['school']},
+  {instructions:["Start at Home","Go to the Post Office first","Then visit the Bakery","Return Home","Do NOT pass through the Pharmacy"],
+   nodes:[{id:'home',l:'home',n:'Home',x:0,y:2},{id:'postoffice',l:'postoffice',n:'Post Office',x:2,y:0},{id:'bakery',l:'bread',n:'Bakery',x:2,y:2},{id:'pharmacy',l:'pharmacy',n:'Pharmacy',x:0,y:0},{id:'library',l:'notebook',n:'Library',x:1,y:1}],
+   edges:[['home','pharmacy'],['home','library'],['home','bakery'],['pharmacy','postoffice'],['library','postoffice'],['library','bakery'],['bakery','postoffice']],
+   correct:['home','postoffice','bakery','home'],forbidden:['pharmacy']},
+  {instructions:["Start at the Library","Visit the Café","Then go to the Market","Finish at the Park","Do NOT go through the Pharmacy"],
+   nodes:[{id:'library',l:'notebook',n:'Library',x:0,y:1},{id:'cafe',l:'coffee',n:'Café',x:2,y:0},{id:'market',l:'cart',n:'Market',x:2,y:2},{id:'park',l:'tree',n:'Park',x:4,y:1},{id:'pharmacy',l:'pharmacy',n:'Pharmacy',x:1,y:0}],
+   edges:[['library','pharmacy'],['library','cafe'],['pharmacy','market'],['cafe','market'],['cafe','park'],['market','park']],
+   correct:['library','cafe','market','park'],forbidden:['pharmacy']},
+  {instructions:["Start at Home","Go to the School first","Then visit the Bakery","Return Home","Do NOT pass through the Park"],
+   nodes:[{id:'home',l:'home',n:'Home',x:0,y:2},{id:'school',l:'school',n:'School',x:2,y:0},{id:'bakery',l:'bread',n:'Bakery',x:2,y:2},{id:'park',l:'tree',n:'Park',x:0,y:0},{id:'postoffice',l:'postoffice',n:'Post Office',x:1,y:1}],
+   edges:[['home','park'],['home','postoffice'],['home','bakery'],['park','school'],['postoffice','school'],['postoffice','bakery'],['bakery','school']],
+   correct:['home','school','bakery','home'],forbidden:['park']},
+  {instructions:["Start at the Café","Visit the Post Office","Then go to the Library","Finish at the School","Do NOT go through the Market"],
+   nodes:[{id:'cafe',l:'coffee',n:'Café',x:0,y:1},{id:'postoffice',l:'postoffice',n:'Post Office',x:2,y:0},{id:'library',l:'notebook',n:'Library',x:2,y:2},{id:'school',l:'school',n:'School',x:4,y:1},{id:'market',l:'cart',n:'Market',x:1,y:0}],
+   edges:[['cafe','market'],['cafe','postoffice'],['market','library'],['postoffice','library'],['postoffice','school'],['library','school']],
+   correct:['cafe','postoffice','library','school'],forbidden:['market']},
+  {instructions:["Start at Home","Go to the Pharmacy first","Then visit the Library","Then the Bakery","Return Home","Do NOT pass through the School"],
+   nodes:[{id:'home',l:'home',n:'Home',x:0,y:2},{id:'pharmacy',l:'pharmacy',n:'Pharmacy',x:2,y:0},{id:'library',l:'notebook',n:'Library',x:4,y:0},{id:'bakery',l:'bread',n:'Bakery',x:2,y:2},{id:'school',l:'school',n:'School',x:0,y:0}],
+   edges:[['home','school'],['home','pharmacy'],['home','bakery'],['school','pharmacy'],['pharmacy','library'],['library','bakery'],['bakery','pharmacy']],
+   correct:['home','pharmacy','library','bakery','home'],forbidden:['school']},
+  {instructions:["Start at the Market","Visit the Café","Return to the Market","Do NOT go through the Post Office"],
+   nodes:[{id:'market',l:'cart',n:'Market',x:0,y:1},{id:'cafe',l:'coffee',n:'Café',x:2,y:1},{id:'postoffice',l:'postoffice',n:'Post Office',x:1,y:0},{id:'park',l:'tree',n:'Park',x:1,y:2}],
+   edges:[['market','postoffice'],['market','park'],['postoffice','cafe'],['park','cafe']],
+   correct:['market','cafe','market'],forbidden:['postoffice']},
 ];
 
-function TheRoute({player,onBack}){
+function TheRoute({player,onBack,onPlay}){
   const [phase,setPhase]=useState('intro');
   const [ti]=useState(()=>Math.floor(Math.random()*TASKS.length));
   const [path,setPath]=useState([]);
@@ -2474,7 +2564,7 @@ function TheRoute({player,onBack}){
           <div style={{marginBottom:14}}><StarRating stars={3}/></div>
           <h2 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:800,fontSize:'1.9rem',color:T.navy,marginBottom:6}}>Excellent, {player.name}</h2>
           <p style={{fontSize:'1.1rem',color:T.textM,marginBottom:22}}>You planned the correct route successfully.</p>
-          <CognitiveAge player={player}/>
+          <CognitiveAge player={player} onStartTest={onPlay?()=>onPlay('cogtest'):undefined}/>
           <div style={{background:T.mintL,borderRadius:T.rMd,padding:'14px 18px',fontSize:'1rem',color:T.textM,lineHeight:1.65,border:`1px solid ${T.mint}44`,textAlign:'left'}}>
             <strong style={{color:T.mint}}>What you trained:</strong> Executive function — planning, sequencing, and following rules. These skills are used for planning errands, managing medications, and organising the day.
           </div>
@@ -3223,6 +3313,27 @@ const TEXT_SIZES=[{id:'normal',label:'Normal',px:18},{id:'large',label:'Large',p
 function Settings({player,authUser,onBack,onUpdatePlayer,textSize,setTextSize,reduceMotion,setReduceMotion}){
   const [exporting,setExporting]=useState(false);
   const [confirmDelete,setConfirmDelete]=useState(false);
+  const [deleting,setDeleting]=useState(false);
+  const [deleteError,setDeleteError]=useState('');
+
+  /* Real, permanent self-service deletion (Apple Guideline 5.1.1(v) requires
+     this to happen in-app, not via a support email). The delete-account
+     Edge Function verifies the caller's own session, then removes the
+     auth.users row via the admin API — profiles/sessions/exercise_state/
+     cognitive_age_tests all cascade-delete automatically via their FK. */
+  async function deleteAccount(){
+    setDeleting(true);setDeleteError('');
+    try{
+      const { data, error } = await supabase.functions.invoke('delete-account');
+      if(error||!data?.success) throw error||new Error('Deletion failed');
+      await supabase.auth.signOut();
+      window.location.reload();
+    }catch(e){
+      console.log('CLIVE: account deletion failed', e);
+      setDeleting(false);
+      setDeleteError("Something went wrong and your account wasn't deleted. Please try again, or email support@getclive.app.");
+    }
+  }
 
   async function exportData(){
     if(!authUser) return;
@@ -3317,8 +3428,8 @@ function Settings({player,authUser,onBack,onUpdatePlayer,textSize,setTextSize,re
           <Row icon="export" label="Export my data" desc="Download your sessions and results as a file"
             onClick={exportData}
             right={<span style={{fontSize:'0.85rem',color:T.textS,fontWeight:600}}>{exporting?'Preparing…':''}</span>}/>
-          <Row icon="trash" label="Delete my data" desc="Request permanent deletion of your account and data" danger
-            onClick={()=>setConfirmDelete(true)}/>
+          <Row icon="trash" label="Delete my account" desc="Permanently delete your account and all training data" danger
+            onClick={()=>{setDeleteError('');setConfirmDelete(true);}}/>
         </div>
       </Card>
 
@@ -3333,17 +3444,20 @@ function Settings({player,authUser,onBack,onUpdatePlayer,textSize,setTextSize,re
       </Card>
 
       {confirmDelete&&(
-        <div role="dialog" aria-label="Confirm data deletion" style={{
+        <div role="dialog" aria-label="Confirm account deletion" style={{
           position:'fixed',inset:0,background:'rgba(31,42,50,0.5)',display:'flex',alignItems:'center',justifyContent:'center',padding:20,zIndex:50,
         }}>
           <div style={{background:T.surface,borderRadius:T.rLg,padding:'26px 24px',maxWidth:420,width:'100%',boxShadow:T.shadow3}}>
-            <h3 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:700,fontSize:'1.3rem',color:T.navy,marginBottom:10}}>Request account deletion</h3>
-            <p style={{fontSize:'0.98rem',color:T.textM,lineHeight:1.6,marginBottom:20}}>
-              This sends a request to CLIVE support to permanently delete your account and all training data. This can't be undone once processed.
+            <h3 style={{fontFamily:'Fraunces,Georgia,serif',fontWeight:700,fontSize:'1.3rem',color:T.navy,marginBottom:10}}>Delete your account?</h3>
+            <p style={{fontSize:'0.98rem',color:T.textM,lineHeight:1.6,marginBottom:deleteError?12:20}}>
+              This permanently deletes your account and all training data right now. This can't be undone.
             </p>
+            {deleteError&&(
+              <p role="alert" style={{fontSize:'0.9rem',color:T.error,lineHeight:1.5,marginBottom:16}}>{deleteError}</p>
+            )}
             <div style={{display:'flex',gap:10}}>
-              <SecondaryBtn onClick={()=>setConfirmDelete(false)}>Cancel</SecondaryBtn>
-              <PrimaryBtn color={T.error} onClick={()=>{window.location.href='mailto:support@getclive.app?subject=Delete%20my%20CLIVE%20data';setConfirmDelete(false);}}>Send request</PrimaryBtn>
+              <SecondaryBtn onClick={()=>setConfirmDelete(false)} disabled={deleting}>Cancel</SecondaryBtn>
+              <PrimaryBtn color={T.error} onClick={deleteAccount} disabled={deleting}>{deleting?'Deleting…':'Delete permanently'}</PrimaryBtn>
             </div>
           </div>
         </div>
@@ -3369,7 +3483,7 @@ const FAQS=[
   {cat:'Account & Settings',q:'Can I make the text bigger?',a:'Yes — go to Settings → Accessibility → Text size.'},
   {cat:'Privacy & Security',q:'Is my data shared with anyone?',a:'No. CLIVE does not sell or share your personal training data. It is stored securely and used only to show you your own progress.'},
   {cat:'Privacy & Security',q:'Can I download my data?',a:'Yes — go to Settings → Privacy & data → Export my data.'},
-  {cat:'Privacy & Security',q:'Can I delete my data?',a:'Yes — go to Settings → Privacy & data → Delete my data to send a deletion request.'},
+  {cat:'Privacy & Security',q:'Can I delete my data?',a:'Yes — go to Settings → Privacy & data → Delete my account. This permanently deletes your account and all training data immediately; it can’t be undone.'},
 ];
 const HELP_TOPICS=[
   {cat:'Getting Started',icon:'person'},
@@ -3526,12 +3640,12 @@ function App(){
   }
 
   const games={
-    shopping:<ShoppingList player={player} onBack={()=>setScreen('menu')}/>,
-    odd:     <FindOdd      player={player} onBack={()=>setScreen('menu')}/>,
-    yesterday:<WhatWasYesterday player={player} onBack={()=>setScreen('menu')}/>,
-    chain:   <NumberChain  player={player} onBack={()=>setScreen('menu')}/>,
-    pairs:   <MatchingPairs player={player} onBack={()=>setScreen('menu')}/>,
-    route:   <TheRoute     player={player} onBack={()=>setScreen('menu')}/>,
+    shopping:<ShoppingList player={player} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
+    odd:     <FindOdd      player={player} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
+    yesterday:<WhatWasYesterday player={player} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
+    chain:   <NumberChain  player={player} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
+    pairs:   <MatchingPairs player={player} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
+    route:   <TheRoute     player={player} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
     cogtest: <CognitiveAgeTest player={player} onBack={()=>setScreen('menu')}/>,
     insights:<Insights player={player} authUser={authUser} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)}/>,
     profile: <Profile  player={player} authUser={authUser} onBack={()=>setScreen('menu')} onPlay={id=>setScreen(id)} onUpdatePlayer={updatePlayer}/>,
