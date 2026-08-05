@@ -1,0 +1,7 @@
+node_modules/
+node_modules.old2/
+node_modules.stale/
+dist/
+.expo/
+*.tsbuildinfo
+.DS_Store
